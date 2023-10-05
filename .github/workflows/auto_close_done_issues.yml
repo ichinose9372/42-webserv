@@ -1,0 +1,21 @@
+name: Auto Close Done Issues
+
+on:
+  project_card:
+    types:
+      - moved
+
+jobs:
+  close_issue:
+    runs-on: ubuntu-latest
+    if: github.event.project_card.column_name == 'Done'
+    steps:
+    - name: Close Issue
+      uses: octokit/request-action@v2.x
+      with:
+        route: DELETE /repos/{owner}/{repo}/issues/{issue_number}
+        owner: ${{ github.repository_owner }}
+        repo: ${{ github.repository }}
+        issue_number: ${{ github.event.project_card.content_id }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
