@@ -15,7 +15,7 @@ int main() {
 
 	struct sockaddr_in serverAddress;
 	serverAddress.sin_family = AF_INET;
-	// TODO:inet_addr()について調べる
+	// TODO:クライアントのスクリプトを提出するんだったら、inet_addr()を再実装する必要あり。
 	serverAddress.sin_addr.s_addr = inet_addr("127.0.0.1"); // サーバーのIPアドレス
 	serverAddress.sin_port = htons(8080); // サーバーのポート番号
 
