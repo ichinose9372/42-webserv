@@ -8,12 +8,15 @@ int main()
 {
     try
     {
-        MainConfig my("test.cnf");
+        MainConfig myconf("test.cnf");
+        myconf.parseLine();//make tokens
+        myconf.tokenSerch();//make servers
     }
     catch(const std::exception& e)
     {
-        std::cerr << e.what() << '\n';
+        std::cerr << RED << e.what() << '\n' << RESET;
     }
-    
+
+
     return (0);
 }

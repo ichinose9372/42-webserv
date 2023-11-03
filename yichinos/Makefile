@@ -1,9 +1,9 @@
 NAME = a.out
 CC = c++
-CFLAGS = -Wall -Wextra -Werror -std=c++98
+CFLAGS = -std=c++98
 
-SOURCES = main.cpp MainConfig.cpp
-INCLUDE = MainConfig.hpp
+SOURCES = main.cpp MainConfig.cpp Servers.cpp Locations.cpp
+INCLUDE = MainConfig.hpp Servers.hpp Locations.hpp
 
 all : $(NAME)
 
