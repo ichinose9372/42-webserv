@@ -2,13 +2,14 @@
 
 Locations::Locations()
 {
-    std::cout <<"Locations constructor called" <<std::endl;
+//     std::cout <<"Locations constructor called" <<std::endl;
 }
 
 Locations::~Locations() {}
 
 void Locations::setPath(const std::string& path)
 {
+    std::cout << path << std::endl;
     this->path = path;
 }
 
@@ -19,6 +20,7 @@ const std::string& Locations::getPath(void)
 
 void Locations::setRoot(const std::string& root)
 {
+    std::cout << root << std::endl;
     this->root = root;
 }
 
@@ -29,6 +31,7 @@ const std::string& Locations::getRoot(void)
 
 void Locations::setIndex(const std::string& index)
 {
+    std::cout << index << std::endl;
     this->index = index;
 }
 

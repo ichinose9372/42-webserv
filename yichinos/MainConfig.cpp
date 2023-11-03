@@ -16,9 +16,7 @@ void MainConfig::parseLine(void)
 {
     std::string line;
     while (std::getline(file, line))
-    {
         lineToToken(line);
-    }
 }
 
 void MainConfig::lineToToken(std::string& line)
@@ -26,11 +24,10 @@ void MainConfig::lineToToken(std::string& line)
     std::stringstream ss(line);
     std::string token;
     while (ss >> token)
-    {
-        // std::cout << token << std::endl;
         tokens.push_back(token);
-    }
 }
+
+
 
 void MainConfig::tokenSerch(void)
 {
@@ -39,7 +36,6 @@ void MainConfig::tokenSerch(void)
     {
         if (*it == "server")
         {
-            //preparation for ther server class
             Servers server;
             it++;
             if (*it == "{")
@@ -57,19 +53,18 @@ void MainConfig::tokenSerch(void)
     }
 }
 
+
 void MainConfig::inputServers(std::vector<std::string>::iterator& it, Servers& server)
 {
     if (*it == "listen")
     {
         it++;
-        server.setPort(*it);
-        // std::cout << "liten =  " << *it << std::endl;
+        server.setPort(removeTrailingSemicolon(*it));
     }
     else if (*it == "server_name")
     {
         it++;
-        server.setSeverNames(*it);
-        // std::cout << "server_name =  " << *it << std::endl;
+        server.setSeverNames(removeTrailingSemicolon(*it));
     }
     else if (*it == "location")
     {

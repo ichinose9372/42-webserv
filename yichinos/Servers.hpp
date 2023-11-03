@@ -22,12 +22,15 @@ class Servers
     public:
         Servers();
         ~Servers();
-        void setPort(std::string& port);
-        void setHost(std::string host);
+        void setPort(const std::string& port);
+        void setHost(const std::string& host);
         void setSeverNames(const std::string& sever_names);
         void setLocations(std::vector<std::string>::iterator& it);
         size_t getPort(void);
         const std::string& getHost(void);
 };
+
+std::string  removeTrailingSemicolon(std::string& str);
+
 
 #endif
