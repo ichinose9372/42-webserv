@@ -38,20 +38,25 @@ void MainConfig::tokenSerch(void)
         {
             Servers server;
             it++;
-            if (*it == "{")
+            if (it == tokens.end())
+                throw std::runtime_error("server block is not closed"); 
+            if (*it != "{")
+                throw std::runtime_error("server block is not opened");
+            it+;
+            while (it != tokens.end() && *it != "}")
             {
+                inputServers(it, server);
                 it++;
-                while (*it != "}")
-                {
-                    inputServers(it, server);
-                    it++;
-                }
             }
+            if (it == tokens.end())
+                throw std::runtime_error("server block is not closed");
             servers.push_back(server);
         }
         it++;
     }
 }
+
+//error mana
 
 
 void MainConfig::inputServers(std::vector<std::string>::iterator& it, Servers& server)
@@ -68,6 +73,9 @@ void MainConfig::inputServers(std::vector<std::string>::iterator& it, Servers& s
     }
     else if (*it == "location")
     {
+        it++;
+        if (*it != "{")
+            throw std::runtime_error("location block is not opened");
         it++;
         server.setLocations(it);
     }
