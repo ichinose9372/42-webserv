@@ -4,13 +4,19 @@
 #include <exception>
 
 
-int main()
+int main(int argc, char **argv)
 {
+    if (argc != 2)
+    {
+        return (0);
+    }
     try
     {
-        MainConfig myconf("test.cnf");
+        std::string filename;
+        filename = argv[1];
+        MainConfig myconf(filename);
         myconf.parseLine();//make tokens
-        myconf.tokenSerch();//make servers
+        myconf.tokenSearch();//make servers
     }
     catch(const std::exception& e)
     {

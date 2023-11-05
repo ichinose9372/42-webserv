@@ -21,9 +21,9 @@ class MainConfig
         std::ifstream file;
         void lineToToken(std::string& line);
         void inputServers(std::vector<std::string>::iterator& it, Servers& server);
-        MainConfig();
     public:
-        void tokenSerch(void);
+        MainConfig();
+        void tokenSearch(void);
         void parseLine(void);
         MainConfig(const std::string& filename);
         ~MainConfig();

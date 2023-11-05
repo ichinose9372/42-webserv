@@ -6,8 +6,8 @@ MainConfig::MainConfig(const std::string& filename)
     file.open(filename);
     if (!file.is_open())
         throw std::runtime_error("[KO] file not found");
-    else
-        std::cout << GREEN << "[OK]  File opene " << RESET << std::endl;
+    // else
+    //     std::cout << GREEN << "[OK]  File opene " << RESET << std::endl;
 }
 
 MainConfig::~MainConfig() {}
@@ -27,32 +27,33 @@ void MainConfig::lineToToken(std::string& line)
         tokens.push_back(token);
 }
 
-
-
-void MainConfig::tokenSerch(void)
+void MainConfig::tokenSearch() 
 {
     std::vector<std::string>::iterator it = tokens.begin();
-    while (it != tokens.end())
+    while (it != tokens.end()) 
     {
-        if (*it == "server")
+        if (*it == "server") 
         {
             Servers server;
-            it++;
+            ++it;
             if (it == tokens.end())
-                throw std::runtime_error("server block is not closed"); 
+                throw std::runtime_error("Parse error: Unexpected end of file, expecting '{' for server block");
+            
             if (*it != "{")
-                throw std::runtime_error("server block is not opened");
-            it+;
-            while (it != tokens.end() && *it != "}")
-            {
+                throw std::runtime_error("Parse error: Expected '{' after server keyword");
+            ++it;
+            while (it != tokens.end() && *it != "}") {
                 inputServers(it, server);
-                it++;
+                ++it;
             }
-            if (it == tokens.end())
-                throw std::runtime_error("server block is not closed");
+            
+            if (it == tokens.end() && *it != "}")
+                throw std::runtime_error("Parse error: server block not closed with '}'");
             servers.push_back(server);
         }
-        it++;
+        if (it != tokens.end()) {
+            ++it;
+        }
     }
 }
 
@@ -74,10 +75,10 @@ void MainConfig::inputServers(std::vector<std::string>::iterator& it, Servers& s
     else if (*it == "location")
     {
         it++;
-        if (*it != "{")
-            throw std::runtime_error("location block is not opened");
-        it++;
-        server.setLocations(it);
+        // if (*it != "{")
+        //     throw std::runtime_error("location block is not opened");
+        std::vector<std::string>::iterator end = tokens.end();
+        server.setLocations(it, end);
     }
     else
         return ;
