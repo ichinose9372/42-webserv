@@ -9,36 +9,32 @@ Servers::~Servers() {}
 
 
 // ;　を削除する関数
-std::string  removeTrailingSemicolon(std::string& str) 
+void  removeTrailingSemicolon(std::string& str) 
 {
-    if (!str.empty() && *str.rbegin() == ';') 
+    if (str.empty()) 
     {
-        return (str.erase(str.length() - 1));
+        throw std::runtime_error("Parse error: Expected semicolon, but string is empty");
     }
-    return (str);
-}
-
-void Servers::setPort(const std::string& port)
-{
-    std::stringstream ss(port);
-    size_t port_num;
-    ss >> port_num;
-    if (port_num > 65535)
-        throw std::runtime_error("port number is too big");
-
-    else if (ss.fail())
-        throw std::runtime_error("port number is not a number");
-    else
+    if (str.back() != ';') 
     {
-        // std::cout << port_num << std::endl;
-        this->port = port_num;
+        throw std::runtime_error("Parse error: Expected semicolon at the end of the string");
+    }
+    str.pop_back();
+    if (!str.empty() && str.back() == ';') {
+        throw std::runtime_error("Parse error: Unexpected semicolon");
     }
 }
 
-void Servers::setHost(const std::string&  host)
+void Servers::setPort(const size_t& port)
 {
-    // std::cout << host << std::endl;
-    this->host = host;
+    this->port = port;
+}
+
+
+void Servers::setIndex(const std::string& index)
+{
+    // std::cout << index << std::endl;
+    this->indexs.push_back(index);
 }
 
 void Servers::setSeverNames(const std::string& sever_names)
@@ -54,34 +50,62 @@ void Servers::setLocations(std::vector<std::string>::iterator& it ,std::vector<s
     }
 
     Locations location;
-    while (it != end && *it != "}") {
-        if (*it == "path") {
+    // std::cout << "in location block first token is \"  " << *it << "  \" "<<std::endl;
+    location.setPath(*it);
+    while (it != end && *it != "}") 
+    {
+        
+        if (*it == "path")
+        {
             if (++it == end) break;  // Endをチェック
-            location.setPath(removeTrailingSemicolon(*it));
-        } else if (*it == "root") {
-            if (++it == end) break;  // Endをチェック
-            location.setRoot(removeTrailingSemicolon(*it));
-        } else if (*it == "index") {
-            if (++it == end) break;  // Endをチェック
-            location.setIndex(removeTrailingSemicolon(*it));
+            removeTrailingSemicolon(*it);
+            location.setPath(*it);
         }
-        if (++it == end) {  // Endをチェック
+        else if (*it == "root") 
+        {
+            if (++it == end) break;  // Endをチェック
+            removeTrailingSemicolon(*it);
+            location.setRoot(*it);
+        } else if (*it == "index") 
+        {
+            it++;
+            while (it != end && it->find(";") == std::string::npos) 
+            {
+                std::cout << "locations first = " << *it << std::endl;
+                location.setIndex(*it);
+                it++;
+            }
+            if (it == end) 
+            {
+                throw std::runtime_error("Parse error: Unexpected end of tokens before index block");
+            }
+            removeTrailingSemicolon(*it);
+            std::cout << "locations second = " << *it << std::endl;
+            location.setIndex(*it);
+        }
+        if (++it == end) 
+        {  
             throw std::runtime_error("Parse error: Location block not closed with '}'");
         }
     }
-    if (it != end && *it == "}") {
+    if (it != end && *it == "}") 
+    {
         it++;  // 次のトークンに進む
     }
     locations.push_back(location);
 }
 
-size_t Servers::getPort(void)
+size_t Servers::getPort(void) const
 {
     return (this->port);
 }
 
-const std::string& Servers::getHost(void)
+const std::vector<std::string>& Servers::getIndexs(void) const
 {
-    return (this->host);
+    return (this->indexs);
 }
 
+const std::vector<std::string>& Servers::getServerNames(void) const
+{
+    return (this->sever_names);
+}

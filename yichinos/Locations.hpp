@@ -10,7 +10,7 @@ class Locations
     private:
         std::string path;
         std::string root;
-        std::string index;
+        std::vector<std::string> locations_indexs;
     public:
         Locations();
         ~Locations();
@@ -19,7 +19,7 @@ class Locations
         void setIndex(const std::string& index);
         const std::string& getPath(void);
         const std::string& getRoot(void);
-        const std::string& getIndex(void);
+        const std::vector<std::string>& getIndex(void);
 };
 
 #endif

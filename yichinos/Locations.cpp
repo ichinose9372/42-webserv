@@ -32,10 +32,10 @@ const std::string& Locations::getRoot(void)
 void Locations::setIndex(const std::string& index)
 {
     // std::cout << index << std::endl;
-    this->index = index;
+    this->locations_indexs.push_back(index);
 }
 
-const std::string& Locations::getIndex(void)
+const std::vector<std::string>& Locations::getIndex(void)
 {
-    return (this->index);
+    return (this->locations_indexs);
 }

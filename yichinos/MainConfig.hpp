@@ -25,6 +25,9 @@ class MainConfig
         MainConfig();
         void tokenSearch(void);
         void parseLine(void);
+        bool checkPortNum(const size_t& port);
+        bool checkServerName(const std::string& server_name);
+        size_t validatePort(const std::string& port);
         MainConfig(const std::string& filename);
         ~MainConfig();
 };

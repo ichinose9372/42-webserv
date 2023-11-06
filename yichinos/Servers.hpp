@@ -16,21 +16,24 @@ class Servers
 {
     private:
         size_t port;
-        std::string host;
+        std::vector<std::string> indexs;
         std::vector<std::string> sever_names;
         std::vector<Locations> locations;
     public:
         Servers();
         ~Servers();
-        void setPort(const std::string& port);
-        void setHost(const std::string& host);
+        void setPort(const size_t& port);
+        void setIndex(const std::string& index);
         void setSeverNames(const std::string& sever_names);
         void setLocations(std::vector<std::string>::iterator& it, std::vector<std::string>::iterator& end);
-        size_t getPort(void);
-        const std::string& getHost(void);
+        size_t getPort(void) const;
+        const std::string& getHost(void) const;
+        const std::vector<std::string>& getServerNames(void) const;
+        const std::vector<std::string>& getIndexs(void) const;
+        
 };
 
-std::string  removeTrailingSemicolon(std::string& str);
+void  removeTrailingSemicolon(std::string& str);
 
 
 #endif

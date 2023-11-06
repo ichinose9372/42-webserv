@@ -68,3 +68,40 @@ TEST_F(MainConfigTest, TokenSearchServerBlockNotClosed) {
     EXPECT_THROW(config.tokenSearch(), std::runtime_error);
     TearDownTestFile("server_not_closed.cnf");
 }
+
+TEST_F(MainConfigTest, TokenSearchDoubleSemicolon) {
+    // 二重のセミコロンが存在する場合のテスト
+    SetUpTestFile("double_semicolon.cnf", "server { listen 80;; }");
+    MainConfig config("double_semicolon.cnf");
+    config.parseLine();
+    EXPECT_THROW(config.tokenSearch(), std::runtime_error);
+    TearDownTestFile("double_semicolon.cnf");
+}
+
+TEST_F(MainConfigTest, TokenSearchDuplicatePort) {
+    // 同じポート番号が2回設定されている場合のテスト
+    SetUpTestFile("duplicate_port.cnf", 
+        "server { listen 80; }\n"
+        "server { listen 80; }");
+    MainConfig config("duplicate_port.cnf");
+    config.parseLine();
+    EXPECT_THROW(config.tokenSearch(), std::runtime_error);
+    TearDownTestFile("duplicate_port.cnf");
+}
+
+TEST_F(MainConfigTest, DuplicateServerNameThrowsException) {
+    // 重複する server_name を含む設定ファイルを用意
+    SetUpTestFile("duplicate_server_name.cnf", 
+        "server { server_name example.com; }\n"
+        "server { server_name example.com; }");
+
+    // 設定ファイルを読み込んだときに std::runtime_error が投げられることを期待
+    EXPECT_THROW({
+        MainConfig config("duplicate_server_name.cnf");
+        config.parseLine();
+        config.tokenSearch();
+    }, std::runtime_error);
+
+    // テスト用ファイルを削除
+    TearDownTestFile("duplicate_server_name.cnf");
+}

@@ -68,6 +68,14 @@
         "chrono": "cpp",
         "compare": "cpp",
         "concepts": "cpp",
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "any": "cpp",
+        "condition_variable": "cpp",
+        "csignal": "cpp",
+        "forward_list": "cpp",
+        "set": "cpp",
+        "span": "cpp",
+        "thread": "cpp",
+        "unordered_set": "cpp"
     }
 }
