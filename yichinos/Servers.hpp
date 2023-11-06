@@ -6,6 +6,7 @@
 #include <vector>
 #include "Locations.hpp"
 #include <sstream>
+#include <unistd.h>
 
 #define YELLOW "\033[0;33m"
 #define NORMAL "\033[0m"
@@ -34,6 +35,8 @@ class Servers
 };
 
 void  removeTrailingSemicolon(std::string& str);
+void  checkFileExists(const std::string& filename);
+void  checkFileAccess(const std::string& filename);
 
 
 #endif

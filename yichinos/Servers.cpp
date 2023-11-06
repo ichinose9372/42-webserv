@@ -25,6 +25,23 @@ void  removeTrailingSemicolon(std::string& str)
     }
 }
 
+
+void checkFileExists(const std::string& filename)
+{
+    if (access(filename.c_str(), F_OK) == -1) 
+    {
+        throw std::runtime_error("Parse error: File does not exist");
+    }
+}
+
+void checkFileAccess(const std::string& filename)
+{
+    if (access(filename.c_str(), R_OK) == -1) 
+    {
+        throw std::runtime_error("Parse error: File is not accessible");
+    }
+}
+
 void Servers::setPort(const size_t& port)
 {
     this->port = port;
@@ -57,13 +74,11 @@ void Servers::setLocations(std::vector<std::string>::iterator& it ,std::vector<s
         
         if (*it == "path")
         {
-            if (++it == end) break;  // Endをチェック
             removeTrailingSemicolon(*it);
             location.setPath(*it);
         }
         else if (*it == "root") 
         {
-            if (++it == end) break;  // Endをチェック
             removeTrailingSemicolon(*it);
             location.setRoot(*it);
         } else if (*it == "index") 
@@ -71,16 +86,16 @@ void Servers::setLocations(std::vector<std::string>::iterator& it ,std::vector<s
             it++;
             while (it != end && it->find(";") == std::string::npos) 
             {
-                std::cout << "locations first = " << *it << std::endl;
+                checkFileAccess(*it);
+                checkFileExists(*it);
                 location.setIndex(*it);
                 it++;
             }
             if (it == end) 
-            {
                 throw std::runtime_error("Parse error: Unexpected end of tokens before index block");
-            }
+            checkFileAccess(*it);
+            checkFileExists(*it);
             removeTrailingSemicolon(*it);
-            std::cout << "locations second = " << *it << std::endl;
             location.setIndex(*it);
         }
         if (++it == end) 

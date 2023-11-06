@@ -16,7 +16,16 @@ void MainConfig::parseLine(void)
 {
     std::string line;
     while (std::getline(file, line))
+    {
+        size_t commentPos = line.find("#");
+        if (commentPos != std::string::npos)
+        {
+            line = line.substr(0, commentPos);
+        }
+        if (line.empty())
+            continue;
         lineToToken(line);
+    }
 }
 
 void MainConfig::lineToToken(std::string& line)
@@ -119,14 +128,16 @@ void MainConfig::inputServers(std::vector<std::string>::iterator& it, Servers& s
         it++;
         while (it != tokens.end() && it->find(";") == std::string::npos)
         {
-            std::cout << "first = " << *it << std::endl;
+            checkFileExists(*it);
+            checkFileAccess(*it);
             server.setIndex(*it);
             it++;
         }
         if (it == tokens.end())
             throw std::runtime_error("Parse error: Unexpected end of tokens before index block");
+        checkFileExists(*it);
+        checkFileAccess(*it);
         removeTrailingSemicolon(*it);
-        std::cout << "second = " << *it << std::endl;
         server.setIndex(*it);
     }
     else if (*it == "location")
