@@ -2,8 +2,8 @@ NAME = a.out
 CC = c++
 CFLAGS = -std=c++98
 
-SOURCES = main.cpp MainConfig.cpp Servers.cpp Locations.cpp
-INCLUDE = MainConfig.hpp Servers.hpp Locations.hpp
+SOURCES = main.cpp MainConfig.cpp Servers.cpp Locations.cpp ExclusivePath.cpp
+INCLUDE = MainConfig.hpp Servers.hpp Locations.hpp ExclusivePath.hpp
 
 all : $(NAME)
 

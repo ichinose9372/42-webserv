@@ -47,15 +47,14 @@ void MainConfig::tokenSearch()
             ++it;
             if (it == tokens.end())
                 throw std::runtime_error("Parse error: Unexpected end of file, expecting '{' for server block");
-            
             if (*it != "{")
                 throw std::runtime_error("Parse error: Expected '{' after server keyword");
             ++it;
-            while (it != tokens.end() && *it != "}") {
+            while (it != tokens.end() && *it != "}") 
+            {
                 inputServers(it, server);
                 ++it;
             }
-            
             if (it == tokens.end() && *it != "}")
                 throw std::runtime_error("Parse error: server block not closed with '}'");
             servers.push_back(server);
@@ -76,19 +75,19 @@ bool MainConfig::checkPortNum(const size_t& port)
     return false;
 }
 
-bool MainConfig::checkServerName(const std::string& server_name)
-{
-    for (std::vector<Servers>::iterator it = servers.begin(); it != servers.end(); ++it)
-    {
-        const std::vector<std::string> names = it->getServerNames();
-        for (std::vector<std::string>::const_iterator it2 = names.begin(); it2 != names.end(); ++it2)
-        {
-            if (*it2 == server_name)
-                return true;
-        }
-    }
-    return false;
-}
+// bool MainConfig::checkServerName(const std::string& server_name)
+// {
+//     for (std::vector<Servers>::iterator it = servers.begin(); it != servers.end(); ++it)
+//     {
+//         const std::vector<std::string> names = it->getServerNames();
+//         for (std::vector<std::string>::const_iterator it2 = names.begin(); it2 != names.end(); ++it2)
+//         {
+//             if (*it2 == server_name)
+//                 return true;
+//         }
+//     }
+//     return false;
+// }
 
 size_t MainConfig::validatePort(const std::string& port)
 {
@@ -119,8 +118,6 @@ void MainConfig::inputServers(std::vector<std::string>::iterator& it, Servers& s
     {
         it++;
         removeTrailingSemicolon(*it);
-        if (checkServerName(*it))
-            throw std::runtime_error("server name is not valid");
         server.setSeverNames(*it);
     }
     else if (*it == "index")
@@ -147,7 +144,7 @@ void MainConfig::inputServers(std::vector<std::string>::iterator& it, Servers& s
         server.setLocations(it, end);
     }
     else
-       return ;
+        throw std::runtime_error("Parse error: Unexpected token in server block");
 }
 
 

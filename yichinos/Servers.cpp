@@ -3,6 +3,8 @@
 Servers::Servers() 
 {
     // std::cout << YELLOW <<"Servers constructor called" << NORMAL <<std::endl;
+    serverNameset = false; 
+    port = 0;       
 }
 
 Servers::~Servers() {}
@@ -42,8 +44,12 @@ void checkFileAccess(const std::string& filename)
     }
 }
 
+
+
 void Servers::setPort(const size_t& port)
 {
+    if (this->port != 0)
+        throw std::runtime_error("Parse error: Duplicate port");
     this->port = port;
 }
 
@@ -54,58 +60,146 @@ void Servers::setIndex(const std::string& index)
     this->indexs.push_back(index);
 }
 
-void Servers::setSeverNames(const std::string& sever_names)
+void Servers::setSeverNames(const std::string& sever_name)
 {
     // std::cout << sever_names << std::endl;
-    this->sever_names.push_back(sever_names);
+    if (serverNameset)
+        throw std::runtime_error("Parse error: Duplicate server name");
+    this->sever_name = sever_name;
+    serverNameset = true;
+}
+
+//check same name at Locations
+void Servers::checkPathName(const std::string& path)
+{
+    if (path.empty()) 
+    {
+        throw std::runtime_error("Parse error: Empty path");
+    }
+    std::vector<Locations>::iterator it = locations.begin();
+    for(; it != locations.end(); it++)
+    {
+        if (it->getPath() == path)
+            throw std::runtime_error("Parse error: Duplicate path");
+    }
 }
 
 void Servers::setLocations(std::vector<std::string>::iterator& it ,std::vector<std::string>::iterator& end) // s
 {
+    static bool setErrorPage = true;
+    // std::cout << "setLocations called    \"  " << *it << "  \""  <<std::endl;
      if (it == end) {
         throw std::runtime_error("Parse error: Unexpected end of tokens before location block");
     }
 
+    // if (*it == "{") 
+    // {
+    //     throw std::runtime_error("Parse error: Unexpected '{' before location block");
+    // }
     Locations location;
-    // std::cout << "in location block first token is \"  " << *it << "  \" "<<std::endl;
+    checkPathName(*it);
     location.setPath(*it);
+    it++;
+    if (*it != "{")
+        throw std::runtime_error("Parse error: Expected '{' after location path");
     while (it != end && *it != "}") 
     {
-        
-        if (*it == "path")
+        if (*it == "root") 
         {
+            it++;
             removeTrailingSemicolon(*it);
-            location.setPath(*it);
+            // std::cout << "root path is " << *it << std::endl;
+            location.setExclusivePath(*it, ExclusivePath::ROOT);
         }
-        else if (*it == "root") 
+        else if (*it == "alias")
         {
+            it++;
             removeTrailingSemicolon(*it);
-            location.setRoot(*it);
-        } else if (*it == "index") 
+            // std::cout << "alias path is " << *it << std::endl;
+            location.setExclusivePath(*it, ExclusivePath::ALIAS);
+        }
+        else if (*it == "index") 
         {
             it++;
             while (it != end && it->find(";") == std::string::npos) 
             {
-                checkFileAccess(*it);
-                checkFileExists(*it);
+                // checkFileAccess(*it);
+                // checkFileExists(*it);
+                // std::cout << "index path is " << *it << std::endl;
                 location.setIndex(*it);
                 it++;
             }
             if (it == end) 
                 throw std::runtime_error("Parse error: Unexpected end of tokens before index block");
-            checkFileAccess(*it);
-            checkFileExists(*it);
+            // checkFileAccess(*it);
+            // checkFileExists(*it);
             removeTrailingSemicolon(*it);
+            // std::cout << "index path is " << *it << std::endl;
             location.setIndex(*it);
+        }
+        else if (*it == "autoindex")
+        {
+            it++;
+            removeTrailingSemicolon(*it);
+            if (it == end) 
+                throw std::runtime_error("Parse error: Unexpected end of tokens before autoindex value");
+            if (*it == "on")
+                location.setAutoindex(true);
+            else if (*it == "off")
+                location.setAutoindex(false);
+            else
+                throw std::runtime_error("Parse error: Invalid autoindex value");
+        }
+        else if (*it == "error_page")
+        {
+            if (setErrorPage == false)
+                throw std::runtime_error("Parse error: Duplicate error_page");
+            it++;
+            std::vector<std::string>::iterator it2 = it;
+            while (it2->find(';') == std::string::npos)
+            {
+                it2++;
+                if (it2 == end)
+                    throw std::runtime_error("Parse error: Unexpected end of tokens before error_page code");
+            }
+            removeTrailingSemicolon(*it2);
+            while(it != it2)
+            {
+                std::stringstream ss(*it);
+                int tmp_error_code;
+                ss >> tmp_error_code;
+                // std::cout << "error code is " << tmp_error_code << "  error_page =  " <<*it2 << std::endl;
+                if (tmp_error_code < 400 || tmp_error_code > 599)
+                    throw std::runtime_error("Parse error: Invalid error code");
+                location.setErrorPages(tmp_error_code, *it2);
+                it++;
+            }
+            setErrorPage = false;
+        }
+        else if (*it == "return")
+        {
+            it++;
+            removeTrailingSemicolon(*it);
+            std::stringstream ss(*it);
+            int tmp_return_code;
+            ss >> tmp_return_code;
+            it++;
+            // std::cout << "return code is " << tmp_return_code << *it << std::endl;
+            location.setReturnCode(tmp_return_code, *it);
+        }
+        else if (*it == "cgi_extension")
+        {
+            it++;
+            removeTrailingSemicolon(*it);
+            //if not dot then throw error
+            if (it->find('.') == std::string::npos)
+                throw std::runtime_error("Parse error: Invalid cgi_extension");
+            location.setCgiExtension(*it);
         }
         if (++it == end) 
         {  
             throw std::runtime_error("Parse error: Location block not closed with '}'");
         }
-    }
-    if (it != end && *it == "}") 
-    {
-        it++;  // 次のトークンに進む
     }
     locations.push_back(location);
 }
@@ -120,7 +214,7 @@ const std::vector<std::string>& Servers::getIndexs(void) const
     return (this->indexs);
 }
 
-const std::vector<std::string>& Servers::getServerNames(void) const
+const std::string& Servers::getServerNames(void) const
 {
-    return (this->sever_names);
+    return (this->sever_name);
 }
