@@ -36,7 +36,7 @@ void MainConfig::lineToToken(std::string& line)
         tokens.push_back(token);
 }
 
-void MainConfig::tokenSearch() 
+void MainConfig::tokenSearchandSet() 
 {
     std::vector<std::string>::iterator it = tokens.begin();
     while (it != tokens.end()) 
@@ -184,5 +184,27 @@ void MainConfig::inputServers(std::vector<std::string>::iterator& it, Servers& s
     else
         throw std::runtime_error("Parse error: Unexpected token in server block");
 }
+
+const size_t& MainConfig::getClientMaxBodySize(void) const
+{
+    return (this->client_max_body_size);
+}
+
+// void MainConfig::setdefault(void)
+// {
+//     std::vector<Servers>::iterator servers_ite = servers.begin();
+//     for(; servers_ite != servers.end(); servers_ite++)
+//     {
+//         if (servers_ite->getPort() == 0)
+//             servers_ite->setPort(80);
+//         if (servers_ite->getServerNames().empty())
+//             servers_ite->setSeverNames("default_server");
+//         if (servers_ite->getIndexs().empty())
+//             servers_ite->setIndex("index.html");
+//         if (servers_ite->getClientMaxBodySize() == 0)
+//             servers_ite->setClientMaxBodySize("1m");
+//         servers_ite->setdefaultLocations();
+//     }
+// }
 
 

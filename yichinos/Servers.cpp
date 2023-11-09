@@ -4,7 +4,10 @@ Servers::Servers()
 {
     // std::cout << YELLOW <<"Servers constructor called" << NORMAL <<std::endl;
     serverNameset = false; 
-    port = 0;       
+    sever_name = "localhost";
+    port = 80;
+    indexs.push_back("index.html");
+    client_max_body_size = 1000000;
 }
 
 Servers::~Servers() {}
@@ -240,3 +243,29 @@ const std::string& Servers::getServerNames(void) const
 {
     return (this->sever_name);
 }
+
+
+const std::vector<Locations>& Servers::getLocations(void) const
+{
+    return (this->locations);
+}
+
+const size_t Servers::getClientMaxBodySize(void) const
+{
+    return (this->client_max_body_size);
+}
+
+// void Servers::setdefaultLocations(void)
+// {
+//     std::vector<Locations>::iterator it = locations.begin();
+//     for (; it != locations.end(); it++)
+//     {
+//         if (it->getPath() == "")
+//         {
+//             it->setPath("/");
+//             it->setAutoindex(true);
+//             it->setExclusivePath(".", ExclusivePath::ROOT);
+//             it->setIndex("index.html");
+//         }
+//     }
+// }

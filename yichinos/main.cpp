@@ -16,7 +16,7 @@ int main(int argc, char **argv)
         filename = argv[1];
         MainConfig myconf(filename);
         myconf.parseLine();//make tokens
-        myconf.tokenSearch();//make servers
+        myconf.tokenSearchandSet();//make server
     }
     catch(const std::exception& e)
     {

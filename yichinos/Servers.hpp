@@ -38,8 +38,10 @@ class Servers
         const std::string& getServerNames(void) const;
         const std::vector<std::string>& getIndexs(void) const;
         const size_t getClientMaxBodySize(void) const;
+        const std::vector<Locations>& getLocations(void) const; 
         //check functions
         void  checkPathName(const std::string& path);
+        // void  setdefaultLocations(void); 
 };
 
 void  removeTrailingSemicolon(std::string& str);

@@ -24,11 +24,12 @@ class MainConfig
         void inputServers(std::vector<std::string>::iterator& it, Servers& server);
     public:
         MainConfig();
-        void tokenSearch(void);
+        void tokenSearchandSet(void);
         void parseLine(void);
         bool checkPortNum(const size_t& port);
-        bool checkServerName(const std::string& server_name);
+        // bool checkServerName(const std::string& server_name);
         void setClientMaxBodySize(const std::string& client_max_body_size);
+        // void setdefault(void);
         const size_t& getClientMaxBodySize(void) const;
         size_t validatePort(const std::string& port);
         MainConfig(const std::string& filename);

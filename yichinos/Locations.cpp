@@ -2,8 +2,11 @@
 
 Locations::Locations()
 {
-//     std::cout <<"Locations constructor called" <<std::endl;
+    path = "/";
     autoindex = false;
+    setExclusivePath(".", ExclusivePath::ROOT);
+    indexes.push_back("index.html");
+    indexes.push_back("index.htm");
 }
 
 Locations::~Locations() {}
