@@ -59,6 +59,16 @@ void MainConfig::tokenSearch()
                 throw std::runtime_error("Parse error: server block not closed with '}'");
             servers.push_back(server);
         }
+        else if (*it == "client_max_body_size")
+        {
+            it++;
+            removeTrailingSemicolon(*it);
+            setClientMaxBodySize(*it);
+        }
+        else
+        {
+            throw std::runtime_error("Parse error: Unexpected token in main block");
+        }
         if (it != tokens.end()) {
             ++it;
         }
@@ -103,6 +113,28 @@ size_t MainConfig::validatePort(const std::string& port)
         throw std::runtime_error("port number is not a number");
     return port_num;
 }
+void MainConfig::setClientMaxBodySize(const std::string& client_max_body_size)
+{
+    size_t pos = 0;
+    while (pos < client_max_body_size.size() && std::isdigit(client_max_body_size[pos]))
+        pos++;
+    std::string numberPart = client_max_body_size.substr(0, pos);
+    std::string unitPart = client_max_body_size.substr(pos);
+    if (numberPart.empty() || unitPart.empty())
+        throw std::runtime_error("Parse error: Invalid client_max_body_size");
+    std::stringstream ss(numberPart);
+    int value;
+    ss >> value;
+    if (unitPart == "k" || unitPart == "K")
+        this->client_max_body_size = value * 1024;
+    else if (unitPart == "m" || unitPart == "M")
+        this->client_max_body_size = value * 1024 * 1024;
+    else if (unitPart == "g" || unitPart == "G")
+        this->client_max_body_size = value * 1024 * 1024 * 1024;
+    else
+        throw std::runtime_error("Parse error: Invalid client_max_body_size");
+    std::cout << "IN http burku" << this->client_max_body_size << std::endl;
+}
 
 
 void MainConfig::inputServers(std::vector<std::string>::iterator& it, Servers& server)
@@ -142,6 +174,12 @@ void MainConfig::inputServers(std::vector<std::string>::iterator& it, Servers& s
         it++;
         std::vector<std::string>::iterator end = tokens.end();
         server.setLocations(it, end);
+    }
+    else if (*it == "client_max_body_size")
+    {
+        it++;
+        removeTrailingSemicolon(*it);
+        server.setClientMaxBodySize(*it);
     }
     else
         throw std::runtime_error("Parse error: Unexpected token in server block");

@@ -44,6 +44,33 @@ void checkFileAccess(const std::string& filename)
     }
 }
 
+void Servers::setClientMaxBodySize(const std::string& client_max_body_size)
+{
+    if (client_max_body_size.empty()) 
+        throw std::runtime_error("Parse error: client_max_body_size is empty");
+    size_t pos = 0;
+    while (pos < client_max_body_size.size() && std::isdigit(client_max_body_size[pos]))
+        pos++;
+    std::string numberPart = client_max_body_size.substr(0, pos);
+    std::string unitPart = client_max_body_size.substr(pos);
+    if (!unitPart.empty() && unitPart.find_first_not_of("kKmMgG") != std::string::npos) 
+        throw std::runtime_error("Parse error: Invalid unit for client_max_body_size");
+    std::stringstream ss(numberPart);
+    int value;
+    ss >> value;
+    if (ss.fail() || !ss.eof()) 
+        throw std::runtime_error("Parse error: Invalid number format for client_max_body_size");
+    if (unitPart.empty()) 
+        this->client_max_body_size = value;
+    else if (unitPart == "k" || unitPart == "K")
+        this->client_max_body_size = value * 1024;
+    else if (unitPart == "m" || unitPart == "M")
+        this->client_max_body_size = value * 1024 * 1024;
+    else if (unitPart == "g" || unitPart == "G")
+        this->client_max_body_size = value * 1024 * 1024 * 1024;
+    else
+        throw std::runtime_error("Parse error: Invalid client_max_body_size");
+}
 
 
 void Servers::setPort(const size_t& port)
@@ -91,11 +118,6 @@ void Servers::setLocations(std::vector<std::string>::iterator& it ,std::vector<s
      if (it == end) {
         throw std::runtime_error("Parse error: Unexpected end of tokens before location block");
     }
-
-    // if (*it == "{") 
-    // {
-    //     throw std::runtime_error("Parse error: Unexpected '{' before location block");
-    // }
     Locations location;
     checkPathName(*it);
     location.setPath(*it);

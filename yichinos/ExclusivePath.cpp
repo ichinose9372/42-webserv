@@ -1,8 +1,9 @@
 #include "ExclusivePath.hpp"
+#include <iostream>
 
 void ExclusivePath::setRoot(const std::string& path)
 {
-    if (pathType != NONE)
+    if (pathType == ALIAS || pathType == ROOT)
         throw std::runtime_error("Parse error: Duplicate root");
     this->path = path;
     this->pathType = ROOT;
@@ -10,7 +11,7 @@ void ExclusivePath::setRoot(const std::string& path)
 
 void ExclusivePath::setAlias(const std::string& path)
 {
-    if (pathType != NONE)
+    if (pathType == ALIAS || pathType == ROOT)
         throw std::runtime_error("Parse error: Duplicate alias");
     this->path = path;
     this->pathType = ALIAS;

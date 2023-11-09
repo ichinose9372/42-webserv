@@ -22,17 +22,23 @@ class Servers
         bool serverNameset;
         std::vector<Locations> locations;
         std::map<int, std::string> error_pages;
+        size_t client_max_body_size;
     public:
         Servers();
         ~Servers();
+        //setter
         void setPort(const size_t& port);
         void setIndex(const std::string& index);
         void setSeverNames(const std::string& sever_name);
         void setLocations(std::vector<std::string>::iterator& it, std::vector<std::string>::iterator& end);
+        void setClientMaxBodySize(const std::string& client_max_body_size);
+        //getter
         size_t getPort(void) const;
         const std::string& getHost(void) const;
         const std::string& getServerNames(void) const;
         const std::vector<std::string>& getIndexs(void) const;
+        const size_t getClientMaxBodySize(void) const;
+        //check functions
         void  checkPathName(const std::string& path);
 };
 
