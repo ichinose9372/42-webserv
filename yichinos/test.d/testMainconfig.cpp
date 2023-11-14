@@ -38,7 +38,7 @@ TEST_F(MainConfigTest, LineToTokenSingleLine) {
     SetUpTestFile("single_line.cnf", "server { listen 80; }");
     MainConfig config("single_line.cnf");
     config.parseLine();
-    config.tokenSearch(); // エラーが発生すべきではない
+    config.tokenSearchandSet(); // エラーが発生すべきではない
     TearDownTestFile("single_line.cnf");
 }
 
@@ -47,7 +47,7 @@ TEST_F(MainConfigTest, TokenSearchUnexpectedEOF) {
     SetUpTestFile("unexpected_eof.cnf", "server {");
     MainConfig config("unexpected_eof.cnf");
     config.parseLine();
-    EXPECT_THROW(config.tokenSearch(), std::runtime_error);
+    EXPECT_THROW(config.tokenSearchandSet(), std::runtime_error);
     TearDownTestFile("unexpected_eof.cnf");
 }
 
@@ -56,7 +56,7 @@ TEST_F(MainConfigTest, TokenSearchExpectedBraceAfterServer) {
     SetUpTestFile("expected_brace.cnf", "server listen 80;");
     MainConfig config("expected_brace.cnf");
     config.parseLine();
-    EXPECT_THROW(config.tokenSearch(), std::runtime_error);
+    EXPECT_THROW(config.tokenSearchandSet(), std::runtime_error);
     TearDownTestFile("expected_brace.cnf");
 }
 
@@ -65,7 +65,7 @@ TEST_F(MainConfigTest, TokenSearchServerBlockNotClosed) {
     SetUpTestFile("server_not_closed.cnf", "server { listen 80;");
     MainConfig config("server_not_closed.cnf");
     config.parseLine();
-    EXPECT_THROW(config.tokenSearch(), std::runtime_error);
+    EXPECT_THROW(config.tokenSearchandSet(), std::runtime_error);
     TearDownTestFile("server_not_closed.cnf");
 }
 
@@ -74,7 +74,7 @@ TEST_F(MainConfigTest, TokenSearchDoubleSemicolon) {
     SetUpTestFile("double_semicolon.cnf", "server { listen 80;; }");
     MainConfig config("double_semicolon.cnf");
     config.parseLine();
-    EXPECT_THROW(config.tokenSearch(), std::runtime_error);
+    EXPECT_THROW(config.tokenSearchandSet(), std::runtime_error);
     TearDownTestFile("double_semicolon.cnf");
 }
 
@@ -85,7 +85,7 @@ TEST_F(MainConfigTest, TokenSearchDuplicatePort) {
         "server { listen 80; }");
     MainConfig config("duplicate_port.cnf");
     config.parseLine();
-    EXPECT_THROW(config.tokenSearch(), std::runtime_error);
+    EXPECT_THROW(config.tokenSearchandSet(), std::runtime_error);
     TearDownTestFile("duplicate_port.cnf");
 }
 
@@ -99,7 +99,7 @@ TEST_F(MainConfigTest, DuplicateServerNameThrowsException) {
     EXPECT_THROW({
         MainConfig config("duplicate_server_name.cnf");
         config.parseLine();
-        config.tokenSearch();
+        config.tokenSearchandSet();
     }, std::runtime_error);
 
     // テスト用ファイルを削除

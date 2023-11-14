@@ -6,8 +6,6 @@ MainConfig::MainConfig(const std::string& filename)
     file.open(filename);
     if (!file.is_open())
         throw std::runtime_error("[KO] file not found");
-    // else
-    //     std::cout << GREEN << "[OK]  File opene " << RESET << std::endl;
 }
 
 MainConfig::~MainConfig() {}
@@ -85,20 +83,6 @@ bool MainConfig::checkPortNum(const size_t& port)
     return false;
 }
 
-// bool MainConfig::checkServerName(const std::string& server_name)
-// {
-//     for (std::vector<Servers>::iterator it = servers.begin(); it != servers.end(); ++it)
-//     {
-//         const std::vector<std::string> names = it->getServerNames();
-//         for (std::vector<std::string>::const_iterator it2 = names.begin(); it2 != names.end(); ++it2)
-//         {
-//             if (*it2 == server_name)
-//                 return true;
-//         }
-//     }
-//     return false;
-// }
-
 size_t MainConfig::validatePort(const std::string& port)
 {
      std::stringstream ss(port);
@@ -115,17 +99,25 @@ size_t MainConfig::validatePort(const std::string& port)
 }
 void MainConfig::setClientMaxBodySize(const std::string& client_max_body_size)
 {
+    if (client_max_body_size.empty()) 
+        throw std::runtime_error("Parse error: client_max_body_size is empty");
+    if (this->client_max_body_size != 0) 
+        throw std::runtime_error("Parse error: Duplicate client_max_body_size");
     size_t pos = 0;
     while (pos < client_max_body_size.size() && std::isdigit(client_max_body_size[pos]))
         pos++;
     std::string numberPart = client_max_body_size.substr(0, pos);
     std::string unitPart = client_max_body_size.substr(pos);
-    if (numberPart.empty() || unitPart.empty())
-        throw std::runtime_error("Parse error: Invalid client_max_body_size");
+    if (!unitPart.empty() && unitPart.find_first_not_of("kKmMgG") != std::string::npos) 
+        throw std::runtime_error("Parse error: Invalid unit for client_max_body_size");
     std::stringstream ss(numberPart);
     int value;
     ss >> value;
-    if (unitPart == "k" || unitPart == "K")
+    if (ss.fail() || !ss.eof()) 
+        throw std::runtime_error("Parse error: Invalid number format for client_max_body_size");
+    if (unitPart.empty()) 
+        this->client_max_body_size = value;
+    else if (unitPart == "k" || unitPart == "K")
         this->client_max_body_size = value * 1024;
     else if (unitPart == "m" || unitPart == "M")
         this->client_max_body_size = value * 1024 * 1024;
@@ -133,7 +125,6 @@ void MainConfig::setClientMaxBodySize(const std::string& client_max_body_size)
         this->client_max_body_size = value * 1024 * 1024 * 1024;
     else
         throw std::runtime_error("Parse error: Invalid client_max_body_size");
-    std::cout << "IN http burku" << this->client_max_body_size << std::endl;
 }
 
 
@@ -144,12 +135,14 @@ void MainConfig::inputServers(std::vector<std::string>::iterator& it, Servers& s
         it++;
         removeTrailingSemicolon(*it);
         size_t port = validatePort(*it);
+        checkPortNum(port);
         server.setPort(port);
     }
     else if (*it == "server_name")
     {
         it++;
         removeTrailingSemicolon(*it);
+        checkServerName(*it);
         server.setSeverNames(*it);
     }
     else if (*it == "index")
@@ -190,21 +183,15 @@ const size_t& MainConfig::getClientMaxBodySize(void) const
     return (this->client_max_body_size);
 }
 
-// void MainConfig::setdefault(void)
-// {
-//     std::vector<Servers>::iterator servers_ite = servers.begin();
-//     for(; servers_ite != servers.end(); servers_ite++)
-//     {
-//         if (servers_ite->getPort() == 0)
-//             servers_ite->setPort(80);
-//         if (servers_ite->getServerNames().empty())
-//             servers_ite->setSeverNames("default_server");
-//         if (servers_ite->getIndexs().empty())
-//             servers_ite->setIndex("index.html");
-//         if (servers_ite->getClientMaxBodySize() == 0)
-//             servers_ite->setClientMaxBodySize("1m");
-//         servers_ite->setdefaultLocations();
-//     }
-// }
 
-
+void MainConfig::checkServerName(const std::string& server_name)
+{
+    for (std::vector<Servers>::iterator it = servers.begin(); it != servers.end(); ++it)
+    {
+        const std::string names = it->getServerNames();
+        if (names == server_name)
+        {
+            throw std::runtime_error("Parse error: Duplicate server name");
+        }
+    }
+}

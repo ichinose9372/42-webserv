@@ -20,6 +20,7 @@ class Servers
         std::vector<std::string> indexs;
         std::string sever_name;
         bool serverNameset;
+        bool portset;
         std::vector<Locations> locations;
         std::map<int, std::string> error_pages;
         size_t client_max_body_size;
@@ -41,7 +42,7 @@ class Servers
         const std::vector<Locations>& getLocations(void) const; 
         //check functions
         void  checkPathName(const std::string& path);
-        // void  setdefaultLocations(void); 
+       
 };
 
 void  removeTrailingSemicolon(std::string& str);

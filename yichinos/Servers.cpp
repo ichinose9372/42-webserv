@@ -4,10 +4,11 @@ Servers::Servers()
 {
     // std::cout << YELLOW <<"Servers constructor called" << NORMAL <<std::endl;
     serverNameset = false; 
+    portset = false;
     sever_name = "localhost";
     port = 80;
     indexs.push_back("index.html");
-    client_max_body_size = 1000000;
+    client_max_body_size = 0;
 }
 
 Servers::~Servers() {}
@@ -51,6 +52,8 @@ void Servers::setClientMaxBodySize(const std::string& client_max_body_size)
 {
     if (client_max_body_size.empty()) 
         throw std::runtime_error("Parse error: client_max_body_size is empty");
+    if (this->client_max_body_size != 0) 
+        throw std::runtime_error("Parse error: Duplicate client_max_body_size");
     size_t pos = 0;
     while (pos < client_max_body_size.size() && std::isdigit(client_max_body_size[pos]))
         pos++;
@@ -78,9 +81,10 @@ void Servers::setClientMaxBodySize(const std::string& client_max_body_size)
 
 void Servers::setPort(const size_t& port)
 {
-    if (this->port != 0)
+    if (portset)
         throw std::runtime_error("Parse error: Duplicate port");
     this->port = port;
+    portset = true;
 }
 
 
@@ -255,17 +259,7 @@ const size_t Servers::getClientMaxBodySize(void) const
     return (this->client_max_body_size);
 }
 
-// void Servers::setdefaultLocations(void)
-// {
-//     std::vector<Locations>::iterator it = locations.begin();
-//     for (; it != locations.end(); it++)
-//     {
-//         if (it->getPath() == "")
-//         {
-//             it->setPath("/");
-//             it->setAutoindex(true);
-//             it->setExclusivePath(".", ExclusivePath::ROOT);
-//             it->setIndex("index.html");
-//         }
-//     }
-// }
+const std::string& Servers::getHost(void) const
+{
+    return (this->sever_name);
+}
