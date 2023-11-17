@@ -24,9 +24,12 @@ int main(void) {
         perror("select()"); // エラーの場合
     } else if (retval) {
         scanf("%255s", inputval); // 入力がある場合、それを読み取る
-        printf("input: %s\n", inputval);
+        if (FD_ISSET(0,&rfds))
+        {
+            printf("input: %s %d\n", inputval, retval);
+        }
     } else {
-        printf("timeout\n"); // タイムアウトの場合
+        printf("timeout %d\n", retval); // タイムアウトの場合
     }
 
     return (EXIT_SUCCESS);
