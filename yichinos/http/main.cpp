@@ -115,7 +115,7 @@
 int main(void)
 {
     std::string request = 
-    "POST /sample.html HTTP/1.1\r\n"
+    "POST /test.cgi HTTP/1.1\r\n"
     "Host: www.example.com\r\n"
     "Content-Type: application/x-www-form-urlencoded\r\n"
     "Content-Length: 27\r\n"
@@ -123,12 +123,15 @@ int main(void)
     "username=user&password=pass";
 
     Request req(request);
+    Response res;
     Controller con;
     
-    std::string return_status = con.openFile(req.getUri());
-    std::string return_body = con.getBody(return_status, req.getUri());
-    Response res;
-    std::cout << res.getResponse(return_status, return_body) << std::endl;
+    con.processFile(req, res);
+    std::cout  << res.getResponse() << std::endl;
+    // std::string return_status = con.openFile(req.getUri());
+    // std::string return_body = con.getBody(return_status, req.getUri());
+    // Response res;
+    // std::cout << res.getResponse(return_status, return_body) << std::endl;
 
     return 0;
 }

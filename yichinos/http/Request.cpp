@@ -24,11 +24,21 @@ std::vector<std::string> split(const std::string &s, char delimiter) {
 //絶対パスの作成
 std::string getAbsolutepath(const std::string& filePath)
 {
-    std::string absolutePath = "/Users/ichinoseyuuki/tokyo42/webserv/yichinos/http/http.d";
-    absolutePath += filePath;
-    std::cout << absolutePath << std::endl;
-    return absolutePath;
+    const std::string baseDirForHtml = "/Users/ichinoseyuuki/tokyo42/webserv/yichinos/http/html.d";
+    const std::string baseDirForCgi = "/Users/ichinoseyuuki/tokyo42/webserv/yichinos/http/cgi-bin";
 
+    std::string extension;
+    size_t dotPos = filePath.find_last_of(".");
+    if (dotPos != std::string::npos) {
+        extension = filePath.substr(dotPos);
+    }
+      if (extension == ".html") {
+        return baseDirForHtml + filePath;
+    } else if (extension == ".cgi") {
+        return baseDirForCgi + filePath;
+    } else {
+        return filePath; 
+    }
 }
 
 void Request::parseRequest(const std::string& rawRequest) 
