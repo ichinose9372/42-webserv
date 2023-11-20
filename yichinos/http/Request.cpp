@@ -3,7 +3,7 @@
 Request::Request(const std::string& request)
 {
     parseRequest(request);
-    printRequest();
+    // printRequest();
 }
 
 Request::~Request()
@@ -20,6 +20,17 @@ std::vector<std::string> split(const std::string &s, char delimiter) {
     return tokens;
 }
 
+
+//絶対パスの作成
+std::string getAbsolutepath(const std::string& filePath)
+{
+    std::string absolutePath = "/Users/ichinoseyuuki/tokyo42/webserv/yichinos/http/http.d";
+    absolutePath += filePath;
+    std::cout << absolutePath << std::endl;
+    return absolutePath;
+
+}
+
 void Request::parseRequest(const std::string& rawRequest) 
 {
     std::istringstream requestStream(rawRequest);
@@ -32,7 +43,7 @@ void Request::parseRequest(const std::string& rawRequest)
     if (requestLineTokens.size() >= 3) 
     {
         method = requestLineTokens[0];
-        uri = requestLineTokens[1];
+        uri = getAbsolutepath(requestLineTokens[1]);
         httpVersion = requestLineTokens[2];
     }
 

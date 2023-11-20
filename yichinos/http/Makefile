@@ -3,7 +3,7 @@ NAME = webserv
 CC = c++
 CFLAGS = -std=c++98
 
-SOURCES = main.cpp Request.cpp Response.cpp 
+SOURCES = main.cpp Request.cpp Response.cpp Controller.cpp
 
 all : $(NAME)
 
