@@ -1,18 +1,16 @@
-NAME = webserv
-CC = c++
-CFLAGS = -Wall -Wextra -Werror -std=c++98
+CXX = c++
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98
+SRCS = Server.cpp
+OBJS = $(SRCS:.cpp=.o)
+OBJDIR = objs
 
-SOURCES = main.cpp\
+.PHONY: all clean
 
-all : $(NAME)
+all: $(addprefix $(OBJDIR)/,$(OBJS))
 
-$(NAME) : $(SOURCES)
-	$(CC) $(SOURCES) -o $(NAME)
+$(OBJDIR)/%.o: %.cpp
+	mkdir -p $(OBJDIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-clean: 
-	$(RM) $(NAME)
-
-fclean:
-	$(RM) $(NAME)
-
-re: clean all
+clean:
+	rm -rf $(OBJDIR)

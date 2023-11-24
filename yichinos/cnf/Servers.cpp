@@ -254,7 +254,7 @@ const std::vector<Locations>& Servers::getLocations(void) const
     return (this->locations);
 }
 
-const size_t Servers::getClientMaxBodySize(void) const
+size_t Servers::getClientMaxBodySize(void) const
 {
     return (this->client_max_body_size);
 }

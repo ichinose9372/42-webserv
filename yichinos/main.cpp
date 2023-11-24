@@ -6,7 +6,6 @@ int main()
     while (true)
     {
         server.runEventLoop();
-        
     }
     return 0;
 }

@@ -1,19 +1,20 @@
-NAME = a.out
-CC = c++
-CFLAGS = -std=c++98
+CXX = c++
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98
+SRCS = MainConfig.cpp \
+	   Servers.cpp \
+	   Locations.cpp \
+	   ExclusivePath.cpp 
+	   
+OBJS = $(SRCS:.cpp=.o)
+OBJDIR = objs
 
-SOURCES = main.cpp MainConfig.cpp Servers.cpp Locations.cpp ExclusivePath.cpp
-INCLUDE = MainConfig.hpp Servers.hpp Locations.hpp ExclusivePath.hpp
+.PHONY: all clean
 
-all : $(NAME)
+all: $(addprefix $(OBJDIR)/,$(OBJS))
 
-$(NAME) : $(SOURCES)
-	$(CC) $(CFLAGS) $(SOURCES) $(INCLUDE)
+$(OBJDIR)/%.o: %.cpp
+	mkdir -p $(OBJDIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-clean: 
-	$(RM) $(NAME) *.gch
-
-fclean:
-	$(RM) $(NAME) *.gch
-
-re: clean all
+clean:
+	rm -rf $(OBJDIR)
