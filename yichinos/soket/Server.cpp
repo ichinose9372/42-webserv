@@ -38,6 +38,47 @@ Server::Server()
     this->pollfds.push_back(server_pollfd);
 }
 
+Server::Server(const MainConfig& conf)
+{
+    // Creating socket file descriptor 
+    size_t port = conf.getServers()[0].getPort();
+    if ((this->server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
+    {
+        std::cerr << "socket failed" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    // Forcefully attaching socket to the port 8080
+    int opt = 1;
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) 
+    {
+        std::cerr << "Setsockopt failed: " << strerror(errno) << std::endl;
+        close(server_fd);
+        exit(EXIT_FAILURE);
+    }
+
+    this->address.sin_family = AF_INET;
+    this->address.sin_addr.s_addr = INADDR_ANY;
+    this->address.sin_port = htons(port);
+    addrlen = ADDRLEN;
+    
+    // Forcefully attaching socket to the port 8080
+    if (bind(this->server_fd, (struct sockaddr *)&this->address, sizeof(this->address)) < 0)
+    {
+        std::cerr << "bind failed" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    if (listen(this->server_fd, 3) < 0)
+    {
+        std::cerr << "listen" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+     struct pollfd server_pollfd = {server_fd, POLLIN, 0};
+    this->pollfds.push_back(server_pollfd);
+}
+
+
+
 
 Server::~Server()
 {

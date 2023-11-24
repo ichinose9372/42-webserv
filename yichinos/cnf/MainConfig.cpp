@@ -195,3 +195,8 @@ void MainConfig::checkServerName(const std::string& server_name)
         }
     }
 }
+
+const std::vector<Servers>& MainConfig::getServers(void) const
+{
+    return (this->servers);
+}

@@ -16,6 +16,7 @@ clean:
 	for dir in $(SUBDIRS); do \
         $(MAKE) -C $$dir clean; \
     done
+	$(RM) main.o
 
 fclean: clean
 	$(RM) $(NAME)

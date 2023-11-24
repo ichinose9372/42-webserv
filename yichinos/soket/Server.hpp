@@ -8,8 +8,11 @@
 #include <string.h>
 #include <poll.h>
 #include <vector>
+#include "../cnf/MainConfig.hpp"
 
 #define ADDRLEN sizeof(address)
+
+class MainConfig;
 
 //port は　config から読み込む
 
@@ -22,6 +25,7 @@ class Server
         int addrlen;
     public:
         Server();
+        Server(const MainConfig& conf);
         ~Server();
         void acceptNewConnection(int server_fd, std::vector<struct pollfd>& pollfds, struct sockaddr_in& address, int& addrlen);
         void handleExistingConnection(struct pollfd& pfd);
