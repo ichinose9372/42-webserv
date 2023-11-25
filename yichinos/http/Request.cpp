@@ -37,7 +37,7 @@ std::string getAbsolutepath(const std::string& filePath)
     } else if (extension == ".cgi") {
         return baseDirForCgi + filePath;
     } else {
-        return filePath; 
+        return baseDirForHtml + filePath;
     }
 }
 
@@ -53,7 +53,14 @@ void Request::parseRequest(const std::string& rawRequest)
     if (requestLineTokens.size() >= 3) 
     {
         method = requestLineTokens[0];
-        uri = getAbsolutepath(requestLineTokens[1]);
+        if (requestLineTokens[1] == "/")
+        {
+            uri = getAbsolutepath("/index.html");
+        }
+        else
+        {
+            uri = getAbsolutepath(requestLineTokens[1]);
+        }
         httpVersion = requestLineTokens[2];
     }
 

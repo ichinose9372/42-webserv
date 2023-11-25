@@ -101,36 +101,20 @@ void Server::handleExistingConnection(struct pollfd& pfd)
     std::string request;
     char buffer[1024];
     int valread;
-
-    // while ((valread = read(pfd.fd, buffer, 1024)) > 0) 
-    // {
-    //     request.append(buffer, valread);
-    //     if (request.find("\n") != std::string::npos) {
-    //         break;
-    //     }
-    // }
-    //read 
     valread = read(pfd.fd, buffer, 1024);
-    request.append(buffer, valread);
-    if (request.empty())
-    {
+    if (valread == 0) {
         std::cout << "Connection closed: " << pfd.fd << std::endl;
         close(pfd.fd);
         pfd.fd = -1;
         return;
     }
-    std::cout << "Request: " << request << std::endl;
-    //use request to get response
+    Request req(buffer);
+    Response res;
+    Controller con;
 
-    //write
-    //404 not found htmlfile
-    std::string body = "<html><body><h1>404 Not Found</h1></body></html>";
-    std::string response = "HTTP/1.1 404 Not Found\r\n";
-    response += "Content-Type: text/html\r\n";
-    response += "Content-Length: " + std::to_string(body.size()) + "\r\n";
-    response += "Connection: close\r\n";
-    response += "\r\n";
-    response += body;
+    con.processFile(req, res);
+    std::string response = res.getResponse();
+    std::cout << response << std::endl;
     send(pfd.fd, response.c_str(), response.size(), 0);
 }
 

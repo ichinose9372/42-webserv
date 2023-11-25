@@ -9,6 +9,9 @@
 #include <poll.h>
 #include <vector>
 #include "../cnf/MainConfig.hpp"
+#include "../http/Response.hpp"
+#include "../http/Request.hpp"
+#include "../http/Controller.hpp"
 
 #define ADDRLEN sizeof(address)
 
