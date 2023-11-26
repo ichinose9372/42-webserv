@@ -25,7 +25,7 @@ class Locations
         void setPath(const std::string& path);
         void setIndex(const std::string& index);
         void setAutoindex(bool autoindex);
-        void setExclusivePath(const std::string& path, ExclusivePath::PathType pathType);
+        void setExclusivePath(const std::string& path, std::string pathType);
         void setErrorPages(int error_code, const std::string& error_page);
         void setReturnCode(int return_code, const std::string& return_page);
         void setCgiExtension(const std::string& cgi_extension);

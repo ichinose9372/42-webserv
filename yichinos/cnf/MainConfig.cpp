@@ -83,7 +83,7 @@ bool MainConfig::checkPortNum(const size_t& port)
     return false;
 }
 
-size_t MainConfig::validatePort(const std::string& port)
+size_t MainConfig::validatePort(const std::string& port )
 {
      std::stringstream ss(port);
     size_t port_num;
@@ -92,9 +92,7 @@ size_t MainConfig::validatePort(const std::string& port)
     if (port_num > 65535)
         throw std::runtime_error("port number is too big");
     else if (ss.fail() || (ss.peek() != EOF))
-        throw std::runtime_error("port number is not a number");
-    else if (checkPortNum(port_num))
-        throw std::runtime_error("port number is not a number");
+        throw std::runtime_error("1 port number is not a number");
     return port_num;
 }
 void MainConfig::setClientMaxBodySize(const std::string& client_max_body_size)
@@ -135,14 +133,17 @@ void MainConfig::inputServers(std::vector<std::string>::iterator& it, Servers& s
         it++;
         removeTrailingSemicolon(*it);
         size_t port = validatePort(*it);
-        checkPortNum(port);
+        if(checkPortNum(port) )
+        {
+            checkServerName(server.getServerNames(), port);
+        }
         server.setPort(port);
     }
     else if (*it == "server_name")
     {
         it++;
         removeTrailingSemicolon(*it);
-        checkServerName(*it);
+        checkServerName(*it, server.getPort());
         server.setSeverNames(*it);
     }
     else if (*it == "index")
@@ -174,8 +175,16 @@ void MainConfig::inputServers(std::vector<std::string>::iterator& it, Servers& s
         removeTrailingSemicolon(*it);
         server.setClientMaxBodySize(*it);
     }
+    else if (*it == "root")
+    {
+        it++;
+        server.setRoot(*it);
+    }
     else
+    {
+        std::cout << *it << std::endl;
         throw std::runtime_error("Parse error: Unexpected token in server block");
+    }
 }
 
 const size_t& MainConfig::getClientMaxBodySize(void) const
@@ -184,12 +193,13 @@ const size_t& MainConfig::getClientMaxBodySize(void) const
 }
 
 
-void MainConfig::checkServerName(const std::string& server_name)
+void MainConfig::checkServerName(const std::string& server_name, size_t port)
 {
     for (std::vector<Servers>::iterator it = servers.begin(); it != servers.end(); ++it)
     {
         const std::string names = it->getServerNames();
-        if (names == server_name)
+        size_t tmp_port = it->getPort();
+        if (names == server_name && tmp_port == port)
         {
             throw std::runtime_error("Parse error: Duplicate server name");
         }

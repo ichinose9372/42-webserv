@@ -24,6 +24,7 @@ class Servers
         std::vector<Locations> locations;
         std::map<int, std::string> error_pages;
         size_t client_max_body_size;
+        std::string root;
     public:
         Servers();
         ~Servers();
@@ -33,6 +34,7 @@ class Servers
         void setSeverNames(const std::string& sever_name);
         void setLocations(std::vector<std::string>::iterator& it, std::vector<std::string>::iterator& end);
         void setClientMaxBodySize(const std::string& client_max_body_size);
+        void setRoot(const std::string& root);
         //getter
         size_t getPort(void) const;
         const std::string& getHost(void) const;
@@ -40,6 +42,7 @@ class Servers
         const std::vector<std::string>& getIndexs(void) const;
         size_t getClientMaxBodySize(void) const;
         const std::vector<Locations>& getLocations(void) const; 
+        const std::string& getRoot(void) const;
         //check functions
         void  checkPathName(const std::string& path);
        

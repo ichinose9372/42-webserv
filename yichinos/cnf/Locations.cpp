@@ -4,7 +4,7 @@ Locations::Locations()
 {
     path = "/";
     autoindex = false;
-    setExclusivePath(".", ExclusivePath::ROOT);
+    exclusivePath.setPathType(ExclusivePath::NONE);
     indexes.push_back("index.html");
     indexes.push_back("index.htm");
 }
@@ -75,11 +75,11 @@ const std::string& Locations::getCgiExtension(void)
     return (this->cgi_extension);
 }
 
-void Locations::setExclusivePath(const std::string& path, ExclusivePath::PathType pathType)
+void Locations::setExclusivePath(const std::string& path, std::string pathType)
 {
-    if (pathType == ExclusivePath::ROOT)
+    if (pathType == "root")
         this->exclusivePath.setRoot(path);
-    else if (pathType == ExclusivePath::ALIAS)
+    else if (pathType == "alias")
         this->exclusivePath.setAlias(path);
     else
         throw std::runtime_error("Parse error: Invalid path type");

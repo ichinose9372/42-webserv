@@ -137,15 +137,14 @@ void Servers::setLocations(std::vector<std::string>::iterator& it ,std::vector<s
         {
             it++;
             removeTrailingSemicolon(*it);
-            // std::cout << "root path is " << *it << std::endl;
-            location.setExclusivePath(*it, ExclusivePath::ROOT);
+            location.setExclusivePath(*it, "root");
         }
         else if (*it == "alias")
         {
             it++;
             removeTrailingSemicolon(*it);
             // std::cout << "alias path is " << *it << std::endl;
-            location.setExclusivePath(*it, ExclusivePath::ALIAS);
+            location.setExclusivePath(*it, "alias");
         }
         else if (*it == "index") 
         {
@@ -208,11 +207,11 @@ void Servers::setLocations(std::vector<std::string>::iterator& it ,std::vector<s
         else if (*it == "return")
         {
             it++;
-            removeTrailingSemicolon(*it);
             std::stringstream ss(*it);
             int tmp_return_code;
             ss >> tmp_return_code;
             it++;
+            removeTrailingSemicolon(*it);
             // std::cout << "return code is " << tmp_return_code << *it << std::endl;
             location.setReturnCode(tmp_return_code, *it);
         }
@@ -262,4 +261,15 @@ size_t Servers::getClientMaxBodySize(void) const
 const std::string& Servers::getHost(void) const
 {
     return (this->sever_name);
+}
+
+
+const std::string& Servers::getRoot(void) const
+{
+    return (this->root);
+}
+
+void Servers::setRoot(const std::string& root)
+{
+    this->root = root;
 }
