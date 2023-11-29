@@ -9,6 +9,7 @@ Servers::Servers()
     port = 80;
     indexs.push_back("index.html");
     client_max_body_size = 0;
+    root = "./";
 }
 
 Servers::~Servers() {}
@@ -212,18 +213,31 @@ void Servers::setLocations(std::vector<std::string>::iterator& it ,std::vector<s
             ss >> tmp_return_code;
             it++;
             removeTrailingSemicolon(*it);
-            // std::cout << "return code is " << tmp_return_code << *it << std::endl;
+            std::cout << "return code is " << tmp_return_code << " "<<*it << std::endl;
             location.setReturnCode(tmp_return_code, *it);
         }
-        else if (*it == "cgi_extension")
+        else if (*it == "cgi_path")
         {
             it++;
             removeTrailingSemicolon(*it);
             //if not dot then throw error
-            if (it->find('.') == std::string::npos)
-                throw std::runtime_error("Parse error: Invalid cgi_extension");
+            // if (it->find('.') == std::string::npos)
+            //     throw std::runtime_error("Parse error: Invalid cgi_extension");
             location.setCgiExtension(*it);
         }
+        else if (*it == "upload_path")
+        {
+            it++;
+            removeTrailingSemicolon(*it);
+            location.setUploadPath(*it);
+        }
+        else if (*it == "client_max_body_size")
+        {
+            it++;
+            removeTrailingSemicolon(*it);
+            setClientMaxBodySize(*it);
+        }
+        else
         if (++it == end) 
         {  
             throw std::runtime_error("Parse error: Location block not closed with '}'");

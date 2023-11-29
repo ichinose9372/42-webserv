@@ -5,8 +5,6 @@ Locations::Locations()
     path = "/";
     autoindex = false;
     exclusivePath.setPathType(ExclusivePath::NONE);
-    indexes.push_back("index.html");
-    indexes.push_back("index.htm");
 }
 
 Locations::~Locations() {}
@@ -83,4 +81,27 @@ void Locations::setExclusivePath(const std::string& path, std::string pathType)
         this->exclusivePath.setAlias(path);
     else
         throw std::runtime_error("Parse error: Invalid path type");
+}
+
+void Locations::setUploadPath(const std::string& upload_path)
+{
+    this->upload_path = upload_path;
+}
+
+void Locations::setMaxBodySize(const std::string& max_body_size)
+{
+    std::stringstream ss(max_body_size);
+    size_t tmp_max_body_size;
+    ss >> tmp_max_body_size;
+    if (tmp_max_body_size > 1000000000)
+        throw std::runtime_error("Parse error: max body size is too big");
+    else if (ss.fail() || (ss.peek() != EOF))
+        throw std::runtime_error("Parse error: max body size is not a number");
+    this->max_body_size = tmp_max_body_size;
+}
+
+
+const ExclusivePath& Locations::getExclusivePath(void)
+{
+    return (this->exclusivePath);
 }

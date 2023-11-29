@@ -5,6 +5,8 @@
 #include <string>
 #include <map>
 #include "ExclusivePath.hpp"
+#include <sstream>
+#include <vector>
 
 class ExclusivePath;
 
@@ -17,7 +19,10 @@ class Locations
         bool autoindex;
         std::map<int, std::string> error_pages;
         std::pair<int, std::string> return_code;
-        std::string cgi_extension;
+        std::string cgi_extension;//cgi_path
+        std::string upload_path;
+        size_t max_body_size;
+
     public:
         Locations();
         ~Locations();
@@ -29,6 +34,8 @@ class Locations
         void setErrorPages(int error_code, const std::string& error_page);
         void setReturnCode(int return_code, const std::string& return_page);
         void setCgiExtension(const std::string& cgi_extension);
+        void setUploadPath(const std::string& upload_path);
+        void setMaxBodySize(const std::string& max_body_size);
         //getter
         const std::string& getPath(void);
         const std::vector<std::string>& getIndex(void);
@@ -36,6 +43,7 @@ class Locations
         const std::map<int, std::string>& getErrorPages(void);
         const std::pair<int, std::string>& getReturnCode(void);
         const std::string& getCgiExtension(void);
+        const ExclusivePath& getExclusivePath(void);
 };
 
 #endif

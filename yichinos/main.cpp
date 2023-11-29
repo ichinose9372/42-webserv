@@ -18,6 +18,7 @@ int main(int argc, char **argv)
         while (true)
         {
             server.runEventLoop();
+            
         }
     }
     catch(const std::exception& e)

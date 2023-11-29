@@ -12,20 +12,24 @@
 #include "../http/Response.hpp"
 #include "../http/Request.hpp"
 #include "../http/Controller.hpp"
+#include "../cnf/Servers.hpp"
+#include <map>
 
 #define ADDRLEN sizeof(address)
 
 class MainConfig;
+class Servers;
 
 //port は　config から読み込む
 
 class Server
 {
     private:
-        int server_fd;
+        size_t server_fd;
         struct sockaddr_in address;
         std::vector<struct pollfd> pollfds;
         int addrlen;
+        std::multimap<int , Servers> requestMap;
     public:
         Server();
         Server(const MainConfig& conf);

@@ -23,7 +23,7 @@ void ExclusivePath::setAlias(const std::string& path)
 const std::string& ExclusivePath::getPath(void)
 {
     if (pathType == NONE)
-        throw std::runtime_error("Parse error: No root or alias");
+        return (this->path);
     return (this->path);
 }
 

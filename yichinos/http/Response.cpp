@@ -11,6 +11,10 @@ void Response::setResponse()
     {
         response = "HTTP/1.1 200 OK\r\n";
     }
+    else if (status == "301")
+    {
+        response = "HTTP/1.1 301 Found\r\n";
+    }
     else
     {
         response = "HTTP/1.1 404 Not Found\r\n";

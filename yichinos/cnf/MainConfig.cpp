@@ -134,9 +134,7 @@ void MainConfig::inputServers(std::vector<std::string>::iterator& it, Servers& s
         removeTrailingSemicolon(*it);
         size_t port = validatePort(*it);
         if(checkPortNum(port) )
-        {
             checkServerName(server.getServerNames(), port);
-        }
         server.setPort(port);
     }
     else if (*it == "server_name")
@@ -178,6 +176,7 @@ void MainConfig::inputServers(std::vector<std::string>::iterator& it, Servers& s
     else if (*it == "root")
     {
         it++;
+        removeTrailingSemicolon(*it);
         server.setRoot(*it);
     }
     else

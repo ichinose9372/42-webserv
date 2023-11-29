@@ -10,18 +10,20 @@ Controller::~Controller()
 
 bool isCgiScript(const std::string& filePath) {
     // 拡張子が .cgi なら CGI スクリプトとみなす
-    return filePath.size() >= 4 && filePath.substr(filePath.size() - 4) == ".cgi";
+    return filePath.size() >= 4 && filePath.substr(filePath.size() - 3) == ".sh";
 }
 
 void executeCgiScript(Request& req, Response& res) 
 {
     std::string path = req.getUri();
+    std::cout << "path = " << path << std::endl;
     if (access(path.c_str(), F_OK | X_OK) != 0) 
     {
         res.setStatus("404 Not Found");
         res.setBody("<html><body><h1>404 Not Found</h1><p>Requested script not found.</p></body></html>");
         return;
     }
+    std::cout << "INININN\n";
     int pipefd[2];
     pipe(pipefd);
     pid_t pid = fork();
@@ -65,13 +67,88 @@ void executeCgiScript(Request& req, Response& res)
 
 void Controller::processFile(Request& req, Response& res) 
 {
-    if (isCgiScript(req.getUri())) {
-        executeCgiScript(req, res);
-    } else {
-        res.setStatus(openFile(req.getUri()));
-        res.setBody(getBody(res.getStatus(), req.getUri()));
+    if (req.getHeaders().find("returnCode") != req.getHeaders().end())
+    {
+        std::string returnCode = req.getHeaders().find("returnCode")->second;
+        std::cout << returnCode << std::endl;
+        res.setStatus(returnCode);
+        std::string returnPage =  req.getHeaders().find("returnPage")->second;
+        std::cout << returnPage << std::endl;
+        res.setBody(returnPage);
+        res.setResponse();
+        return;
     }
-    res.setResponse();
+    std::string method = req.getMethod();
+    if (method == "GET")
+    {
+        std::cout << "IN GET" << std::endl;
+        if (isCgiScript(req.getUri())) //cgiの場合
+        {
+            executeCgiScript(req, res);
+        }
+        else //htmlの場合
+        {
+            res.setStatus(openFile(req.getUri()));
+            res.setBody(getBody(res.getStatus(), req.getUri()));
+        }
+        res.setResponse();
+    }
+    if (method == "POST")
+    {   
+        std::cout << "IN POST" << std::endl;
+        std::map<std::string, std::string> headers = req.getHeaders();
+        //all headers display
+        for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); ++it) 
+        {
+            std::cout << it->first << ": " << it->second << std::endl;
+        }
+        if (headers.find("filename") != headers.end()) 
+        {
+            std::string filename = headers["filename"];
+            std::cout << "filename = " << filename << std::endl;
+
+            std::string path = req.getUri() + filename;
+            std::cout << "path = " << path << std::endl;
+
+            std::ofstream outputFile(path);
+            std::string body = req.getBody();
+            outputFile << body;
+            outputFile.close();
+
+            res.setStatus("200 OK");
+            res.setBody("<html><body><h1>200 OK</h1></body></html>");
+            res.setResponse();
+        } 
+        else
+        {
+        // "filename" キーが存在しない場合の処理
+            res.setStatus("400 Bad Request");
+            res.setBody("<html><body><h1>400 Bad Request</h1></body></html>");
+            res.setResponse();
+       }
+    }
+    if (method == "DELETE")
+    {
+        std::cout << "IN DELETE" << std::endl;
+        // std::cout << "DELETE" << std::endl;
+        std::map<std::string, std::string> headers = req.getHeaders();
+        std::string filename = headers["filename"];
+        std::cout << "filename = " << filename << std::endl;
+        std::string path = req.getUri() + filename;
+
+        std::cout << "path = " << path << std::endl;
+        if (std::remove(path.c_str()) == 0)
+        {
+            res.setStatus("200 OK");
+            res.setBody("<html><body><h1>200 OK</h1></body></html>");
+        }
+        else
+        {
+            res.setStatus("404 Not Found");
+            res.setBody("<html><body><h1>404 Not Found</h1></body></html>");
+        }
+        res.setResponse();
+    }
 }
 
 
