@@ -10,11 +10,13 @@ Request::~Request()
 {
 }
 
-std::vector<std::string> split(const std::string &s, char delimiter) {
+std::vector<std::string> split(const std::string &s, char delimiter)
+{
     std::vector<std::string> tokens;
     std::string token;
     std::istringstream tokenStream(s);
-    while (std::getline(tokenStream, token, delimiter)) {
+    while (std::getline(tokenStream, token, delimiter)) 
+    {
         tokens.push_back(token);
     }
     return tokens;
@@ -25,8 +27,6 @@ std::vector<std::string> split(const std::string &s, char delimiter) {
 std::string getAbsolutepath(const std::string& filePath, std::string rootDir) 
 {
     std::string absolutePath;
-    // std::cout << "filePath = " << filePath << std::endl;
-    // std::cout << "rootDir = " << rootDir << std::endl;
     bool rootEndsWithSlash = !rootDir.empty() && rootDir.back() == '/';
     bool filePathStartsWithSlash = !filePath.empty() && filePath.front() == '/';
 
@@ -56,29 +56,6 @@ void Request::parseRequest(const std::string& rawRequest)
     if (requestLineTokens.size() >= 3) 
     {
         method = requestLineTokens[0];
-            //search location
-        // std::vector<Locations> locations = server.getLocations();
-        // for(std::vector<Locations>::iterator it = locations.begin(); it != locations.end(); it++)
-        // {
-        //     std::string path = it->getPath();
-        //     if (requestLineTokens[1] == path)
-        //     {
-        //         ExclusivePath exclusivePath = it->getExclusivePath();
-        //         std::vector<std::string> indexs = it->getIndex();
-        //         std::string root = exclusivePath.getPath();
-        //         if (root.empty())
-        //             root = server.getRoot();
-        //         if (indexs.empty())
-        //             indexs.push_back("");
-        //         uri = getAbsolutepath(indexs.front(), root);
-        //         break;
-        //     }
-        //     else if (requestLineTokens[1].size() == 1 && requestLineTokens[1] == "/")
-        //     {
-        //         uri = getAbsolutepath("index.html", server.getRoot());
-        //         break;
-        //     }
-        // }
         uri = requestLineTokens[1];
         httpVersion = requestLineTokens[2];
     }
@@ -92,17 +69,6 @@ void Request::parseRequest(const std::string& rawRequest)
             std::string headerName = headerTokens[0];
             std::string headerValue = headerTokens[1];
             headers[headerName] = headerValue;
-            // // if heddername = disposition
-            // if (headerName == "Content-Disposition")
-            // {
-            //     std::vector<std::string> hedderValueTokens = split(headerValue, ';');
-            //     if (hedderValueTokens.size() >= 2)
-            //     {
-            //         std::string filename = hedderValueTokens[2];
-            //         filename = filename.substr(10, filename.size() - 11);
-            //         headers["filename"] = filename;
-            //     }
-            // }
             if (headerName == "Host")
             {
                 host = headerValue.substr(1, headerValue.size() - 1); //ちゃんとしたtrim関数を作る

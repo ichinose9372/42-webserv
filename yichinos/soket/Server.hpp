@@ -30,13 +30,27 @@ class Server
         std::vector<struct pollfd> pollfds;
         int addrlen;
         std::multimap<int , Servers> requestMap;
-    public:
         Server();
+    public:
         Server(const MainConfig& conf);
         ~Server();
         void acceptNewConnection(int server_fd, std::vector<struct pollfd>& pollfds, struct sockaddr_in& address, int& addrlen);
         void handleExistingConnection(struct pollfd& pfd);
         void runEventLoop();
+
+        //initializefunctions
+        void initializeServers(const std::vector<Servers>& servers);
+        void validateServers(const std::vector<Servers>& servers);   
+        void handleDuplicatePort(size_t port, const Servers& server);
+        void initializeServerSocket(const Servers& server, size_t port);
+        void initializeSocketAddress(size_t port);
+        //request functions
+        void receiveRequest(int socket_fd, char* buffer, size_t buffer_size);
+        Request processRequest(int socket_fd, const char* buffer);
+        Servers findServerBySocket(int socket_fd);
+        //response functions
+        void sendResponse(int socket_fd, Response& res);
+
 };
 
 #endif
