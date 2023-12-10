@@ -15,6 +15,8 @@
 #include "../cnf/Servers.hpp"
 #include <map>
 
+#define  BUFFER_SIZE 1024
+
 #define ADDRLEN sizeof(address)
 
 class MainConfig;
@@ -45,7 +47,7 @@ class Server
         void initializeServerSocket(const Servers& server, size_t port);
         void initializeSocketAddress(size_t port);
         //request functions
-        void receiveRequest(int socket_fd, char* buffer, size_t buffer_size);
+        void receiveRequest(int socket_fd, char** buffer);
         Request processRequest(int socket_fd, const char* buffer);
         Servers findServerBySocket(int socket_fd);
         //response functions

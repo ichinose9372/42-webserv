@@ -6,6 +6,9 @@ MainConfig::MainConfig(const std::string& filename)
     file.open(filename);
     if (!file.is_open())
         throw std::runtime_error("[KO] file not found");
+    parseLine();
+    tokenSearchandSet();
+    file.close();
 }
 
 MainConfig::~MainConfig() {}

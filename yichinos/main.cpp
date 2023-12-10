@@ -12,13 +12,10 @@ int main(int argc, char **argv)
         std::string filename;
         filename = argv[1];
         MainConfig myconf(filename);
-        myconf.parseLine();//make tokens
-        myconf.tokenSearchandSet();//make server
         Server server(myconf);
         while (true)
         {
             server.runEventLoop();
-            
         }
     }
     catch(const std::exception& e)

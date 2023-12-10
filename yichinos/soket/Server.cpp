@@ -41,30 +41,29 @@ void Server::initializeServerSocket(const Servers& server, size_t port)
     if ((socket_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) 
     {
         close(socket_fd);
-        std::cerr << "socket failed" << std::endl;
-        exit(EXIT_FAILURE);
+        throw std::runtime_error("Socket creation failed");
     }
 
     int opt = 1;
     if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) 
     {
-        std::cerr << "Setsockopt failed: " << strerror(errno) << std::endl;
         close(socket_fd);
-        exit(EXIT_FAILURE);
+        throw std::runtime_error("setsockopt");
     }
 
     initializeSocketAddress(port);
     
     if (bind(socket_fd, (struct sockaddr *)&this->address, sizeof(this->address)) < 0) 
     {
-        std::cerr << "bind failed" << std::endl;
-        exit(EXIT_FAILURE);
+        close(socket_fd);
+        throw std::runtime_error("bind out");
+
     }
 
     if (listen(socket_fd, 3) < 0) 
     {
-        std::cerr << "listen" << std::endl;
-        exit(EXIT_FAILURE);
+        close(socket_fd);
+        throw std::runtime_error("listen");
     }
 
     requestMap.insert(std::make_pair(socket_fd, server));
@@ -97,7 +96,6 @@ Server::Server(const MainConfig& conf)
 {
     std::vector<Servers> servers = conf.getServers();
     validateServers(servers);
-
     initializeServers(servers);
 }
 
@@ -118,15 +116,22 @@ void Server::acceptNewConnection(int server_fd, std::vector<struct pollfd>& poll
     pollfds.push_back(new_socket_struct);
 }
 
-void Server::receiveRequest(int socket_fd, char* buffer, size_t buffer_size) 
+void Server::receiveRequest(int socket_fd, char** buffer)
 {
     int valread;
-    memset(buffer, 0, buffer_size);
-    valread = read(socket_fd, buffer, buffer_size);
-    if (valread == 0) 
+    size_t buffer_size = BUFFER_SIZE;
+    memset(*buffer, 0, buffer_size);
+    while ((valread = read(socket_fd, *buffer, buffer_size)) == buffer_size) 
     {
-        close(socket_fd);
-        return;
+        char *tmp;
+        tmp = *buffer;
+        if (buffer_size * 2 > 1000000)
+            throw std::runtime_error("Request too large");
+        char * new_buffer = new char[buffer_size * 2];
+        memcpy(new_buffer, *buffer, buffer_size);
+        *buffer = new_buffer;
+        delete[] tmp;
+        buffer_size *= 2;
     }
 }
 
@@ -162,8 +167,8 @@ void Server::sendResponse(int socket_fd, Response& res)
 
 void Server::handleExistingConnection(struct pollfd& pfd) 
 {
-    char buffer[1024];
-    receiveRequest(pfd.fd, buffer, 1024);
+    char * buffer = new char[BUFFER_SIZE];
+    receiveRequest(pfd.fd, &buffer);
     Request req = processRequest(pfd.fd, buffer);
     Response res;
     Controller con;
