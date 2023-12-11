@@ -10,7 +10,7 @@ Request::~Request()
 {
 }
 
-std::vector<std::string> split(const std::string &s, char delimiter)
+std::vector<std::string> Request::split(const std::string &s, char delimiter)
 {
     std::vector<std::string> tokens;
     std::string token;
@@ -46,37 +46,8 @@ std::string getAbsolutepath(const std::string& filePath, std::string rootDir)
 
 void Request::parseRequest(const std::string& rawRequest) 
 {
-    std::istringstream requestStream(rawRequest);
-    std::string line;
-
-    // リクエストラインの取得と解析
-    std::getline(requestStream, line);
-    // std::cout << "line = " << line << std::endl;
-    std::vector<std::string> requestLineTokens = split(line, ' ');
-    if (requestLineTokens.size() >= 3) 
-    {
-        method = requestLineTokens[0];
-        uri = requestLineTokens[1];
-        httpVersion = requestLineTokens[2];
-    }
-
-    // ヘッダーの解析
-   while (std::getline(requestStream, line) && line != "\r" && line != "") 
-   {
-     std::vector<std::string> headerTokens = split(line, ':');
-        if (headerTokens.size() >= 2) 
-        {
-            std::string headerName = headerTokens[0];
-            std::string headerValue = headerTokens[1];
-            headers[headerName] = headerValue;
-            if (headerName == "Host")
-            {
-                host = headerValue.substr(1, headerValue.size() - 1); //ちゃんとしたtrim関数を作る
-            }
-        }
-   }
-    // ボディの取得（存在する場合）
-    std::getline(requestStream, body);
+    RequestParse requestParse;
+    requestParse.parseRequest(*this, rawRequest);
 }
 
 void Request::remakeRequest(Servers& server)
@@ -127,18 +98,18 @@ void Request::remakeRequest(Servers& server)
     }
 }
 
-void Request::printRequest() 
-{
-    std::cout << "Method: " << method << std::endl;
-    std::cout << "URI: " << uri << std::endl;
-    std::cout << "HTTP Version: " << httpVersion << std::endl;
-    std::cout << "Headers: " << std::endl;
-    for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); ++it) 
-    {
-        std::cout << it->first << ": " << it->second << std::endl;
-    }
-    std::cout << "Body: " << body << std::endl;
-}
+// void Request::printRequest() 
+// {
+//     std::cout << "Method: " << method << std::endl;
+//     std::cout << "URI: " << uri << std::endl;
+//     std::cout << "HTTP Version: " << httpVersion << std::endl;
+//     std::cout << "Headers: " << std::endl;
+//     for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); ++it) 
+//     {
+//         std::cout << it->first << ": " << it->second << std::endl;
+//     }
+//     std::cout << "Body: " << body << std::endl;
+// }
 
 const std::string& Request::getMethod() { return method; }
 
@@ -148,9 +119,18 @@ const std::string& Request::getHttpVersion() { return httpVersion; }
 
 const std::map<std::string, std::string>& Request::getHeaders() { return headers; }
 
-const std::map<std::string, std::string>& Request::getQueryParameters() { return queryParameters; }
-
 const std::string& Request::getBody() { return body; }
 
 const std::string& Request::getHost() { return host; }
 
+void Request::setMethod(const std::string& method) { this->method = method; }
+
+void Request::setUri(const std::string& uri) { this->uri = uri; }
+
+void Request::setHttpVersion(const std::string& httpVersion) { this->httpVersion = httpVersion; }
+
+void Request::setHeaders(std::string key, std::string value) { headers[key] = value; }
+
+void Request::setHost(const std::string& host) { this->host = host; }
+
+void Request::setBody(const std::string& body) { this->body = body; }

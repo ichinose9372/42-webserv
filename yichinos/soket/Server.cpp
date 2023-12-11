@@ -119,7 +119,7 @@ void Server::acceptNewConnection(int server_fd, std::vector<struct pollfd>& poll
 void Server::receiveRequest(int socket_fd, char** buffer)
 {
     int valread;
-    size_t buffer_size = BUFFER_SIZE;
+    int buffer_size = BUFFER_SIZE;
     memset(*buffer, 0, buffer_size);
     while ((valread = read(socket_fd, *buffer, buffer_size)) == buffer_size) 
     {
@@ -152,6 +152,7 @@ Request Server::processRequest(int socket_fd, const char* buffer)
 {
     Request req(buffer);
     Servers server = findServerBySocket(socket_fd);
+    //fd から server を探して、その server に対応する location を探す
     req.remakeRequest(server);
     return req;
 }

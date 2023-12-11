@@ -7,14 +7,15 @@
 #include "Response.hpp"
 #include <sstream>
 #include <fstream>
+#include "GetRequest.hpp"
+#include "PostRequest.hpp"
+#include "DeleteRequest.hpp"
 
 class Controller
 {
     public:
         Controller();
         ~Controller();
-        std::string openFile(const std::string& filePath);
-        std::string getBody(const std::string& status, const std::string& filePath);
         void processFile(Request& req, Response& res);
     private:       
 };

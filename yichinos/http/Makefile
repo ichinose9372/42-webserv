@@ -2,7 +2,11 @@ CXX = c++
 CXXFLAGS = -Wall -Wextra -Werror -std=c++98
 SRCS = Request.cpp \
 	   Response.cpp \
-	   Controller.cpp 
+	   Controller.cpp \
+	   GetRequest.cpp \
+	   PostRequest.cpp \
+	   DeleteRequest.cpp \
+	   RequestParse.cpp 
 OBJS = $(SRCS:.cpp=.o)
 OBJDIR = objs
 
