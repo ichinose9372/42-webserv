@@ -92,7 +92,9 @@ void GetRequest::executeCgiScript(Request& req, Response& res)
             }
         }
         res.setStatus("200 OK");
+        res.setHeaders("Content-Type: ", "text/html");
         res.setBody(output);
+        res.setHeaders("Content-Length: ", std::to_string(output.size()));
         return;
     }
 }
@@ -104,7 +106,9 @@ void GetRequest::handleGetRequest(Request& req, Response& res)
     else
     {
         res.setStatus(openFile(req.getUri()));
+        res.setHeaders("Content-Type: ", "text/html");
         res.setBody(getBody(res.getStatus(), req.getUri()));
+        res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
     }
     res.setResponse();
 }

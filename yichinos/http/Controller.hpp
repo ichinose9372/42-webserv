@@ -17,6 +17,8 @@ class Controller
         Controller();
         ~Controller();
         void processFile(Request& req, Response& res);
+        static std::string getFilepath(Request& req);
+        void serRetunrCode(Request& req, Response& res);   
     private:       
 };
 

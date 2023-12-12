@@ -160,9 +160,11 @@ Request Server::processRequest(int socket_fd, const char* buffer)
 void Server::sendResponse(int socket_fd, Response& res) 
 {
     std::string response = res.getResponse();
-    if (response.size() == 0) {
+    if (response.size() == 0)
+    {
         throw std::runtime_error("Response is empty");
     }
+    std::cout  << "response = " << response << std::endl;
     send(socket_fd, response.c_str(), response.size(), 0);
 }
 
@@ -174,11 +176,7 @@ void Server::handleExistingConnection(struct pollfd& pfd)
     Response res;
     Controller con;
     con.processFile(req, res);
-    std::string response = res.getResponse();
-    if (response.size() == 0) {
-        throw std::runtime_error("Response is empty");
-    }    
-    send(pfd.fd, response.c_str(), response.size(), 0);
+    sendResponse(pfd.fd, res);
 }
 
 void Server::runEventLoop()

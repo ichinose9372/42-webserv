@@ -37,7 +37,7 @@ class Request
         void setHost(const std::string& host);
         void setBody(const std::string& body);
         static std::vector<std::string> split(const std::string &s, char delimiter);
-        
+        void remakeUri(ExclusivePath& exclusivePath, Locations& location, std::string servers_root);
 
     private:
         Request();
@@ -45,9 +45,10 @@ class Request
         std::string uri;
         std::string httpVersion;
         std::map<std::string, std::string> headers;
-        // std::map<std::string, std::string> queryParameters;
         std::string body;
         std::string host;
+        std::pair<int, std::string> returnParameter;
+        std::string fileName;
         void parseRequest(const std::string& request);
         // void printRequest();
 };

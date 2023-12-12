@@ -22,10 +22,12 @@ class Response
         void setBody(const std::string& body);
         void setResponse();
         void setStatus(const std::string& status);
-
+        void setHeaders(const std::string& key, const std::string& value);
+        std::string allgetHeader();
     private:
         std::string status;
         std::string body;
+        std::map<std::string, std::string> headers;
         std::string response;
 };
 

@@ -50,51 +50,42 @@ void Request::parseRequest(const std::string& rawRequest)
     requestParse.parseRequest(*this, rawRequest);
 }
 
+
+void Request::remakeUri(ExclusivePath& exclusivePath, Locations& location, std::string servers_root)
+{
+    std::string path = exclusivePath.getPath(); //locationのrootかaliasを取得
+    std::vector<std::string> indexs = location.getIndex();//locationのindexを取得
+    path = getAbsolutepath(path, servers_root);
+    if (path.empty())
+        path = servers_root;
+    if (indexs.empty())
+        indexs.push_back("");
+    uri = getAbsolutepath(indexs.front(), path);
+}
+
+
 void Request::remakeRequest(Servers& server)
 {
     std::vector<Locations> locations = server.getLocations();
-    for(std::vector<Locations>::iterator it = locations.begin(); it != locations.end(); it++)
+    for(std::vector<Locations>::iterator it = locations.begin(); it != locations.end(); it++) //リクエストに対してのlocationを探す
     {   
-        if (uri == it->getPath())
+        if (uri == it->getPath()) //locationが一致した場合
         {
-            if (it->getReturnCode().first != 0)
+            std::cout << "uri = " << uri << std::endl;
+            if (it->getReturnCode().first != 0)//returnCodeが設定されている場合
             {
-                std::string returnCode = std::to_string(it->getReturnCode().first);
-                std::string returnPage = it->getReturnCode().second;
-                headers["returnCode"] = returnCode;
-                headers["returnPage"] = returnPage;
+                returnParameter = it->getReturnCode();
                 return;
             }
-            if (it->getAutoindex())
+            if (it->getAutoindex()) // autoindexが設定されている場合
             {
                 uri = getAbsolutepath("autoindex.html", server.getRoot());
                 return;
             }
             ExclusivePath exclusivePath = it->getExclusivePath();
-            std::vector<std::string> indexs = it->getIndex();
-            std::string root = exclusivePath.getPath();
-            root = getAbsolutepath(root, server.getRoot());
-            if (root.empty())
-                root = server.getRoot();
-            if (indexs.empty())
-                indexs.push_back("");
-            // uri = getAbsolutepath(indexs.front(), getAbsolutepath(root, server.getRoot()));
-            std::cout << "indexs.front() = " << indexs.front() << root << std::endl;
-            uri = getAbsolutepath(indexs.front(), root);
+            remakeUri(exclusivePath, *it, server.getRoot());
             break;
         }
-        else if (uri.size() == 1 && uri.front() == '/')
-        {
-            uri = getAbsolutepath("index.html", server.getRoot());
-            break;
-        }   
-    }
-    if (method == "POST" || method == "DELETE")
-    {
-        std::vector<std::string> hedderValueTokens = split(headers["Content-Disposition"], ';');
-        std::string filename = hedderValueTokens[2];
-        filename = filename.substr(10, filename.size() - 11);
-        headers["filename"] = filename;
     }
 }
 
