@@ -22,6 +22,7 @@ class Locations
         std::string cgi_extension;//cgi_path
         std::string upload_path;
         size_t max_body_size;
+        std::vector<std::string> methods;
 
     public:
         Locations();
@@ -36,6 +37,7 @@ class Locations
         void setCgiExtension(const std::string& cgi_extension);
         void setUploadPath(const std::string& upload_path);
         void setMaxBodySize(const std::string& max_body_size);
+        void setMethod(const std::string& method);
         //getter
         const std::string& getPath(void);
         const std::vector<std::string>& getIndex(void);
@@ -44,6 +46,8 @@ class Locations
         const std::pair<int, std::string>& getReturnCode(void);
         const std::string& getCgiExtension(void);
         const ExclusivePath& getExclusivePath(void);
+        const std::vector<std::string>& getMethod(void);
+        size_t getMaxBodySize(void);
 };
 
 #endif

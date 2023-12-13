@@ -21,18 +21,27 @@ std::string Controller::getFilepath(Request& req)
 
 void setReturnCode(Request& req, Response& res)
 {
-    std::string returnCode = req.getHeaders().find("returnCode")->second;
-    res.setStatus(returnCode + "Moved Permanently");
-    std::string returnPage =  req.getHeaders().find("returnPage")->second;
-    res.setHeaders("Location: ",  returnPage + "\r\n");
+    int returnCode = req.getReturnParameter().first;
+    std::string returnPage =  req.getReturnParameter().second;
+    if (returnCode == 301)
+    {
+        res.setStatus("301 Moved Permanently");
+        res.setHeaders("Location: ", returnPage);
+    }
+    else if (returnCode == 405)
+    {
+        res.setStatus("405 Method Not Allowed");
+        res.setHeaders("Content-Type", "text/html");
+        res.setBody("<html><body><h1>405 Method Not Allowed</h1></body></html>");
+        res.setHeaders("Content-Length", std::to_string(res.getBody().size()));
+    }
     res.setResponse();
 }
 
 void Controller::processFile(Request& req, Response& res) 
 {
-    if (req.getHeaders().find("returnCode") != req.getHeaders().end())
+    if (req.getReturnParameter().first != 0)
     {
-        std::cout << "setReturnCode" << std::endl;
         setReturnCode(req, res);
         return;
     }

@@ -15,6 +15,34 @@ Servers::Servers()
 Servers::~Servers() {}
 
 
+
+void printLocations(Locations& Location)
+{
+    std::cout << "path = " << Location.getPath() << std::endl;
+    std::cout << "index = ";
+    std::vector<std::string> index = Location.getIndex();
+    std::vector<std::string>::iterator it = index.begin();
+    for (; it != index.end(); it++)
+        std::cout << *it << " ";
+    std::cout << std::endl;
+    std::cout << "autoindex = " << Location.getAutoindex() << std::endl;
+    std::cout << "error_pages = ";
+    std::map<int, std::string> error_pages = Location.getErrorPages();
+    std::map<int, std::string>::iterator it2 = error_pages.begin();
+    for (; it2 != error_pages.end(); it2++)
+        std::cout << it2->first << " " << it2->second << " ";
+    std::cout << std::endl;
+    std::cout << "return_code = " << Location.getReturnCode().first << " " << Location.getReturnCode().second << std::endl;
+    std::cout << "cgi_extension = " << Location.getCgiExtension() << std::endl;
+    std::cout << "method = ";
+    std::vector<std::string> method = Location.getMethod();
+    std::vector<std::string>::iterator it3 = method.begin();
+    for (; it3 != method.end(); it3++)
+        std::cout << *it3 << " ";
+    std::cout << std::endl;
+}
+
+
 // ;　を削除する関数
 void  removeTrailingSemicolon(std::string& str) 
 {
@@ -213,7 +241,6 @@ void Servers::setLocations(std::vector<std::string>::iterator& it ,std::vector<s
             ss >> tmp_return_code;
             it++;
             removeTrailingSemicolon(*it);
-            std::cout << "return code is " << tmp_return_code << " "<<*it << std::endl;
             location.setReturnCode(tmp_return_code, *it);
         }
         else if (*it == "cgi_path")
@@ -237,12 +264,27 @@ void Servers::setLocations(std::vector<std::string>::iterator& it ,std::vector<s
             removeTrailingSemicolon(*it);
             setClientMaxBodySize(*it);
         }
+        else if (*it == "method")
+        {
+            it++;
+            while (it != end && it->find(";") == std::string::npos) 
+            {
+                location.setMethod(*it);
+                it++;
+            }
+            if (it == end) 
+                throw std::runtime_error("Parse error: Unexpected end of tokens before method block");
+            removeTrailingSemicolon(*it);
+            location.setMethod(*it);
+        }
         else
         if (++it == end) 
         {  
             throw std::runtime_error("Parse error: Location block not closed with '}'");
         }
+
     }
+    // printLocations(location);
     locations.push_back(location);
 }
 
@@ -287,3 +329,4 @@ void Servers::setRoot(const std::string& root)
 {
     this->root = root;
 }
+

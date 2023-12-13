@@ -16,6 +16,13 @@ void PostRequest::handlePostRequest(Request& req, Response& res)
         return;
     }
     std::string body = req.getBody();
+    if (req.getMaxBodySize() != 0 && body.size() > req.getMaxBodySize())
+    {
+        res.setStatus("413 Request Entity Too Large");
+        res.setBody("<html><body><h1>413 Request Entity Too Large</h1></body></html>");
+        res.setResponse();
+        return;
+    }
     outputFile << body;
     outputFile.close();
     res.setStatus("200 OK");

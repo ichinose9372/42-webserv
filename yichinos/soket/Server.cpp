@@ -114,6 +114,7 @@ void Server::acceptNewConnection(int server_fd, std::vector<struct pollfd>& poll
     struct pollfd new_socket_struct = {new_socket, POLLIN, 0};
     requestMap.insert(std::make_pair(new_socket, requestMap.find(server_fd)->second));
     pollfds.push_back(new_socket_struct);
+    // std::cout << "accept new connection" << std::endl;  
 }
 
 void Server::receiveRequest(int socket_fd, char** buffer)
@@ -160,16 +161,22 @@ Request Server::processRequest(int socket_fd, const char* buffer)
 void Server::sendResponse(int socket_fd, Response& res) 
 {
     std::string response = res.getResponse();
+    // std::cout << "response size =  " << response.size() << " \n -----response------  \n " << response << std::endl;
     if (response.size() == 0)
     {
         throw std::runtime_error("Response is empty");
     }
-    std::cout  << "response = " << response << std::endl;
+    else if (response.size() > 1000000)
+    {
+        throw std::runtime_error("Response too large");
+    }
     send(socket_fd, response.c_str(), response.size(), 0);
+    // std::cout << "----send finish-------" << std::endl;
 }
 
 void Server::handleExistingConnection(struct pollfd& pfd) 
 {
+    // std::cout << "IN handleExistingConnection" << std::endl;
     char * buffer = new char[BUFFER_SIZE];
     receiveRequest(pfd.fd, &buffer);
     Request req = processRequest(pfd.fd, buffer);
@@ -177,6 +184,8 @@ void Server::handleExistingConnection(struct pollfd& pfd)
     Controller con;
     con.processFile(req, res);
     sendResponse(pfd.fd, res);
+    delete[] buffer;
+    close(pfd.fd);
 }
 
 void Server::runEventLoop()

@@ -105,3 +105,18 @@ const ExclusivePath& Locations::getExclusivePath(void)
 {
     return (this->exclusivePath);
 }
+
+void Locations::setMethod(const std::string& method)
+{
+    this->methods.push_back(method);
+}
+
+const std::vector<std::string>& Locations::getMethod(void)
+{
+    return (this->methods);
+}
+
+size_t Locations::getMaxBodySize(void)
+{
+    return (this->max_body_size);
+}

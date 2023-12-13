@@ -54,13 +54,25 @@ void Request::parseRequest(const std::string& rawRequest)
 void Request::remakeUri(ExclusivePath& exclusivePath, Locations& location, std::string servers_root)
 {
     std::string path = exclusivePath.getPath(); //locationのrootかaliasを取得
-    std::vector<std::string> indexs = location.getIndex();//locationのindexを取得
-    path = getAbsolutepath(path, servers_root);
     if (path.empty())
         path = servers_root;
+    else 
+        path = getAbsolutepath(path, servers_root);
+    std::vector<std::string> indexs = location.getIndex();//locationのindexを取得
     if (indexs.empty())
         indexs.push_back("");
     uri = getAbsolutepath(indexs.front(), path);
+}
+
+bool Request::checkRequestmethod(Locations& location)
+{
+   std::vector<std::string>::const_iterator it = location.getMethod().begin();
+    for(; it != location.getMethod().end(); it++)
+    {
+         if (*it == method)
+              return false;
+    }
+    return true;
 }
 
 
@@ -71,7 +83,6 @@ void Request::remakeRequest(Servers& server)
     {   
         if (uri == it->getPath()) //locationが一致した場合
         {
-            std::cout << "uri = " << uri << std::endl;
             if (it->getReturnCode().first != 0)//returnCodeが設定されている場合
             {
                 returnParameter = it->getReturnCode();
@@ -81,6 +92,16 @@ void Request::remakeRequest(Servers& server)
             {
                 uri = getAbsolutepath("autoindex.html", server.getRoot());
                 return;
+            }
+            if (checkRequestmethod(*it)) // locationのmethodとリクエストmethodが一致しない場合
+            {
+                returnParameter.first = 405;
+                returnParameter.second = "405.html";
+                return;
+            }
+            if (it->getMaxBodySize() != 0) // maxBodySizeが設定されている場合
+            {
+                max_body_size = it->getMaxBodySize();
             }
             ExclusivePath exclusivePath = it->getExclusivePath();
             remakeUri(exclusivePath, *it, server.getRoot());
@@ -114,6 +135,10 @@ const std::string& Request::getBody() { return body; }
 
 const std::string& Request::getHost() { return host; }
 
+const std::pair<int, std::string>& Request::getReturnParameter() { return returnParameter; }
+
+size_t Request::getMaxBodySize() { return max_body_size; }
+
 void Request::setMethod(const std::string& method) { this->method = method; }
 
 void Request::setUri(const std::string& uri) { this->uri = uri; }
@@ -125,3 +150,5 @@ void Request::setHeaders(std::string key, std::string value) { headers[key] = va
 void Request::setHost(const std::string& host) { this->host = host; }
 
 void Request::setBody(const std::string& body) { this->body = body; }
+
+

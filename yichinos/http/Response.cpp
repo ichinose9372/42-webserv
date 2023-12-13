@@ -6,7 +6,9 @@ Response::~Response() {}
 
 void Response::setResponse()
 {
+    response = "HTTP/1.1 ";
     response += status;
+    response += "\r\n";
     response += allgetHeader();
     response += "\r\n";
     response += body;
@@ -14,7 +16,7 @@ void Response::setResponse()
 
 void Response::setStatus(const std::string& status)
 {
-    this->status = "HTTP/1.1 " + status + "\r\n";
+    this->status = status;
 }
 
 std::string Response::allgetHeader()
