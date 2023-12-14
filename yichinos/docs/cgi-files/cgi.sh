@@ -1,8 +1,5 @@
 #!/bin/bash
 
-echo "Content-type: text/html"
-echo ""
-
 echo "<html>"
 echo "<head>"
 echo "<title>Simple CGI Script</title>"

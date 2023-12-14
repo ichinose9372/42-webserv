@@ -66,11 +66,14 @@ void Request::remakeUri(ExclusivePath& exclusivePath, Locations& location, std::
 
 bool Request::checkRequestmethod(Locations& location)
 {
-   std::vector<std::string>::const_iterator it = location.getMethod().begin();
+    std::vector<std::string>::const_iterator it = location.getMethod().begin();
     for(; it != location.getMethod().end(); it++)
     {
-         if (*it == method)
-              return false;
+        // std::cout << "method = " << *it <<  "method = " << method << std::endl;
+        if (*it == method)
+        {
+            return false;
+        }
     }
     return true;
 }
@@ -110,18 +113,18 @@ void Request::remakeRequest(Servers& server)
     }
 }
 
-// void Request::printRequest() 
-// {
-//     std::cout << "Method: " << method << std::endl;
-//     std::cout << "URI: " << uri << std::endl;
-//     std::cout << "HTTP Version: " << httpVersion << std::endl;
-//     std::cout << "Headers: " << std::endl;
-//     for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); ++it) 
-//     {
-//         std::cout << it->first << ": " << it->second << std::endl;
-//     }
-//     std::cout << "Body: " << body << std::endl;
-// }
+void Request::printRequest() 
+{
+    std::cout << "Method: " << method << std::endl;
+    std::cout << "URI: " << uri << std::endl;
+    std::cout << "HTTP Version: " << httpVersion << std::endl;
+    std::cout << "Headers: " << std::endl;
+    for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); ++it) 
+    {
+        std::cout << it->first << ": " << it->second << std::endl;
+    }
+    std::cout << "Body: " << body << std::endl;
+}
 
 const std::string& Request::getMethod() { return method; }
 

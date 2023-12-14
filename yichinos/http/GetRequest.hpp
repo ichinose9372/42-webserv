@@ -2,6 +2,7 @@
 #define GETREQUEST_HPP
 
 #include "Controller.hpp"
+#include "ExecCgi.hpp"
 
 class GetRequest
 {

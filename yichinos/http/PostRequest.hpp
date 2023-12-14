@@ -2,6 +2,7 @@
 #define POSTREQUEST_HPP
 
 #include "Controller.hpp"
+#include "ExecCgi.hpp"
 
 class PostRequest
 {

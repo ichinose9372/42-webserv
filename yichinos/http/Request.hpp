@@ -55,7 +55,7 @@ class Request
         std::string fileName;
         size_t max_body_size;
         void parseRequest(const std::string& request);
-        // void printRequest();
+        void printRequest();
 };
 
 

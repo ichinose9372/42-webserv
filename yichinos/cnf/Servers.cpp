@@ -16,31 +16,31 @@ Servers::~Servers() {}
 
 
 
-void printLocations(Locations& Location)
-{
-    std::cout << "path = " << Location.getPath() << std::endl;
-    std::cout << "index = ";
-    std::vector<std::string> index = Location.getIndex();
-    std::vector<std::string>::iterator it = index.begin();
-    for (; it != index.end(); it++)
-        std::cout << *it << " ";
-    std::cout << std::endl;
-    std::cout << "autoindex = " << Location.getAutoindex() << std::endl;
-    std::cout << "error_pages = ";
-    std::map<int, std::string> error_pages = Location.getErrorPages();
-    std::map<int, std::string>::iterator it2 = error_pages.begin();
-    for (; it2 != error_pages.end(); it2++)
-        std::cout << it2->first << " " << it2->second << " ";
-    std::cout << std::endl;
-    std::cout << "return_code = " << Location.getReturnCode().first << " " << Location.getReturnCode().second << std::endl;
-    std::cout << "cgi_extension = " << Location.getCgiExtension() << std::endl;
-    std::cout << "method = ";
-    std::vector<std::string> method = Location.getMethod();
-    std::vector<std::string>::iterator it3 = method.begin();
-    for (; it3 != method.end(); it3++)
-        std::cout << *it3 << " ";
-    std::cout << std::endl;
-}
+// void printLocations(Locations& Location)
+// {
+//     std::cout << "path = " << Location.getPath() << std::endl;
+//     std::cout << "index = ";
+//     std::vector<std::string> index = Location.getIndex();
+//     std::vector<std::string>::iterator it = index.begin();
+//     for (; it != index.end(); it++)
+//         std::cout << *it << " ";
+//     std::cout << std::endl;
+//     std::cout << "autoindex = " << Location.getAutoindex() << std::endl;
+//     std::cout << "error_pages = ";
+//     std::map<int, std::string> error_pages = Location.getErrorPages();
+//     std::map<int, std::string>::iterator it2 = error_pages.begin();
+//     for (; it2 != error_pages.end(); it2++)
+//         std::cout << it2->first << " " << it2->second << " ";
+//     std::cout << std::endl;
+//     std::cout << "return_code = " << Location.getReturnCode().first << " " << Location.getReturnCode().second << std::endl;
+//     std::cout << "cgi_extension = " << Location.getCgiExtension() << std::endl;
+//     std::cout << "method = ";
+//     std::vector<std::string> method = Location.getMethod();
+//     std::vector<std::string>::iterator it3 = method.begin();
+//     for (; it3 != method.end(); it3++)
+//         std::cout << *it3 << " ";
+//     std::cout << std::endl;
+// }
 
 
 // ;　を削除する関数

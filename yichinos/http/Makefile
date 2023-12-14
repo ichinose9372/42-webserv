@@ -6,7 +6,8 @@ SRCS = Request.cpp \
 	   GetRequest.cpp \
 	   PostRequest.cpp \
 	   DeleteRequest.cpp \
-	   RequestParse.cpp 
+	   RequestParse.cpp \
+	   ExecCgi.cpp 
 OBJS = $(SRCS:.cpp=.o)
 OBJDIR = objs
 

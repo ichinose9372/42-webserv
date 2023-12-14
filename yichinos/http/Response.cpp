@@ -12,6 +12,7 @@ void Response::setResponse()
     response += allgetHeader();
     response += "\r\n";
     response += body;
+    // std::cout << response << std::endl;
 }  
 
 void Response::setStatus(const std::string& status)

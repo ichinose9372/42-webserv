@@ -102,7 +102,10 @@ void GetRequest::executeCgiScript(Request& req, Response& res)
 void GetRequest::handleGetRequest(Request& req, Response& res)
 {
     if (isCgiScript(req.getUri()))
-        executeCgiScript(req, res);
+    {
+        std::cout << "In GetRequest::handleGetRequest" << std::endl;
+       ExecCgi::executeCgiScript(req, res);
+    }
     else
     {
         res.setStatus(openFile(req.getUri()));
