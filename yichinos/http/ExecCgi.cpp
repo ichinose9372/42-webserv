@@ -61,7 +61,7 @@ void ExecCgi::executeCgiScript(Request& req, Response& res)
     else if (req.getMethod() == "POST")
     {
         std::string path = req.getUri();
-        std::cout << "path = " << path << std::endl;
+        // std::cout << "path = " << path << std::endl;
         if (access(path.c_str(), F_OK | X_OK) != 0) 
         {
             res.setStatus("404 Not Found");
@@ -79,7 +79,7 @@ void ExecCgi::executeCgiScript(Request& req, Response& res)
             close(pipefd[1]);
             char methodEnv[] = "REQUEST_METHOD=POST";
             char* envp[] = { methodEnv, NULL };
-            std::cout << "methodEnv = " << methodEnv << std::endl;
+            // std::cout << "methodEnv = " << methodEnv << std::endl;
             execve(path.c_str(), NULL, envp);
             exit(500);
         }
@@ -106,7 +106,7 @@ void ExecCgi::executeCgiScript(Request& req, Response& res)
                     return;
                 }
             }
-            std::cout << "output = " << output << std::endl;
+            // std::cout << "output = " << output << std::endl;
             res.setStatus("200 OK");
             res.setHeaders("Content-Type: ", "text/html");
             res.setBody(output);

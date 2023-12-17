@@ -37,7 +37,7 @@ void PostRequest::handlePostRequest(Request& req, Response& res)
     }
     else
     {
-        std::cout << "In PostRequest::handlePostRequest   aaaaaaa" << std::endl;
+        // std::cout << "In PostRequest::handlePostRequest   aaaaaaa" << std::endl;
         ExecCgi::executeCgiScript(req, res);
     }
 

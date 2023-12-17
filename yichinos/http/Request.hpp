@@ -11,6 +11,7 @@
 #include "../cnf/Servers.hpp"
 #include "../cnf/Locations.hpp"
 #include "RequestParse.hpp"
+#include <sys/stat.h>
 
 class Servers;
 class Locatinos;
@@ -23,6 +24,7 @@ class Request
         //getter
         const std::string& getMethod();
         const std::string& getUri();
+        const std::string& getFilepath();
         const std::string& getHttpVersion();
         const std::map<std::string, std::string>& getHeaders();
         // const std::map<std::string, std::string>& getQueryParameters();
@@ -34,6 +36,7 @@ class Request
         //setter
         void setMethod(const std::string& method);
         void setUri(const std::string& uri);
+        void setFilepath(const std::string& filepath);
         void setHttpVersion(const std::string& httpVersion);
         void setHeaders(std::string key, std::string value);
         void setHost(const std::string& host);
@@ -47,6 +50,7 @@ class Request
         Request();
         std::string method;
         std::string uri;
+        std::string filepath;
         std::string httpVersion;
         std::map<std::string, std::string> headers;
         std::string body;

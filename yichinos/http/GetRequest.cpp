@@ -11,10 +11,11 @@ bool isCgiScript(const std::string& filePath)
 
 std::string GetRequest::openFile(const std::string& filePath)
 {
+    std::cout << "In GetRequest::openFile   file psth = " << filePath << std::endl;    
     std::ifstream file(filePath);
     std::string content;
     std::string line;
-  
+
     if (file.is_open()) 
     {
         content = "200 OK";
@@ -24,6 +25,8 @@ std::string GetRequest::openFile(const std::string& filePath)
     {
         content = "404 Not Found";
     }
+
+    std::cout << "content = " << content << std::endl;
     return content;
 }
 
@@ -108,7 +111,13 @@ void GetRequest::handleGetRequest(Request& req, Response& res)
     }
     else
     {
-        res.setStatus(openFile(req.getUri()));
+        // if (req.getFilepath() != "")
+        // {
+        //     std::cout << "-------------handleget filepath != 0 --------------- \n";
+        //     res.setStatus(openFile(req.getFilepath()));
+        // }
+        // else
+            res.setStatus(openFile(req.getUri()));
         res.setHeaders("Content-Type: ", "text/html");
         res.setBody(getBody(res.getStatus(), req.getUri()));
         res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));

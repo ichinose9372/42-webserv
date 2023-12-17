@@ -161,7 +161,7 @@ Request Server::processRequest(int socket_fd, const char* buffer)
 void Server::sendResponse(int socket_fd, Response& res) 
 {
     std::string response = res.getResponse();
-    // std::cout << "response size =  " << response.size() << " \n -----response------  \n " << response << std::endl;
+    std::cout << "response size =  " << response.size() << " \n -----response------  \n" << response << std::endl;
     if (response.size() == 0)
     {
         throw std::runtime_error("Response is empty");
@@ -171,7 +171,7 @@ void Server::sendResponse(int socket_fd, Response& res)
         throw std::runtime_error("Response too large");
     }
     send(socket_fd, response.c_str(), response.size(), 0);
-    // std::cout << "----send finish-------" << std::endl;
+    std::cout << "------------------------------------------" << std::endl;
 }
 
 void Server::handleExistingConnection(struct pollfd& pfd) 

@@ -29,6 +29,26 @@ void RequestParse::parseRequest(Request& request, const std::string& rawRequest)
     parseBody(requestStream, request);
 }
 
+std::string getfilepathtoURI(const std::string& uri, Request& request)
+{
+    (void) request;
+    std::string return_uri; 
+    std::vector<std::string> uriTokens = split(uri, '/');
+    if (uriTokens.size() >= 3) // /directory/filename の場合にこの条件に入る
+    {
+        return_uri = "/" + uriTokens[1];
+        std::string filename;
+        for(size_t i = 2; i < uriTokens.size(); i++)
+        {
+            filename += "/" + uriTokens[i];
+        }
+        request.setFilepath(filename);
+    }
+    else
+        return_uri = uri;
+    return return_uri;
+}
+
 
 void RequestParse::parseRequestLine(const std::string& line, Request& request)
 {
@@ -36,10 +56,13 @@ void RequestParse::parseRequestLine(const std::string& line, Request& request)
     if (requestLineTokens.size() >= 3) 
     {
         request.setMethod(requestLineTokens[0]);
-        request.setUri(requestLineTokens[1]);
+        request.setUri(getfilepathtoURI(requestLineTokens[1], request));
         request.setHttpVersion(requestLineTokens[2]);
     }
 }
+
+// location separat filename and path
+
 
 void RequestParse::parseHeader(const std::string& line, Request& request)
 {

@@ -53,15 +53,59 @@ void Request::parseRequest(const std::string& rawRequest)
 
 void Request::remakeUri(ExclusivePath& exclusivePath, Locations& location, std::string servers_root)
 {
-    std::string path = exclusivePath.getPath(); //locationのrootかaliasを取得
-    if (path.empty())
-        path = servers_root;
-    else 
-        path = getAbsolutepath(path, servers_root);
-    std::vector<std::string> indexs = location.getIndex();//locationのindexを取得
-    if (indexs.empty())
-        indexs.push_back("");
-    uri = getAbsolutepath(indexs.front(), path);
+    struct stat statbuf;
+    if (!filepath.empty())
+    {
+        uri = getAbsolutepath(filepath, servers_root);
+        std::cout << uri << std::endl;
+    }
+    if (stat(uri.c_str(), &statbuf) == 0) 
+    {
+        if (S_ISREG(statbuf.st_mode) && access(uri.c_str(), R_OK) == 0)
+        {
+            return;
+        }
+        else if (S_ISDIR(statbuf.st_mode))
+        {
+            std::cout << "IN S_ISDIR  first  uri = " << uri << std::endl; //./YoupiBanane/nop ここでディレクトリが確定している
+            std::string path = exclusivePath.getPath(); //locationのrootかaliasを取得
+            if (path.empty())
+                path = servers_root;
+            std::cout << "IN S_ISDIR  second  path = " << path << std::endl;
+            std::vector<std::string> indexs = location.getIndex();//locationのindexを取得
+            if (indexs.empty())
+                indexs.push_back("");
+            std::cout << "IN S_ISDIR  third  indexs.front() = " << indexs.front() << std::endl;
+            if (!filepath.empty())
+            {
+                std::cout << " IN IF filepath = " << std::endl;
+                uri = getAbsolutepath(indexs.front(), uri);
+            }
+            else
+            {
+                std::cout << " IN ELSE indexs.front() = " << indexs.front() << std::endl;
+                uri = getAbsolutepath(indexs.front(), path);
+            }
+        }
+    }
+    else
+    {
+        std::cout << "SONOMAMA IN ELSE  uri = " << uri << std::endl;
+        std::string path = exclusivePath.getPath(); //locationのrootかaliasを取得
+        if (path.empty())
+            path = servers_root;
+        else 
+            path = getAbsolutepath(path, servers_root);
+        std::vector<std::string> indexs = location.getIndex();//locationのindexを取得
+        if (indexs.empty())
+            indexs.push_back("");
+        if (!filepath.empty())
+        {
+            uri = getAbsolutepath(filepath, path);
+        }
+        else
+            uri = getAbsolutepath(indexs.front(), path);
+    }
 }
 
 bool Request::checkRequestmethod(Locations& location)
@@ -69,7 +113,6 @@ bool Request::checkRequestmethod(Locations& location)
     std::vector<std::string>::const_iterator it = location.getMethod().begin();
     for(; it != location.getMethod().end(); it++)
     {
-        // std::cout << "method = " << *it <<  "method = " << method << std::endl;
         if (*it == method)
         {
             return false;
@@ -108,9 +151,14 @@ void Request::remakeRequest(Servers& server)
             }
             ExclusivePath exclusivePath = it->getExclusivePath();
             remakeUri(exclusivePath, *it, server.getRoot());
-            break;
+            //filepathが設定されているのならURIをfilepathを使って作り直す
+            return;
         }
     }
+    //locationが一致しなかった場合
+    std::cout << "location not found" << std::endl;
+    returnParameter.first = 404;
+    returnParameter.second = "404.html";
 }
 
 void Request::printRequest() 
@@ -140,6 +188,8 @@ const std::string& Request::getHost() { return host; }
 
 const std::pair<int, std::string>& Request::getReturnParameter() { return returnParameter; }
 
+const std::string& Request::getFilepath() { return filepath; }
+
 size_t Request::getMaxBodySize() { return max_body_size; }
 
 void Request::setMethod(const std::string& method) { this->method = method; }
@@ -154,4 +204,5 @@ void Request::setHost(const std::string& host) { this->host = host; }
 
 void Request::setBody(const std::string& body) { this->body = body; }
 
+void Request::setFilepath(const std::string& filepath) { this->filepath = filepath; }
 

@@ -159,7 +159,10 @@ void Servers::setLocations(std::vector<std::string>::iterator& it ,std::vector<s
     location.setPath(*it);
     it++;
     if (*it != "{")
+    {
+        std::cout << "it = " << *it << std::endl;
         throw std::runtime_error("Parse error: Expected '{' after location path");
+    }
     while (it != end && *it != "}") 
     {
         if (*it == "root") 

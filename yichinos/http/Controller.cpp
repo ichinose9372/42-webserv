@@ -34,31 +34,55 @@ void setReturnCode(Request& req, Response& res)
     }
     else if (returnCode == 405)
     {
+        std::cout << " IN 405 \n";
         res.setStatus("405 Method Not Allowed");
         res.setHeaders("Content-Type: ", "text/html");
         res.setBody("<html><body><h1>405 Method Not Allowed</h1></body></html>");
         res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
     }
+    else if (returnCode == 404)
+    {
+        std::cout << " IN 404 \n";
+        res.setStatus("404 Not Found");
+        res.setHeaders("Content-Type: ", "text/html");
+        res.setBody("<html><body><h1>404 Not Found</h1></body></html>");
+        res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
+    }
+    // else if (returnCode == 413)
+    // {
+    //     res.setStatus("413 Request Entity Too Large");
+    //     res.setHeaders("Content-Type: ", "text/html");
+    //     res.setBody("<html><body><h1>413 Request Entity Too Large</h1></body></html>");
+    //     res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
+    // }
+    // else if (returnCode == 500)
+    // {
+    //     res.setStatus("500 Internal Server Error");
+    //     res.setHeaders("Content-Type: ", "text/html");
+    //     res.setBody("<html><body><h1>500 Internal Server Error</h1></body></html>");
+    //     res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
+    // }
     res.setResponse();
+    std::cout << "res.getResponse() = " << res.getResponse() << std::endl;
 }
 
 void Controller::processFile(Request& req, Response& res) 
 {
     if (req.getReturnParameter().first != 0)
     {
-        std::cout << "In Controller::processFile returnCode != 0" << std::endl;
+        // std::cout << "In Controller::processFile returnCode != 0" << std::endl;
         setReturnCode(req, res);
         return;
     }
     std::string method = req.getMethod();
     if (method == "GET")
     {
-        std::cout << "In Controller::processFile" << std::endl;
+        // std::cout << "In Controller::processFile" << std::endl;
         GetRequest::handleGetRequest(req, res);
     }
     else if (method == "POST")
     {   
-        std::cout << "In Controller::processFile POST" << std::endl;
+        // std::cout << "In Controller::processFile POST" << std::endl;
         PostRequest::handlePostRequest(req, res);
     }
     else if(method == "DELETE")
