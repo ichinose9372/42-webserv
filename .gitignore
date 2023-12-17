@@ -28,5 +28,5 @@ test/
 
 cnf.d/
 
-.vscode
+./.vscode
 ```
