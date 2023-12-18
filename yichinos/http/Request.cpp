@@ -127,6 +127,7 @@ void Request::remakeRequest(Servers& server)
     std::vector<Locations> locations = server.getLocations();
     for(std::vector<Locations>::iterator it = locations.begin(); it != locations.end(); it++) //リクエストに対してのlocationを探す
     {   
+        std::cout << "location = " << it->getPath()  << " : " << uri << std::endl;
         if (uri == it->getPath()) //locationが一致した場合
         {
             if (it->getReturnCode().first != 0)//returnCodeが設定されている場合
@@ -205,4 +206,10 @@ void Request::setHost(const std::string& host) { this->host = host; }
 void Request::setBody(const std::string& body) { this->body = body; }
 
 void Request::setFilepath(const std::string& filepath) { this->filepath = filepath; }
+
+void Request::setReturnParameter(int status, std::string filename) 
+{
+    returnParameter.first = status;
+    returnParameter.second = filename;
+}
 

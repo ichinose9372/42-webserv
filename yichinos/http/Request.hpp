@@ -41,6 +41,7 @@ class Request
         void setHeaders(std::string key, std::string value);
         void setHost(const std::string& host);
         void setBody(const std::string& body);
+        void setReturnParameter(int status, std::string filename);
         static std::vector<std::string> split(const std::string &s, char delimiter);
         void remakeUri(ExclusivePath& exclusivePath, Locations& location, std::string servers_root);
         bool checkRequestmethod(Locations& location);

@@ -19,11 +19,14 @@ std::vector<std::string> split(const std::string &s, char delimiter)
 
 void RequestParse::parseRequest(Request& request, const std::string& rawRequest)
 {
+    std::cout << "IN REQUESTPARSE::PARSEREQUEST request size == " << rawRequest.size() << std::endl;
     std::istringstream requestStream(rawRequest);
     std::string line;
 
     std::getline(requestStream, line);
     parseRequestLine(line, request);
+    if (request.getReturnParameter().first != 0)
+        return;
     while (std::getline(requestStream, line) && line != "\r") 
          parseHeader(line, request);
     parseBody(requestStream, request);
@@ -31,7 +34,6 @@ void RequestParse::parseRequest(Request& request, const std::string& rawRequest)
 
 std::string getfilepathtoURI(const std::string& uri, Request& request)
 {
-    (void) request;
     std::string return_uri; 
     std::vector<std::string> uriTokens = split(uri, '/');
     if (uriTokens.size() >= 3) // /directory/filename の場合にこの条件に入る
@@ -42,22 +44,43 @@ std::string getfilepathtoURI(const std::string& uri, Request& request)
         {
             filename += "/" + uriTokens[i];
         }
+        std::cout << "filename = " << filename << std::endl;
         request.setFilepath(filename);
     }
     else
         return_uri = uri;
+    std::cout << "return_uri = " << return_uri << std::endl;
     return return_uri;
 }
 
 
 void RequestParse::parseRequestLine(const std::string& line, Request& request)
 {
+    std::cout << "IN REQUESTPARSE::PARSEREQUESTLINE" << std::endl;
+    std::cout << "line.size() = " << line.size() << std::endl;
+    if (line.size() >= 814)
+    {//return_parameter.first = 400;
+        std::cout << "IN REQUESTPARSE::PARSEREQUESTLINE 414" << std::endl;
+        request.setReturnParameter(413, "");
+        return;
+    }
+    // std::cout << "line = " << line << std::endl;
     std::vector<std::string> requestLineTokens = Request::split(line, ' ');
     if (requestLineTokens.size() >= 3) 
     {
         request.setMethod(requestLineTokens[0]);
         request.setUri(getfilepathtoURI(requestLineTokens[1], request));
         request.setHttpVersion(requestLineTokens[2]);
+    }
+    else 
+    {
+        std::cout << "REQUESTLINE ERROR" << std::endl;
+        std::vector<std::string>::iterator it = requestLineTokens.begin();
+        std::cout << "----- ERROR LINE ----\n " << "size = " <<requestLineTokens.size() << std::endl;
+        for(; it != requestLineTokens.end(); it++)
+        {
+            // std::cout << *it << std::endl;
+        }
     }
 }
 

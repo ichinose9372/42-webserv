@@ -151,9 +151,12 @@ Servers Server::findServerBySocket(int socket_fd)
 
 Request Server::processRequest(int socket_fd, const char* buffer) 
 {
+    // std::cout << "-----request------  \n" << buffer << std::endl;
     Request req(buffer);
     Servers server = findServerBySocket(socket_fd);
     //fd から server を探して、その server に対応する location を探す
+    if (req.getReturnParameter().first != 0)
+        return req;
     req.remakeRequest(server);
     return req;
 }
@@ -201,7 +204,12 @@ void Server::runEventLoop()
                 if (i < start_pollfds_size && pollfds[i].revents & POLLIN) 
                     acceptNewConnection(pollfds[i].fd, pollfds, address, addrlen);
                 else if (pollfds[i].revents & POLLIN) 
-                    handleExistingConnection(pollfds[i]);
+                {
+                    //リクエストの読み込みのみを処理する。レスポンスの送信は別の関数で行う
+                    
+                    if () //読み込みが終了したら
+                        handleExistingConnection(pollfds[i]);
+                }
             }
         }
     }

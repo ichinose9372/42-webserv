@@ -48,6 +48,27 @@ void setReturnCode(Request& req, Response& res)
         res.setBody("<html><body><h1>404 Not Found</h1></body></html>");
         res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
     }
+    else if (returnCode == 413)
+    {
+        res.setStatus("413 Payload Too Long");
+        res.setHeaders("Content-Type: ", "text/html");
+        res.setBody("<html><body><h1>413 Payload Too Long</h1></body></html>");
+        res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
+    }
+    else if (returnCode == 414)
+    {
+        res.setStatus("414 URI Too Long");
+        res.setHeaders("Content-Type: ", "text/html");
+        res.setBody("<html><body><h1>414 URI Too Long</h1></body></html>");
+        res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
+    }
+    // else if (returnCode == 500)
+    // {
+    //     res.setStatus("500 Internal Server Error");
+    //     res.setHeaders("Content-Type: ", "text/html");
+    //     res.setBody("<html><body><h1>500 Internal Server Error</h1></body></html>");
+    //     res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
+    // }
     // else if (returnCode == 413)
     // {
     //     res.setStatus("413 Request Entity Too Large");

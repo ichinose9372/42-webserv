@@ -8,6 +8,7 @@ void PostRequest::handlePostRequest(Request& req, Response& res)
 {
     // cgi の実行ななのかファイルのアップロードなのかを判定して処理を分岐する
     //ファイルアップロードの場合
+    std::cout << "POST request" << std::endl;
     std::string path = Controller::getFilepath(req);
     if (path != "")
     {
