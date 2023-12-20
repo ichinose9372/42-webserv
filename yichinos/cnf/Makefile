@@ -1,5 +1,5 @@
 CXX = c++
-CXXFLAGS = -Wall -Wextra -Werror -std=c++98
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98 
 SRCS = MainConfig.cpp \
 	   Servers.cpp \
 	   Locations.cpp \

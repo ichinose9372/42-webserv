@@ -117,23 +117,17 @@ void Server::acceptNewConnection(int server_fd, std::vector<struct pollfd>& poll
     // std::cout << "accept new connection" << std::endl;  
 }
 
-void Server::receiveRequest(int socket_fd, char** buffer)
+void Server::receiveRequest(int socket_fd, std::string &Request)
 {
     int valread;
-    int buffer_size = BUFFER_SIZE;
-    memset(*buffer, 0, buffer_size);
-    while ((valread = read(socket_fd, *buffer, buffer_size)) == buffer_size) 
+    char buffer[BUFFER_SIZE] = {0};
+    while ((valread = read(socket_fd, buffer, BUFFER_SIZE)) == BUFFER_SIZE) 
     {
-        char *tmp;
-        tmp = *buffer;
-        if (buffer_size * 2 > 1000000)
-            throw std::runtime_error("Request too large");
-        char * new_buffer = new char[buffer_size * 2];
-        memcpy(new_buffer, *buffer, buffer_size);
-        *buffer = new_buffer;
-        delete[] tmp;
-        buffer_size *= 2;
+        Request += buffer;
+        memset(buffer, 0, BUFFER_SIZE);
     }
+    Request += buffer;
+    std::cout << "-----request------  \n" << Request << std::endl;
 }
 
 Servers Server::findServerBySocket(int socket_fd)
@@ -149,7 +143,7 @@ Servers Server::findServerBySocket(int socket_fd)
 
 
 
-Request Server::processRequest(int socket_fd, const char* buffer) 
+Request Server::processRequest(int socket_fd, const std::string& buffer) 
 {
     // std::cout << "-----request------  \n" << buffer << std::endl;
     Request req(buffer);
@@ -180,14 +174,14 @@ void Server::sendResponse(int socket_fd, Response& res)
 void Server::handleExistingConnection(struct pollfd& pfd) 
 {
     // std::cout << "IN handleExistingConnection" << std::endl;
-    char * buffer = new char[BUFFER_SIZE];
-    receiveRequest(pfd.fd, &buffer);
-    Request req = processRequest(pfd.fd, buffer);
+    std::string request;
+    receiveRequest(pfd.fd, request);
+    // std::cout << "buffer = " << buffer << std::endl;
+    Request req = processRequest(pfd.fd, request);
     Response res;
     Controller con;
     con.processFile(req, res);
     sendResponse(pfd.fd, res);
-    delete[] buffer;
     close(pfd.fd);
 }
 
@@ -205,10 +199,7 @@ void Server::runEventLoop()
                     acceptNewConnection(pollfds[i].fd, pollfds, address, addrlen);
                 else if (pollfds[i].revents & POLLIN) 
                 {
-                    //リクエストの読み込みのみを処理する。レスポンスの送信は別の関数で行う
-                    
-                    if () //読み込みが終了したら
-                        handleExistingConnection(pollfds[i]);
+                    handleExistingConnection(pollfds[i]);
                 }
             }
         }

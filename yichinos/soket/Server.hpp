@@ -47,8 +47,8 @@ class Server
         void initializeServerSocket(const Servers& server, size_t port);
         void initializeSocketAddress(size_t port);
         //request functions
-        void receiveRequest(int socket_fd, char** buffer);
-        Request processRequest(int socket_fd, const char* buffer);
+        void receiveRequest(int socket_fd, std::string &Request);
+        Request processRequest(int socket_fd, const std::string& request);  
         Servers findServerBySocket(int socket_fd);
         //response functions
         void sendResponse(int socket_fd, Response& res);
