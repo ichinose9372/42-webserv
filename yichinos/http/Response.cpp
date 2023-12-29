@@ -6,23 +6,13 @@ Response::~Response() {}
 
 void Response::setResponse()
 {
-     std::string response;
-    if (status == "200 OK")
-    {
-        response = "HTTP/1.1 200 OK\r\n";
-    }
-    else
-    {
-        response = "HTTP/1.1 404 Not Found\r\n";
-    }
-    response += "Content-Type: text/html\r\n";
-    response += "Content-Length: ";
-    response += std::to_string(body.length());
+    response = "HTTP/1.1 ";
+    response += status;
     response += "\r\n";
-    response += "Connection: close\r\n";
+    response += allgetHeader();
     response += "\r\n";
     response += body;
-    this->response = response;
+    // std::cout << response << std::endl;
 }  
 
 void Response::setStatus(const std::string& status)
@@ -30,14 +20,27 @@ void Response::setStatus(const std::string& status)
     this->status = status;
 }
 
-const std::string Response::getStatus()
+std::string Response::allgetHeader()
 {
-    return status;
+    std::string header;
+    std::map<std::string, std::string>::iterator it;
+    for(it = headers.begin(); it != headers.end(); it++)
+    {
+        header += it->first;
+        header += it->second;
+        header += "\r\n";
+    }
+    return header;
 }
 
 void Response::setBody(const std::string& body)
 {
     this->body = body;
+}
+
+void Response::setHeaders(const std::string& key, const std::string& value)
+{
+    headers[key] = value;
 }
 
 const std::string Response::getBody()
@@ -47,21 +50,10 @@ const std::string Response::getBody()
 
 const std::string Response::getResponse()
 {
-    // std::string response;
-    // if (status == "200 OK")
-    // {
-    //     response = "HTTP/1.1 200 OK\r\n";
-    // }
-    // else
-    // {
-    //     response = "HTTP/1.1 404 Not Found\r\n";
-    // }
-    // response += "Content-Type: text/html\r\n";
-    // response += "Content-Length: ";
-    // response += std::to_string(body.length());
-    // response += "\r\n";
-    // response += "Connection: close\r\n";
-    // response += "\r\n";
-    // response += body;
     return response;
+}
+
+const std::string Response::getStatus()
+{
+    return status;
 }

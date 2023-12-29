@@ -1,0 +1,32 @@
+# ビルド生成物
+*.o
+*.so
+*.a
+*.out
+*.exe
+*.dSYM/
+Debug/
+Release/
+
+# エディタやIDE固有のファイル
+*.swp
+*~
+.vscode/
+.idea/
+
+# OS固有のファイル
+.DS_Store
+Thumbs.db
+
+# テストやログファイル
+*.log
+test/
+
+# その他の非ソースコードファイル
+*.pdf
+*.docx
+
+cnf.d/
+
+./.vscode
+```

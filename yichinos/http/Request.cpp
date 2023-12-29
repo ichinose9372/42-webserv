@@ -10,11 +10,13 @@ Request::~Request()
 {
 }
 
-std::vector<std::string> split(const std::string &s, char delimiter) {
+std::vector<std::string> Request::split(const std::string &s, char delimiter)
+{
     std::vector<std::string> tokens;
     std::string token;
     std::istringstream tokenStream(s);
-    while (std::getline(tokenStream, token, delimiter)) {
+    while (std::getline(tokenStream, token, delimiter)) 
+    {
         tokens.push_back(token);
     }
     return tokens;
@@ -22,54 +24,142 @@ std::vector<std::string> split(const std::string &s, char delimiter) {
 
 
 //絶対パスの作成
-std::string getAbsolutepath(const std::string& filePath)
+std::string getAbsolutepath(const std::string& filePath, std::string rootDir) 
 {
-    const std::string baseDirForHtml = "/Users/ichinoseyuuki/tokyo42/webserv/yichinos/http/html.d";
-    const std::string baseDirForCgi = "/Users/ichinoseyuuki/tokyo42/webserv/yichinos/http/cgi-bin";
+    std::string absolutePath;
+    bool rootEndsWithSlash = !rootDir.empty() && rootDir.back() == '/';
+    bool filePathStartsWithSlash = !filePath.empty() && filePath.front() == '/';
 
-    std::string extension;
-    size_t dotPos = filePath.find_last_of(".");
-    if (dotPos != std::string::npos) {
-        extension = filePath.substr(dotPos);
-    }
-      if (extension == ".html") {
-        return baseDirForHtml + filePath;
-    } else if (extension == ".cgi") {
-        return baseDirForCgi + filePath;
-    } else {
-        return filePath; 
-    }
+    if (rootEndsWithSlash && filePathStartsWithSlash) 
+        absolutePath = rootDir + filePath.substr(1);
+    else if (!rootEndsWithSlash && !filePathStartsWithSlash) 
+        absolutePath = rootDir + "/" + filePath;
+    else
+        absolutePath = rootDir + filePath;
+
+    if (absolutePath[0] != '.') 
+        absolutePath = "." + absolutePath;
+
+    return absolutePath;
 }
+
 
 void Request::parseRequest(const std::string& rawRequest) 
 {
-    std::istringstream requestStream(rawRequest);
-    std::string line;
+    RequestParse requestParse;
+    requestParse.parseRequest(*this, rawRequest);
+}
 
-    // リクエストラインの取得と解析
-    std::getline(requestStream, line);
-    // std::cout << "line = " << line << std::endl;
-    std::vector<std::string> requestLineTokens = split(line, ' ');
-    if (requestLineTokens.size() >= 3) 
+
+void Request::remakeUri(ExclusivePath& exclusivePath, Locations& location, std::string servers_root)
+{
+    struct stat statbuf;
+    if (!filepath.empty())
     {
-        method = requestLineTokens[0];
-        uri = getAbsolutepath(requestLineTokens[1]);
-        httpVersion = requestLineTokens[2];
+        uri = getAbsolutepath(filepath, servers_root);
+        std::cout << uri << std::endl;
     }
-
-    // ヘッダーの解析
-   while (std::getline(requestStream, line) && line != "\r" && line != "") 
-   {
-     std::vector<std::string> headerTokens = split(line, ':');
-        if (headerTokens.size() >= 2) 
+    if (stat(uri.c_str(), &statbuf) == 0) 
+    {
+        if (S_ISREG(statbuf.st_mode) && access(uri.c_str(), R_OK) == 0)
         {
-            std::string headerName = headerTokens[0];
-            std::string headerValue = headerTokens[1];
-            headers[headerName] = headerValue;
+            return;
         }
-   }
-    // ボディの取得（存在する場合）
-    std::getline(requestStream, body);
+        else if (S_ISDIR(statbuf.st_mode))
+        {
+            std::cout << "IN S_ISDIR  first  uri = " << uri << std::endl; //./YoupiBanane/nop ここでディレクトリが確定している
+            std::string path = exclusivePath.getPath(); //locationのrootかaliasを取得
+            if (path.empty())
+                path = servers_root;
+            std::cout << "IN S_ISDIR  second  path = " << path << std::endl;
+            std::vector<std::string> indexs = location.getIndex();//locationのindexを取得
+            if (indexs.empty())
+                indexs.push_back("");
+            std::cout << "IN S_ISDIR  third  indexs.front() = " << indexs.front() << std::endl;
+            if (!filepath.empty())
+            {
+                std::cout << " IN IF filepath = " << std::endl;
+                uri = getAbsolutepath(indexs.front(), uri);
+            }
+            else
+            {
+                std::cout << " IN ELSE indexs.front() = " << indexs.front() << std::endl;
+                uri = getAbsolutepath(indexs.front(), path);
+            }
+        }
+    }
+    else
+    {
+        std::cout << "SONOMAMA IN ELSE  uri = " << uri << std::endl;
+        std::string path = exclusivePath.getPath(); //locationのrootかaliasを取得
+        if (path.empty())
+            path = servers_root;
+        else 
+            path = getAbsolutepath(path, servers_root);
+        std::vector<std::string> indexs = location.getIndex();//locationのindexを取得
+        if (indexs.empty())
+            indexs.push_back("");
+        if (!filepath.empty())
+        {
+            uri = getAbsolutepath(filepath, path);
+        }
+        else
+            uri = getAbsolutepath(indexs.front(), path);
+    }
+}
+
+bool Request::checkRequestmethod(Locations& location)
+{
+    std::vector<std::string>::const_iterator it = location.getMethod().begin();
+    for(; it != location.getMethod().end(); it++)
+    {
+        if (*it == method)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+
+void Request::remakeRequest(Servers& server)
+{
+    std::vector<Locations> locations = server.getLocations();
+    for(std::vector<Locations>::iterator it = locations.begin(); it != locations.end(); it++) //リクエストに対してのlocationを探す
+    {   
+        std::cout << "location = " << it->getPath()  << " : " << uri << std::endl;
+        if (uri == it->getPath()) //locationが一致した場合
+        {
+            if (it->getReturnCode().first != 0)//returnCodeが設定されている場合
+            {
+                returnParameter = it->getReturnCode();
+                return;
+            }
+            if (it->getAutoindex()) // autoindexが設定されている場合
+            {
+                uri = getAbsolutepath("autoindex.html", server.getRoot());
+                return;
+            }
+            if (checkRequestmethod(*it)) // locationのmethodとリクエストmethodが一致しない場合
+            {
+                returnParameter.first = 405;
+                returnParameter.second = "405.html";
+                return;
+            }
+            if (it->getMaxBodySize() != 0) // maxBodySizeが設定されている場合
+            {
+                max_body_size = it->getMaxBodySize();
+            }
+            ExclusivePath exclusivePath = it->getExclusivePath();
+            remakeUri(exclusivePath, *it, server.getRoot());
+            //filepathが設定されているのならURIをfilepathを使って作り直す
+            return;
+        }
+    }
+    //locationが一致しなかった場合
+    std::cout << "location not found" << std::endl;
+    returnParameter.first = 404;
+    returnParameter.second = "404.html";
 }
 
 void Request::printRequest() 
@@ -90,3 +180,36 @@ const std::string& Request::getMethod() { return method; }
 const std::string& Request::getUri() { return uri; }
 
 const std::string& Request::getHttpVersion() { return httpVersion; }
+
+const std::map<std::string, std::string>& Request::getHeaders() { return headers; }
+
+const std::string& Request::getBody() { return body; }
+
+const std::string& Request::getHost() { return host; }
+
+const std::pair<int, std::string>& Request::getReturnParameter() { return returnParameter; }
+
+const std::string& Request::getFilepath() { return filepath; }
+
+size_t Request::getMaxBodySize() { return max_body_size; }
+
+void Request::setMethod(const std::string& method) { this->method = method; }
+
+void Request::setUri(const std::string& uri) { this->uri = uri; }
+
+void Request::setHttpVersion(const std::string& httpVersion) { this->httpVersion = httpVersion; }
+
+void Request::setHeaders(std::string key, std::string value) { headers[key] = value; }
+
+void Request::setHost(const std::string& host) { this->host = host; }
+
+void Request::setBody(const std::string& body) { this->body = body; }
+
+void Request::setFilepath(const std::string& filepath) { this->filepath = filepath; }
+
+void Request::setReturnParameter(int status, std::string filename) 
+{
+    returnParameter.first = status;
+    returnParameter.second = filename;
+}
+

@@ -1,18 +1,23 @@
+CXX = c++
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98
+SRCS = Request.cpp \
+	   Response.cpp \
+	   Controller.cpp \
+	   GetRequest.cpp \
+	   PostRequest.cpp \
+	   DeleteRequest.cpp \
+	   RequestParse.cpp \
+	   ExecCgi.cpp 
+OBJS = $(SRCS:.cpp=.o)
+OBJDIR = objs
 
-NAME = webserv
-CC = c++
-CFLAGS = -std=c++98
+.PHONY: all clean
 
-SOURCES = main.cpp Request.cpp Response.cpp Controller.cpp
+all: $(addprefix $(OBJDIR)/,$(OBJS))
 
-all : $(NAME)
+$(OBJDIR)/%.o: %.cpp
+	mkdir -p $(OBJDIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-$(NAME) : $(SOURCES)
-	$(CC) $(CFLAGS) $(SOURCES) -o $(NAME)
-
-clean: 
-	rm -f $(NAME) *.gch
-
-fclean: clean
-
-re: fclean all
+clean:
+	rm -rf $(OBJDIR)

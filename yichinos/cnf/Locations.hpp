@@ -5,6 +5,8 @@
 #include <string>
 #include <map>
 #include "ExclusivePath.hpp"
+#include <sstream>
+#include <vector>
 
 class ExclusivePath;
 
@@ -17,7 +19,11 @@ class Locations
         bool autoindex;
         std::map<int, std::string> error_pages;
         std::pair<int, std::string> return_code;
-        std::string cgi_extension;
+        std::string cgi_extension;//cgi_path
+        std::string upload_path;
+        size_t max_body_size;
+        std::vector<std::string> methods;
+
     public:
         Locations();
         ~Locations();
@@ -25,10 +31,13 @@ class Locations
         void setPath(const std::string& path);
         void setIndex(const std::string& index);
         void setAutoindex(bool autoindex);
-        void setExclusivePath(const std::string& path, ExclusivePath::PathType pathType);
+        void setExclusivePath(const std::string& path, std::string pathType);
         void setErrorPages(int error_code, const std::string& error_page);
         void setReturnCode(int return_code, const std::string& return_page);
         void setCgiExtension(const std::string& cgi_extension);
+        void setUploadPath(const std::string& upload_path);
+        void setMaxBodySize(const std::string& max_body_size);
+        void setMethod(const std::string& method);
         //getter
         const std::string& getPath(void);
         const std::vector<std::string>& getIndex(void);
@@ -36,6 +45,9 @@ class Locations
         const std::map<int, std::string>& getErrorPages(void);
         const std::pair<int, std::string>& getReturnCode(void);
         const std::string& getCgiExtension(void);
+        const ExclusivePath& getExclusivePath(void);
+        const std::vector<std::string>& getMethod(void);
+        size_t getMaxBodySize(void);
 };
 
 #endif

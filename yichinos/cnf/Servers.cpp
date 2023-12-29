@@ -9,9 +9,38 @@ Servers::Servers()
     port = 80;
     indexs.push_back("index.html");
     client_max_body_size = 0;
+    root = "./";
 }
 
 Servers::~Servers() {}
+
+
+
+// void printLocations(Locations& Location)
+// {
+//     std::cout << "path = " << Location.getPath() << std::endl;
+//     std::cout << "index = ";
+//     std::vector<std::string> index = Location.getIndex();
+//     std::vector<std::string>::iterator it = index.begin();
+//     for (; it != index.end(); it++)
+//         std::cout << *it << " ";
+//     std::cout << std::endl;
+//     std::cout << "autoindex = " << Location.getAutoindex() << std::endl;
+//     std::cout << "error_pages = ";
+//     std::map<int, std::string> error_pages = Location.getErrorPages();
+//     std::map<int, std::string>::iterator it2 = error_pages.begin();
+//     for (; it2 != error_pages.end(); it2++)
+//         std::cout << it2->first << " " << it2->second << " ";
+//     std::cout << std::endl;
+//     std::cout << "return_code = " << Location.getReturnCode().first << " " << Location.getReturnCode().second << std::endl;
+//     std::cout << "cgi_extension = " << Location.getCgiExtension() << std::endl;
+//     std::cout << "method = ";
+//     std::vector<std::string> method = Location.getMethod();
+//     std::vector<std::string>::iterator it3 = method.begin();
+//     for (; it3 != method.end(); it3++)
+//         std::cout << *it3 << " ";
+//     std::cout << std::endl;
+// }
 
 
 // ;　を削除する関数
@@ -130,22 +159,24 @@ void Servers::setLocations(std::vector<std::string>::iterator& it ,std::vector<s
     location.setPath(*it);
     it++;
     if (*it != "{")
+    {
+        std::cout << "it = " << *it << std::endl;
         throw std::runtime_error("Parse error: Expected '{' after location path");
+    }
     while (it != end && *it != "}") 
     {
         if (*it == "root") 
         {
             it++;
             removeTrailingSemicolon(*it);
-            // std::cout << "root path is " << *it << std::endl;
-            location.setExclusivePath(*it, ExclusivePath::ROOT);
+            location.setExclusivePath(*it, "root");
         }
         else if (*it == "alias")
         {
             it++;
             removeTrailingSemicolon(*it);
             // std::cout << "alias path is " << *it << std::endl;
-            location.setExclusivePath(*it, ExclusivePath::ALIAS);
+            location.setExclusivePath(*it, "alias");
         }
         else if (*it == "index") 
         {
@@ -208,28 +239,55 @@ void Servers::setLocations(std::vector<std::string>::iterator& it ,std::vector<s
         else if (*it == "return")
         {
             it++;
-            removeTrailingSemicolon(*it);
             std::stringstream ss(*it);
             int tmp_return_code;
             ss >> tmp_return_code;
             it++;
-            // std::cout << "return code is " << tmp_return_code << *it << std::endl;
+            removeTrailingSemicolon(*it);
             location.setReturnCode(tmp_return_code, *it);
         }
-        else if (*it == "cgi_extension")
+        else if (*it == "cgi_path")
         {
             it++;
             removeTrailingSemicolon(*it);
             //if not dot then throw error
-            if (it->find('.') == std::string::npos)
-                throw std::runtime_error("Parse error: Invalid cgi_extension");
+            // if (it->find('.') == std::string::npos)
+            //     throw std::runtime_error("Parse error: Invalid cgi_extension");
             location.setCgiExtension(*it);
         }
+        else if (*it == "upload_path")
+        {
+            it++;
+            removeTrailingSemicolon(*it);
+            location.setUploadPath(*it);
+        }
+        else if (*it == "client_max_body_size")
+        {
+            it++;
+            removeTrailingSemicolon(*it);
+            setClientMaxBodySize(*it);
+        }
+        else if (*it == "method")
+        {
+            it++;
+            while (it != end && it->find(";") == std::string::npos) 
+            {
+                location.setMethod(*it);
+                it++;
+            }
+            if (it == end) 
+                throw std::runtime_error("Parse error: Unexpected end of tokens before method block");
+            removeTrailingSemicolon(*it);
+            location.setMethod(*it);
+        }
+        else
         if (++it == end) 
         {  
             throw std::runtime_error("Parse error: Location block not closed with '}'");
         }
+
     }
+    // printLocations(location);
     locations.push_back(location);
 }
 
@@ -254,7 +312,7 @@ const std::vector<Locations>& Servers::getLocations(void) const
     return (this->locations);
 }
 
-const size_t Servers::getClientMaxBodySize(void) const
+size_t Servers::getClientMaxBodySize(void) const
 {
     return (this->client_max_body_size);
 }
@@ -263,3 +321,15 @@ const std::string& Servers::getHost(void) const
 {
     return (this->sever_name);
 }
+
+
+const std::string& Servers::getRoot(void) const
+{
+    return (this->root);
+}
+
+void Servers::setRoot(const std::string& root)
+{
+    this->root = root;
+}
+

@@ -17,8 +17,8 @@ class MainConfig
 {
     private:
         std::vector<std::string> tokens;
-        std::vector<Servers> servers;
         std::ifstream file;
+        std::vector<Servers> servers;
         size_t client_max_body_size;
         void lineToToken(std::string& line);
         void inputServers(std::vector<std::string>::iterator& it, Servers& server);
@@ -27,9 +27,10 @@ class MainConfig
         void tokenSearchandSet(void);
         void parseLine(void);
         bool checkPortNum(const size_t& port);
-        void checkServerName(const std::string& server_name);
+        void checkServerName(const std::string& server_name, size_t port);
         void setClientMaxBodySize(const std::string& client_max_body_size);
         const size_t& getClientMaxBodySize(void) const;
+        const std::vector<Servers>& getServers(void) const;
         size_t validatePort(const std::string& port);
         MainConfig(const std::string& filename);
         ~MainConfig();
