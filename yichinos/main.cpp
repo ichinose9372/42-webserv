@@ -1,6 +1,8 @@
 #include "soket/Server.hpp"
 #include "cnf/MainConfig.hpp"
 
+//mainブランチを綺麗にするブランチ
+
 int main(int argc, char **argv)
 {
     if (argc != 2)
