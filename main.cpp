@@ -1,6 +1,10 @@
 #include "soket/Server.hpp"
 #include "cnf/MainConfig.hpp"
 
+//mainブランチを綺麗にするブランチ
+
+//git commit -m "#1" なしでやってみる
+
 int main(int argc, char **argv)
 {
     if (argc != 2)
@@ -13,6 +17,7 @@ int main(int argc, char **argv)
         filename = argv[1];
         MainConfig myconf(filename);
         Server server(myconf);
+        std::cout << "Server is running..." << std::endl;
         while (true)
         {
             server.runEventLoop();

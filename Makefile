@@ -1,18 +1,26 @@
 NAME = webserv
-CC = c++
-CFLAGS = -Wall -Wextra -Werror -std=c++98
+CXX = c++
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98
+SUBDIRS = cnf http soket
 
-SOURCES = main.cpp\
+RM = rm -rf
 
-all : $(NAME)
+all: $(SUBDIRS)
+	$(eval OBJS = $(foreach dir, $(SUBDIRS), $(wildcard $(dir)/objs/*.o)))
+	$(CXX) $(CXXFLAGS) $(OBJS) main.cpp -o $(NAME)
 
-$(NAME) : $(SOURCES)
-	$(CC) $(CFLAGS) $(SOURCES) -o $(NAME)
+$(SUBDIRS):
+	$(MAKE) -C $@
 
-clean: 
+clean:
+	for dir in $(SUBDIRS); do \
+        $(MAKE) -C $$dir clean; \
+    done
+	$(RM) main.o
+
+fclean: clean
 	$(RM) $(NAME)
 
-fclean:
-	$(RM) $(NAME)
+re: fclean all
 
-re: clean all
+.PHONY: $(SUBDIRS) all clean fclean re
