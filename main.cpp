@@ -17,6 +17,7 @@ int main(int argc, char **argv)
         filename = argv[1];
         MainConfig myconf(filename);
         Server server(myconf);
+        std::cout << "Server is running..." << std::endl;
         while (true)
         {
             server.runEventLoop();
