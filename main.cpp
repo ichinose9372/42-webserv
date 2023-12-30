@@ -1,9 +1,6 @@
 #include "soket/Server.hpp"
 #include "cnf/MainConfig.hpp"
 
-//mainブランチを綺麗にするブランチ
-
-//git commit -m "#1" なしでやってみる
 
 int main(int argc, char **argv)
 {
