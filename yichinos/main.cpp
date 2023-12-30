@@ -3,6 +3,8 @@
 
 //mainブランチを綺麗にするブランチ
 
+//git commit -m "#1" なしでやってみる
+
 int main(int argc, char **argv)
 {
     if (argc != 2)
