@@ -117,17 +117,23 @@ void Server::acceptNewConnection(int server_fd, std::vector<struct pollfd>& poll
     // std::cout << "accept new connection" << std::endl;  
 }
 
-void Server::receiveRequest(int socket_fd, std::string &Request)
+bool Server::receiveRequest(int socket_fd, std::string &Request)
 {
     int valread;
     char buffer[BUFFER_SIZE] = {0};
-    while ((valread = read(socket_fd, buffer, BUFFER_SIZE)) == BUFFER_SIZE) 
+    clock_t start = Timer::startTimer();
+
+    while ((valread = read(socket_fd, buffer, BUFFER_SIZE)) > 0) 
     {
         Request += buffer;
         memset(buffer, 0, BUFFER_SIZE);
+        double time = Timer::calculateTime(start);
+        if (time > 5)
+        {
+            return true;
+        }
     }
-    Request += buffer;
-    std::cout << "-----request------  \n" << Request << std::endl;
+    return false;
 }
 
 Servers Server::findServerBySocket(int socket_fd)
@@ -158,8 +164,7 @@ Request Server::processRequest(int socket_fd, const std::string& buffer)
 void Server::sendResponse(int socket_fd, Response& res) 
 {
     std::string response = res.getResponse();
-    std::cout << "response size =  " << response.size() << " \n -----response------  \n" << response << std::endl;
-    if (response.size() == 0)
+    if (response.empty())
     {
         throw std::runtime_error("Response is empty");
     }
@@ -168,16 +173,21 @@ void Server::sendResponse(int socket_fd, Response& res)
         throw std::runtime_error("Response too large");
     }
     send(socket_fd, response.c_str(), response.size(), 0);
-    std::cout << "------------------------------------------" << std::endl;
 }
 
 void Server::handleExistingConnection(struct pollfd& pfd) 
 {
     // std::cout << "IN handleExistingConnection" << std::endl;
-    std::string request;
-    receiveRequest(pfd.fd, request);
-    // std::cout << "buffer = " << buffer << std::endl;
-    Request req = processRequest(pfd.fd, request);
+    std::string request; 
+    Request req;
+    bool timeout = receiveRequest(pfd.fd, request);
+    if (timeout)
+    {
+        std::cout << "timeout" << std::endl;
+        req.setReturnParameter(408, "");
+    }
+    else
+        req = processRequest(pfd.fd, request);//タイムアウトの場合にはreturncodeを設定する
     Response res;
     Controller con;
     con.processFile(req, res);
@@ -198,9 +208,7 @@ void Server::runEventLoop()
                 if (i < start_pollfds_size && pollfds[i].revents & POLLIN) 
                     acceptNewConnection(pollfds[i].fd, pollfds, address, addrlen);
                 else if (pollfds[i].revents & POLLIN) 
-                {
                     handleExistingConnection(pollfds[i]);
-                }
             }
         }
     }

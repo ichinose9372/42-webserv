@@ -19,7 +19,7 @@ std::vector<std::string> split(const std::string &s, char delimiter)
 
 void RequestParse::parseRequest(Request& request, const std::string& rawRequest)
 {
-    std::cout << "IN REQUESTPARSE::PARSEREQUEST request size == " << rawRequest.size() << std::endl;
+    // std::cout << "IN REQUESTPARSE::PARSEREQUEST request size == " << rawRequest.size() << std::endl;
     std::istringstream requestStream(rawRequest);
     std::string line;
 

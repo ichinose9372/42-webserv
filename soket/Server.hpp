@@ -13,9 +13,11 @@
 #include "../http/Request.hpp"
 #include "../http/Controller.hpp"
 #include "../cnf/Servers.hpp"
+#include "Timer.hpp"
 #include <map>
 
 #define  BUFFER_SIZE 1024
+#define  MAX_RESPONSE_SIZE 
 
 #define ADDRLEN sizeof(address)
 
@@ -33,13 +35,13 @@ class Server
         int addrlen;
         std::multimap<int , Servers> requestMap;
         Server();
+        //レシーブタイムアウトを設定する
     public:
         Server(const MainConfig& conf);
         ~Server();
         void acceptNewConnection(int server_fd, std::vector<struct pollfd>& pollfds, struct sockaddr_in& address, int& addrlen);
         void handleExistingConnection(struct pollfd& pfd);
         void runEventLoop();
-
         //initializefunctions
         void initializeServers(const std::vector<Servers>& servers);
         void validateServers(const std::vector<Servers>& servers);   
@@ -47,7 +49,7 @@ class Server
         void initializeServerSocket(const Servers& server, size_t port);
         void initializeSocketAddress(size_t port);
         //request functions
-        void receiveRequest(int socket_fd, std::string &Request);
+        bool receiveRequest(int socket_fd, std::string &Request);
         Request processRequest(int socket_fd, const std::string& request);  
         Servers findServerBySocket(int socket_fd);
         //response functions
