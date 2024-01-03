@@ -45,10 +45,8 @@ class Request
         static std::vector<std::string> split(const std::string &s, char delimiter);
         void remakeUri(ExclusivePath& exclusivePath, Locations& location, std::string servers_root);
         bool checkRequestmethod(Locations& location);
-        
-
-    private:
         Request();
+    private:
         std::string method;
         std::string uri;
         std::string filepath;

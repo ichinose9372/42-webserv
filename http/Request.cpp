@@ -1,5 +1,9 @@
 #include "Request.hpp"
 
+Request::Request()
+{
+}
+
 Request::Request(const std::string& request)
 {
     parseRequest(request);
