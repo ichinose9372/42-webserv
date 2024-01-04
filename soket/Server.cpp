@@ -129,14 +129,14 @@ bool Server::receiveRequest(int socket_fd, std::string &Request)
     int valread;
     char buffer[BUFFER_SIZE] = {0};
     clock_t start = Timer::startTimer();
-
-    while ((valread = read(socket_fd, buffer, BUFFER_SIZE)) > 0) 
+    while ((valread = read(socket_fd, buffer, BUFFER_SIZE)) == BUFFER_SIZE) 
     {
         Request += buffer;
         memset(buffer, 0, BUFFER_SIZE);
         if (isTimeout(start))
             return true;
     }
+    Request += buffer;
     return false;
 }
 
@@ -184,6 +184,7 @@ void Server::sendTimeoutResponse(int socket_fd)
     res.setHeaders("Content-Type: ", "text/html");
     res.setBody("<html><body><h1>408 Request Timeout</h1></body></html>");
     res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
+    res.setResponse();
     sendResponse(socket_fd, res);
 }
 

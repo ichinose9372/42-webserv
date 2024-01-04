@@ -23,6 +23,7 @@ void RequestParse::parseRequest(Request& request, const std::string& rawRequest)
     std::istringstream requestStream(rawRequest);
     std::string line;
 
+    std::cout << "rawRequest = " << rawRequest << std::endl;
     std::getline(requestStream, line);
     parseRequestLine(line, request);
     if (request.getReturnParameter().first != 0)
@@ -56,11 +57,10 @@ std::string getfilepathtoURI(const std::string& uri, Request& request)
 
 void RequestParse::parseRequestLine(const std::string& line, Request& request)
 {
-    std::cout << "IN REQUESTPARSE::PARSEREQUESTLINE" << std::endl;
+
     std::cout << "line.size() = " << line.size() << std::endl;
     if (line.size() >= 814)
     {//return_parameter.first = 400;
-        std::cout << "IN REQUESTPARSE::PARSEREQUESTLINE 414" << std::endl;
         request.setReturnParameter(413, "");
         return;
     }
