@@ -117,6 +117,13 @@ void Server::acceptNewConnection(int server_fd, std::vector<struct pollfd>& poll
     // std::cout << "accept new connection" << std::endl;  
 }
 
+bool Server::isTimeout(clock_t start)
+{
+    double time = Timer::calculateTime(start);
+    return time > TIMEOUT;
+}
+
+
 bool Server::receiveRequest(int socket_fd, std::string &Request)
 {
     int valread;
@@ -127,11 +134,8 @@ bool Server::receiveRequest(int socket_fd, std::string &Request)
     {
         Request += buffer;
         memset(buffer, 0, BUFFER_SIZE);
-        double time = Timer::calculateTime(start);
-        if (time > 5)
-        {
+        if (isTimeout(start))
             return true;
-        }
     }
     return false;
 }
@@ -149,12 +153,10 @@ Servers Server::findServerBySocket(int socket_fd)
 
 
 
-Request Server::processRequest(int socket_fd, const std::string& buffer) 
+Request Server::findServerandlocaitons(int socket_fd, const std::string& buffer) 
 {
-    // std::cout << "-----request------  \n" << buffer << std::endl;
     Request req(buffer);
     Servers server = findServerBySocket(socket_fd);
-    //fd から server を探して、その server に対応する location を探す
     if (req.getReturnParameter().first != 0)
         return req;
     req.remakeRequest(server);
@@ -168,30 +170,40 @@ void Server::sendResponse(int socket_fd, Response& res)
     {
         throw std::runtime_error("Response is empty");
     }
-    else if (response.size() > 1000000)
+    else if (response.size() > MAX_RESPONSE_SIZE)
     {
         throw std::runtime_error("Response too large");
     }
     send(socket_fd, response.c_str(), response.size(), 0);
 }
 
-void Server::handleExistingConnection(struct pollfd& pfd) 
+void Server::sendTimeoutResponse(int socket_fd) 
 {
-    // std::cout << "IN handleExistingConnection" << std::endl;
-    std::string request; 
-    Request req;
-    bool timeout = receiveRequest(pfd.fd, request);
-    if (timeout)
-    {
-        std::cout << "timeout" << std::endl;
-        req.setReturnParameter(408, "");
-    }
-    else
-        req = processRequest(pfd.fd, request);//タイムアウトの場合にはreturncodeを設定する
+    Response res;
+    res.setStatus("408 Request Timeout");
+    res.setHeaders("Content-Type: ", "text/html");
+    res.setBody("<html><body><h1>408 Request Timeout</h1></body></html>");
+    res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
+    sendResponse(socket_fd, res);
+}
+
+void Server::processRequestAndSendResponse(int socket_fd, std::string& request) 
+{
+    Request req = findServerandlocaitons(socket_fd, request);
     Response res;
     Controller con;
     con.processFile(req, res);
-    sendResponse(pfd.fd, res);
+    sendResponse(socket_fd, res);
+}
+
+void Server::handleExistingConnection(struct pollfd& pfd) 
+{
+    std::string request; 
+    bool timeout = receiveRequest(pfd.fd, request);
+    if (timeout)
+        sendTimeoutResponse(pfd.fd);
+    else//timeoutでない場合にはrequestを処理する
+        processRequestAndSendResponse(pfd.fd, request);//タイムアウトの場合にはreturncodeを設定する
     close(pfd.fd);
 }
 

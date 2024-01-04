@@ -17,7 +17,8 @@
 #include <map>
 
 #define  BUFFER_SIZE 1024
-#define  MAX_RESPONSE_SIZE 
+#define  MAX_RESPONSE_SIZE 1000000 // 改善する予定
+#define  TIMEOUT 5
 
 #define ADDRLEN sizeof(address)
 
@@ -50,8 +51,11 @@ class Server
         void initializeSocketAddress(size_t port);
         //request functions
         bool receiveRequest(int socket_fd, std::string &Request);
-        Request processRequest(int socket_fd, const std::string& request);  
+        void processRequestAndSendResponse(int socket_fd, std::string& request);
+        Request findServerandlocaitons(int socket_fd, const std::string& request);  
         Servers findServerBySocket(int socket_fd);
+        bool isTimeout(clock_t start);
+        void sendTimeoutResponse(int socket_fd);
         //response functions
         void sendResponse(int socket_fd, Response& res);
 
