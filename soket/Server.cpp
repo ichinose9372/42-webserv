@@ -50,9 +50,7 @@ void Server::initializeServerSocket(const Servers& server, size_t port)
         close(socket_fd);
         throw std::runtime_error("setsockopt");
     }
-
     initializeSocketAddress(port);
-    
     if (bind(socket_fd, (struct sockaddr *)&this->address, sizeof(this->address)) < 0) 
     {
         close(socket_fd);
