@@ -1,0 +1,6 @@
+version: '2'
+
+services:
+  webserv-container:
+    image: webserv-image
+    build: .
