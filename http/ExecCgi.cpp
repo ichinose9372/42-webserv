@@ -7,8 +7,6 @@ ExecCgi::~ExecCgi(){}
 void ExecCgi::executeCgiScript(Request& req, Response& res)
 {
     const char *argv[] = {"/usr/bin/python", "./docs/py-files/app.py", NULL};
-    char methodEnv[] = "REQUEST_METHOD=POST";
-    char* envp[] = { methodEnv, NULL };
 
     std::string path = req.getUri();
     std::cout << "pwd = " << system("pwd") << std::endl;
@@ -32,7 +30,8 @@ void ExecCgi::executeCgiScript(Request& req, Response& res)
             dup2(pipefd[1], STDOUT_FILENO); 
             dup2(pipefd[1], STDERR_FILENO);
             close(pipefd[1]);
-            // execve(path.c_str(), NULL, envp);
+            char methodEnv[] = "REQUEST_METHOD=GET";
+            char* envp[] = { methodEnv, NULL };
             execve("/usr/bin/python", const_cast<char *const *>(argv), envp);
             exit(500);
         }
@@ -84,8 +83,8 @@ void ExecCgi::executeCgiScript(Request& req, Response& res)
             dup2(pipefd[1], STDOUT_FILENO); 
             dup2(pipefd[1], STDERR_FILENO);
             close(pipefd[1]);
-            // std::cout << "methodEnv = " << methodEnv << std::endl;
-            // execve(path.c_str(), NULL, envp);
+            char methodEnv[] = "REQUEST_METHOD=POST";
+            char* envp[] = { methodEnv, NULL };
             execve("/usr/bin/python", const_cast<char *const *>(argv), envp);
             exit(500);
         }
