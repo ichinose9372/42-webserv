@@ -1,10 +1,10 @@
-FROM debian
+FROM debian:bullseye
 
 RUN apt-get update
 
-WORKDIR /usr/src
-COPY ./webserv /usr/src/webserv
-COPY ./configrations /usr/src/configrations
+WORKDIR /home
+COPY webserv /home
+COPY configrations/ /home
 
 # RUN apt-get -y install python3
 # RUN pip install --update pip
