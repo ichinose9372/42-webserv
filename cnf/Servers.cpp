@@ -14,35 +14,6 @@ Servers::Servers()
 
 Servers::~Servers() {}
 
-
-
-// void printLocations(Locations& Location)
-// {
-//     std::cout << "path = " << Location.getPath() << std::endl;
-//     std::cout << "index = ";
-//     std::vector<std::string> index = Location.getIndex();
-//     std::vector<std::string>::iterator it = index.begin();
-//     for (; it != index.end(); it++)
-//         std::cout << *it << " ";
-//     std::cout << std::endl;
-//     std::cout << "autoindex = " << Location.getAutoindex() << std::endl;
-//     std::cout << "error_pages = ";
-//     std::map<int, std::string> error_pages = Location.getErrorPages();
-//     std::map<int, std::string>::iterator it2 = error_pages.begin();
-//     for (; it2 != error_pages.end(); it2++)
-//         std::cout << it2->first << " " << it2->second << " ";
-//     std::cout << std::endl;
-//     std::cout << "return_code = " << Location.getReturnCode().first << " " << Location.getReturnCode().second << std::endl;
-//     std::cout << "cgi_extension = " << Location.getCgiExtension() << std::endl;
-//     std::cout << "method = ";
-//     std::vector<std::string> method = Location.getMethod();
-//     std::vector<std::string>::iterator it3 = method.begin();
-//     for (; it3 != method.end(); it3++)
-//         std::cout << *it3 << " ";
-//     std::cout << std::endl;
-// }
-
-
 // ;　を削除する関数
 void  removeTrailingSemicolon(std::string& str) 
 {
@@ -57,23 +28,6 @@ void  removeTrailingSemicolon(std::string& str)
     str.pop_back();
     if (!str.empty() && str.back() == ';') {
         throw std::runtime_error("Parse error: Unexpected semicolon");
-    }
-}
-
-
-void checkFileExists(const std::string& filename)
-{
-    if (access(filename.c_str(), F_OK) == -1) 
-    {
-        throw std::runtime_error("Parse error: File does not exist");
-    }
-}
-
-void checkFileAccess(const std::string& filename)
-{
-    if (access(filename.c_str(), R_OK) == -1) 
-    {
-        throw std::runtime_error("Parse error: File is not accessible");
     }
 }
 
@@ -133,7 +87,7 @@ void Servers::setSeverNames(const std::string& sever_name)
 }
 
 //check same name at Locations
-void Servers::checkPathName(const std::string& path)
+void Servers::isPathDuplicate(const std::string& path)
 {
     if (path.empty()) 
     {
@@ -147,149 +101,47 @@ void Servers::checkPathName(const std::string& path)
     }
 }
 
+void checkExpectedToken(std::vector<std::string>::iterator& it, std::vector<std::string>::iterator& end, const std::string& expectedToken, const std::string& errorMessage) {
+    if (it == end) 
+        throw std::runtime_error("Parse error: Unexpected end of tokens before " + expectedToken);
+    if (*it != expectedToken) 
+        throw std::runtime_error("Parse error: Expected " + expectedToken + " " + errorMessage);
+}
+
+
+
 void Servers::setLocations(std::vector<std::string>::iterator& it ,std::vector<std::string>::iterator& end) // s
 {
-    static bool setErrorPage = true;
-    // std::cout << "setLocations called    \"  " << *it << "  \""  <<std::endl;
-     if (it == end) {
+    if (it == end) {
         throw std::runtime_error("Parse error: Unexpected end of tokens before location block");
     }
     Locations location;
-    checkPathName(*it);
-    location.setPath(*it);
-    it++;
-    if (*it != "{")
-    {
-        std::cout << "it = " << *it << std::endl;
-        throw std::runtime_error("Parse error: Expected '{' after location path");
-    }
-    while (it != end && *it != "}") 
-    {
-        if (*it == "root") 
-        {
-            it++;
-            removeTrailingSemicolon(*it);
-            location.setExclusivePath(*it, "root");
-        }
-        else if (*it == "alias")
-        {
-            it++;
-            removeTrailingSemicolon(*it);
-            // std::cout << "alias path is " << *it << std::endl;
-            location.setExclusivePath(*it, "alias");
-        }
-        else if (*it == "index") 
-        {
-            it++;
-            while (it != end && it->find(";") == std::string::npos) 
-            {
-                // checkFileAccess(*it);
-                // checkFileExists(*it);
-                // std::cout << "index path is " << *it << std::endl;
-                location.setIndex(*it);
-                it++;
-            }
-            if (it == end) 
-                throw std::runtime_error("Parse error: Unexpected end of tokens before index block");
-            // checkFileAccess(*it);
-            // checkFileExists(*it);
-            removeTrailingSemicolon(*it);
-            // std::cout << "index path is " << *it << std::endl;
-            location.setIndex(*it);
-        }
-        else if (*it == "autoindex")
-        {
-            it++;
-            removeTrailingSemicolon(*it);
-            if (it == end) 
-                throw std::runtime_error("Parse error: Unexpected end of tokens before autoindex value");
-            if (*it == "on")
-                location.setAutoindex(true);
-            else if (*it == "off")
-                location.setAutoindex(false);
-            else
-                throw std::runtime_error("Parse error: Invalid autoindex value");
-        }
-        else if (*it == "error_page")
-        {
-            if (setErrorPage == false)
-                throw std::runtime_error("Parse error: Duplicate error_page");
-            it++;
-            std::vector<std::string>::iterator it2 = it;
-            while (it2->find(';') == std::string::npos)
-            {
-                it2++;
-                if (it2 == end)
-                    throw std::runtime_error("Parse error: Unexpected end of tokens before error_page code");
-            }
-            removeTrailingSemicolon(*it2);
-            while(it != it2)
-            {
-                std::stringstream ss(*it);
-                int tmp_error_code;
-                ss >> tmp_error_code;
-                // std::cout << "error code is " << tmp_error_code << "  error_page =  " <<*it2 << std::endl;
-                if (tmp_error_code < 400 || tmp_error_code > 599)
-                    throw std::runtime_error("Parse error: Invalid error code");
-                location.setErrorPages(tmp_error_code, *it2);
-                it++;
-            }
-            setErrorPage = false;
-        }
-        else if (*it == "return")
-        {
-            it++;
-            std::stringstream ss(*it);
-            int tmp_return_code;
-            ss >> tmp_return_code;
-            it++;
-            removeTrailingSemicolon(*it);
-            location.setReturnCode(tmp_return_code, *it);
-        }
-        else if (*it == "cgi_path")
-        {
-            it++;
-            removeTrailingSemicolon(*it);
-            //if not dot then throw error
-            // if (it->find('.') == std::string::npos)
-            //     throw std::runtime_error("Parse error: Invalid cgi_extension");
-            location.setCgiExtension(*it);
-        }
-        else if (*it == "upload_path")
-        {
-            it++;
-            removeTrailingSemicolon(*it);
-            location.setUploadPath(*it);
-        }
-        else if (*it == "client_max_body_size")
-        {
-            it++;
-            removeTrailingSemicolon(*it);
-            setClientMaxBodySize(*it);
-        }
-        else if (*it == "method")
-        {
-            it++;
-            while (it != end && it->find(";") == std::string::npos) 
-            {
-                location.setMethod(*it);
-                it++;
-            }
-            if (it == end) 
-                throw std::runtime_error("Parse error: Unexpected end of tokens before method block");
-            removeTrailingSemicolon(*it);
-            location.setMethod(*it);
-        }
-        else
-        if (++it == end) 
-        {  
-            throw std::runtime_error("Parse error: Location block not closed with '}'");
-        }
+    isPathDuplicate(*it);
+    location.setPath(*it++);
+    checkExpectedToken(it, end, "{","Expected '{' after location path");
 
+    static bool setErrorPage = true;
+    std::string tmp[] =  {
+        "root", "alias", "index", "autoindex", "error_page", "return", "cgi_path", "upload_path", "client_max_body_size", "method"
+    };
+    static const std::set<std::string> validDirectives = std::set<std::string>(tmp, tmp + sizeof(tmp) / sizeof(tmp[0]));
+    
+    for (++it; it != end && *it != "}"; ++it) 
+    {
+        if (validDirectives.find(*it) == validDirectives.end()) // ないものは無視する
+            continue;
+        if (*it == "error_page" && !setErrorPage) 
+            throw std::runtime_error("Parse error: Duplicate error_page");
+        if (*it == "autoindex" || *it == "root" || *it == "alias" || *it == "cgi_path" || *it == "upload_path" || *it == "client_max_body_size") 
+            processSingleValueDirective(it, end, location, *it);
+        else if (*it == "index" || *it == "method" || *it == "return") 
+            processMultiValueDirective(it, end, location, *it);
+        else if (*it == "error_page") 
+            processErrorPageDirective(it, end, location, setErrorPage);
     }
-    // printLocations(location);
     locations.push_back(location);
 }
+
 
 size_t Servers::getPort(void) const
 {
@@ -331,5 +183,110 @@ const std::string& Servers::getRoot(void) const
 void Servers::setRoot(const std::string& root)
 {
     this->root = root;
+}
+
+void Servers::processSingleValueDirective(std::vector<std::string>::iterator& it, std::vector<std::string>::iterator& end, Locations& location, const std::string& directive)
+{
+    if (++it == end) 
+        throw std::runtime_error("Parse error: Unexpected end of tokens before " + directive + " value");
+    if (directive == "autoindex") 
+    {
+        removeTrailingSemicolon(*it);
+        if (*it == "on")
+            location.setAutoindex(true);
+        else if (*it == "off")
+            location.setAutoindex(false);
+        else
+            throw std::runtime_error("Parse error: Invalid autoindex value");
+    }
+    else if (directive == "root") 
+    {
+        removeTrailingSemicolon(*it);
+        location.setExclusivePath(*it, "root");
+    }
+    else if (directive == "alias") 
+    {
+        removeTrailingSemicolon(*it);
+        location.setExclusivePath(*it, "alias");
+    }
+    else if (directive == "cgi_path") 
+    {
+        removeTrailingSemicolon(*it);
+        location.setCgiExtension(*it);
+    }
+    else if (directive == "upload_path") 
+    {
+        removeTrailingSemicolon(*it);
+        location.setUploadPath(*it);
+    }
+    else if (directive == "client_max_body_size") 
+    {
+        removeTrailingSemicolon(*it);
+        setClientMaxBodySize(*it);
+    }
+}
+
+void Servers::processMultiValueDirective(std::vector<std::string>::iterator& it, std::vector<std::string>::iterator& end, Locations& location, const std::string& directive)
+{
+    if (++it == end) 
+        throw std::runtime_error("Parse error: Unexpected end of tokens before " + directive + " value");
+    if (*it == "index")
+    {
+        while (it != end && it->find(";") == std::string::npos) 
+        {
+            location.setIndex(*it);
+            it++;
+        }
+        if (it == end) 
+                throw std::runtime_error("Parse error: Unexpected end of tokens before index block");
+        removeTrailingSemicolon(*it);
+        location.setIndex(*it);
+    }
+    else if (*it == "method") 
+    {
+        while (it != end && it->find(";") == std::string::npos) 
+        {
+            location.setMethod(*it);
+            it++;
+        }
+        if (it == end) 
+                throw std::runtime_error("Parse error: Unexpected end of tokens before method block");
+        removeTrailingSemicolon(*it);
+        location.setMethod(*it);
+    }
+    else if (*it == "return") 
+    {
+        it++;
+        std::stringstream ss(*it);
+        int tmp_return_code;
+        ss >> tmp_return_code;
+        it++;
+        removeTrailingSemicolon(*it);
+        location.setReturnCode(tmp_return_code, *it);
+    }
+}
+
+void Servers::processErrorPageDirective(std::vector<std::string>::iterator& it, std::vector<std::string>::iterator& end, Locations& location, bool& setErrorPage)
+{
+    it++;
+    std::vector<std::string>::iterator it2 = it;
+    while (it2->find(';') == std::string::npos)
+    {
+        it2++;
+        if (it2 == end)
+            throw std::runtime_error("Parse error: Unexpected end of tokens before error_page code");
+    }
+    removeTrailingSemicolon(*it2);
+    while(it != it2)
+    {
+        std::stringstream ss(*it);
+        int tmp_error_code;
+        ss >> tmp_error_code;
+        if (tmp_error_code < 400 || tmp_error_code > 599)
+            throw std::runtime_error("Parse error: Invalid error code");
+        location.setErrorPages(tmp_error_code, *it2);
+        it++;
+    }
+    setErrorPage = false;
 }
 
