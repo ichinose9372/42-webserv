@@ -13,18 +13,33 @@ std::string GetRequest::openFile(const std::string &filePath)
 {
     std::cout << "In GetRequest::openFile   file psth = " << filePath << std::endl;
 
-    // ファイルの存在と読み取り許可を確認
     struct stat buffer;
     if (stat(filePath.c_str(), &buffer) != 0)
-        return "404 Not Found";
+    {
+        switch (errno)
+        {
+        // 存在しないファイル・ディレクトリ
+        case ENOENT:
+            return "404 Not Found";
+        // アクセス権限がない
+        case EACCES:
+            return "403 Forbidden";
+        default:
+            return "500 Internal Server Error";
+        }
+    }
 
     // 読み取り可能か確認
     if ((buffer.st_mode & S_IRUSR) == 0)
         return "403 Forbidden";
 
     // ファイルを開いて内容を読み込む
-    std::ifstream file(filePath);
-    std::string content, line;
+    std::ifstream file(filePath.c_str());
+    if (!file)
+        return std::string("500 Internal Server Error: ") + std::strerror(errno);
+
+    // 以降の行は削除する。この関数ではファイルのアクセシビリティに関するチェックのみとする
+    std::string content;
 
     if (file.is_open())
     {
