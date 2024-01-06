@@ -24,7 +24,9 @@ class MainConfig
         void parseServerBlock(std::vector<std::string>::iterator& it, Servers& server);
     public:
         MainConfig();
-        void tokenSearchandSet(void);
+        void parseConfigurationTokens(void);
+        void parseServerBlock(std::vector<std::string>::iterator& it);
+        void parseClientMaxBodySize(std::vector<std::string>::iterator& it);
         void parseLine(void);
         bool isPortUsed(const size_t& port);
         void isServerName(const std::string& server_name, size_t port);

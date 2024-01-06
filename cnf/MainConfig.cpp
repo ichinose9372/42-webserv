@@ -7,7 +7,7 @@ MainConfig::MainConfig(const std::string& filename)
     if (!file.is_open())
         throw std::runtime_error("[KO] file not found");
     parseLine();
-    tokenSearchandSet();
+    parseConfigurationTokens();
     file.close();
 }
 
@@ -37,42 +37,44 @@ void MainConfig::lineToToken(std::string& line)
         tokens.push_back(token);
 }
 
-void MainConfig::tokenSearchandSet() 
+void MainConfig::parseServerBlock(std::vector<std::string>::iterator& it) 
+{
+    Servers server;
+    ++it;
+    if (it == tokens.end())
+        throw std::runtime_error("Parse error: Unexpected end of file, expecting '{' for server block");
+    if (*it != "{")
+        throw std::runtime_error("Parse error: Expected '{' after server keyword");
+    ++it;
+    while (it != tokens.end() && *it != "}") 
+    {
+        parseServerBlock(it, server);
+        ++it;
+    }
+    if (it == tokens.end() && *it != "}")
+        throw std::runtime_error("Parse error: server block not closed with '}'");
+    servers.push_back(server);
+}
+
+void MainConfig::parseClientMaxBodySize(std::vector<std::string>::iterator& it) 
+{
+    it++;
+    removeTrailingSemicolon(*it);
+    setClientMaxBodySize(*it);
+}
+
+void MainConfig::parseConfigurationTokens() 
 {
     std::vector<std::string>::iterator it = tokens.begin();
     while (it != tokens.end()) 
     {
         if (*it == "server") 
-        {
-            Servers server;
-            ++it;
-            if (it == tokens.end())
-                throw std::runtime_error("Parse error: Unexpected end of file, expecting '{' for server block");
-            if (*it != "{")
-                throw std::runtime_error("Parse error: Expected '{' after server keyword");
-            ++it;
-            while (it != tokens.end() && *it != "}") 
-            {
-                parseServerBlock(it, server);
-                ++it;
-            }
-            if (it == tokens.end() && *it != "}")
-                throw std::runtime_error("Parse error: server block not closed with '}'");
-            servers.push_back(server);
-        }
+            parseServerBlock(it);
         else if (*it == "client_max_body_size")
-        {
-            it++;
-            removeTrailingSemicolon(*it);
-            setClientMaxBodySize(*it);
-        }
+            parseClientMaxBodySize(it);
         else
-        {
             throw std::runtime_error("Parse error: Unexpected token in main block");
-        }
-        if (it != tokens.end()) {
-            ++it;
-        }
+        ++it;
     }
 }
 
@@ -98,6 +100,7 @@ size_t MainConfig::validatePort(const std::string& port )
         throw std::runtime_error("1 port number is not a number");
     return port_num;
 }
+
 void MainConfig::setClientMaxBodySize(const std::string& client_max_body_size)
 {
     if (client_max_body_size.empty()) 

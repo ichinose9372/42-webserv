@@ -13,7 +13,6 @@ int main(int argc, char **argv)
         std::string filename;
         filename = argv[1];
         MainConfig myconf(filename);
-        std::cout << "READING OK!!!\n";
         Server server(myconf);
         std::cout << "Server is running..." << std::endl;
         while (true)
