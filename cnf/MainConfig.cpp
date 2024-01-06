@@ -68,7 +68,7 @@ void MainConfig::parseConfigurationTokens()
     std::vector<std::string>::iterator it = tokens.begin();
     while (it != tokens.end()) 
     {
-        if (*it == "server") 
+        if (*it == "server")
             parseServerBlock(it);
         else if (*it == "client_max_body_size")
             parseClientMaxBodySize(it);

@@ -115,6 +115,7 @@ void Request::remakeUri(ExclusivePath& exclusivePath, Locations& location, std::
 bool Request::checkRequestmethod(Locations& location)
 {
     std::vector<std::string>::const_iterator it = location.getMethod().begin();
+    std::cout << "location.getMethod().size() = " << location.getMethod().size() << std::endl;
     for(; it != location.getMethod().end(); it++)
     {
         if (*it == method)

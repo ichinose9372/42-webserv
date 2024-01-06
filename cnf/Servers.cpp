@@ -125,7 +125,7 @@ void Servers::setLocations(std::vector<std::string>::iterator& it ,std::vector<s
         "root", "alias", "index", "autoindex", "error_page", "return", "cgi_path", "upload_path", "client_max_body_size", "method"
     };
     static const std::set<std::string> validDirectives = std::set<std::string>(tmp, tmp + sizeof(tmp) / sizeof(tmp[0]));
-    
+
     for (++it; it != end && *it != "}"; ++it) 
     {
         if (validDirectives.find(*it) == validDirectives.end()) // ないものは無視する
@@ -228,7 +228,7 @@ void Servers::processSingleValueDirective(std::vector<std::string>::iterator& it
 
 void Servers::processMultiValueDirective(std::vector<std::string>::iterator& it, std::vector<std::string>::iterator& end, Locations& location, const std::string& directive)
 {
-    if (++it == end) 
+    if (it == end) 
         throw std::runtime_error("Parse error: Unexpected end of tokens before " + directive + " value");
     if (*it == "index")
     {
