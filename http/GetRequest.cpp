@@ -9,7 +9,7 @@ bool isCgiScript(const std::string &filePath)
     return filePath.size() >= 4 && filePath.substr(filePath.size() - 3) == ".sh";
 }
 
-std::string GetRequest::openFile(const std::string &filePath)
+int GetRequest::openFile(const std::string &filePath)
 {
     std::cout << "In GetRequest::openFile   file psth = " << filePath << std::endl;
 
@@ -20,39 +20,39 @@ std::string GetRequest::openFile(const std::string &filePath)
         {
         // 存在しないファイル・ディレクトリ
         case ENOENT:
-            return "404 Not Found";
+            return 404;
         // アクセス権限がない
         case EACCES:
-            return "403 Forbidden";
+            return 403;
         default:
-            return "500 Internal Server Error";
+            return 500;
         }
     }
 
     // 読み取り可能か確認
     if ((buffer.st_mode & S_IRUSR) == 0)
-        return "403 Forbidden";
+        return 403;
 
     // ファイルを開いて内容を読み込む
     std::ifstream file(filePath.c_str());
     if (!file)
-        return std::string("500 Internal Server Error: ") + std::strerror(errno);
-
+        return 500;
+    return 200;
     // 以降の行は削除する。この関数ではファイルのアクセシビリティに関するチェックのみとする
-    std::string content;
+    // std::string content;
 
-    if (file.is_open())
-    {
-        content = "200 OK";
-        file.close();
-    }
-    else
-    {
-        content = "404 Not Found";
-    }
+    // if (file.is_open())
+    // {
+    //     content = "200 OK";
+    //     file.close();
+    // }
+    // else
+    // {
+    //     content = "404 Not Found";
+    // }
 
-    std::cout << "content = " << content << std::endl;
-    return content;
+    // std::cout << "content = " << content << std::endl;
+    // return content;
 }
 
 std::string GetRequest::getBody(const std::string &status, const std::string &filePath)
@@ -143,7 +143,8 @@ void GetRequest::handleGetRequest(Request &req, Response &res)
         //     res.setStatus(openFile(req.getFilepath()));
         // }
         // else
-        res.setStatus(openFile(req.getUri()));
+        const std::string message = res.getStatusMessage(openFile(req.getUri()));
+        res.setStatus(message);
         res.setHeaders("Content-Type: ", "text/html");
         res.setBody(getBody(res.getStatus(), req.getUri()));
         res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
