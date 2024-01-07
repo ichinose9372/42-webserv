@@ -5,21 +5,33 @@ Response::Response() {}
 Response::~Response() {}
 
 // ステータスコードとステータスメッセージのマップを定義
-const std::map<int, std::string> STATUS_CODES = {
-    {200, "200 OK"},
-    {403, "403 Forbidden"},
-    {404, "404 Not Found"},
-    {500, "500 Internal Server Error"}
-    // 他のステータスコードも必要に応じて追加
-};
+std::map<int, std::string> STATUS_CODES;
 
-const std::string getStatusMessage(int statusCode)
+// STATUS_CODESの初期化関数
+static void initializeStatusCodes()
 {
+    STATUS_CODES[200] = "200 OK";
+    STATUS_CODES[403] = "403 Forbidden";
+    STATUS_CODES[404] = "404 Not Found";
+    STATUS_CODES[500] = "500 Internal Server Error";
+    // 他のステータスコードも必要に応じて追加
+}
+
+const std::string Response::getStatusMessage(int statusCode)
+{
+    // 最初の呼び出しでSTATUS_CODESを初期化
+    static bool initialized = false;
+    if (!initialized)
+    {
+        initializeStatusCodes();
+        initialized = true;
+    }
+
     std::map<int, std::string>::const_iterator it = STATUS_CODES.find(statusCode);
     if (it != STATUS_CODES.end())
         return it->second;
     else
-        return STATUS_CODES.find(500)->second;
+        return STATUS_CODES[500];
 }
 
 void Response::setResponse()
