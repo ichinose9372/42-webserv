@@ -130,18 +130,18 @@ bool Server::receiveRequest(int socket_fd, std::string &Request)
     int valread;
     char buffer[BUFFER_SIZE] = {0};
     clock_t start = Timer::startTimer();
-    while ((valread = read(socket_fd, buffer, BUFFER_SIZE)) == BUFFER_SIZE) 
+    while ((valread = recv(socket_fd, buffer, BUFFER_SIZE, SO_NOSIGPIPE)) == BUFFER_SIZE) 
     {
-        if (valread == -1) {
-            if (errno != EAGAIN) {
-                std::cerr << "Read failed" << std::endl;
-                return false;
-            }
-        }
         Request += buffer;
         memset(buffer, 0, BUFFER_SIZE);
         if (isTimeout(start))
             return true;
+    }
+    if (valread == -1) {
+        if (errno != EAGAIN) {
+            std::cerr << "Read failed" << std::endl;
+            return false;
+        }
     }
     Request += buffer;
     return false;
@@ -179,7 +179,7 @@ void Server::sendResponse(int socket_fd, Response& res)
     {
         throw std::runtime_error("Response too large");
     }
-    if (send(socket_fd, response.c_str(), response.size(), 0) == -1) {
+    if (send(socket_fd, response.c_str(), response.size(), SO_NOSIGPIPE) == -1) {
         if (errno != EAGAIN) {
             std::cerr << "Send failed" << std::endl;
             return;
