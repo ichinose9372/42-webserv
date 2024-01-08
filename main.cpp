@@ -1,6 +1,6 @@
 #include "soket/Server.hpp"
 #include "cnf/MainConfig.hpp"
-
+#include <sys/errno.h>
 
 int main(int argc, char **argv)
 {

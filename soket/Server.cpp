@@ -70,7 +70,6 @@ void Server::initializeServerSocket(const Servers& server, size_t port)
 
 }
 
-
 void Server::initializeServers(const std::vector<Servers>& servers)
 {
     std::vector<size_t> ports;
@@ -106,8 +105,13 @@ void Server::acceptNewConnection(int server_fd, std::vector<struct pollfd>& poll
 {
     int new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
     if (new_socket < 0) {
-        std::cerr << "Accept failed" << std::endl;
-        return;
+        if (errno != EINTR) {
+            std::cerr << "Accept failed" << std::endl;
+            return;
+        }
+        else {
+            ; //処理を再実行する
+        }
     }
     struct pollfd new_socket_struct = {new_socket, POLLIN, 0};
     requestMap.insert(std::make_pair(new_socket, requestMap.find(server_fd)->second));
@@ -121,7 +125,6 @@ bool Server::isTimeout(clock_t start)
     return time > TIMEOUT;
 }
 
-
 bool Server::receiveRequest(int socket_fd, std::string &Request)
 {
     int valread;
@@ -129,6 +132,12 @@ bool Server::receiveRequest(int socket_fd, std::string &Request)
     clock_t start = Timer::startTimer();
     while ((valread = read(socket_fd, buffer, BUFFER_SIZE)) == BUFFER_SIZE) 
     {
+        if (valread == -1) {
+            if (errno != EAGAIN) {
+                std::cerr << "Read failed" << std::endl;
+                return false;
+            }
+        }
         Request += buffer;
         memset(buffer, 0, BUFFER_SIZE);
         if (isTimeout(start))
@@ -148,8 +157,6 @@ Servers Server::findServerBySocket(int socket_fd)
     }
     throw std::runtime_error("Server not found");
 }
-
-
 
 Request Server::findServerandlocaitons(int socket_fd, const std::string& buffer) 
 {
@@ -172,7 +179,12 @@ void Server::sendResponse(int socket_fd, Response& res)
     {
         throw std::runtime_error("Response too large");
     }
-    send(socket_fd, response.c_str(), response.size(), 0);
+    if (send(socket_fd, response.c_str(), response.size(), 0) == -1) {
+        if (errno != EAGAIN) {
+            std::cerr << "Send failed" << std::endl;
+            return;
+        }
+    }
 }
 
 void Server::sendTimeoutResponse(int socket_fd) 
