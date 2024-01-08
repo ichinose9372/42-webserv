@@ -1,7 +1,28 @@
 name: learn-github-actions
-on: [push]
+on: push:
+    pull_request:
 jobs:
   check-bats-version:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
-      - run: echo "Hello World"
+      - uses: actions/checkout@v2
+
+      - name: install compiler
+        run: brew install gcc make
+
+      - name: build
+        run: |
+          make
+          ./webserv configrations/default.conf &
+          sleep 1
+      #googletestフォルダの中にあるテストコードをコンパイルして、現在のディレクトリで実行したい
+      - name: test
+        run: |
+          c++ ./googleTest/mainTest.cpp -o test -arch arm64 -L/usr/local/lib -lgtest -lgtest_main
+          ./test
+        
+      - name: kill
+        run: |
+          kill wevserv
+          make fclean
+          rm test
