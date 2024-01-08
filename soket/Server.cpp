@@ -108,10 +108,7 @@ void Server::acceptNewConnection(int server_fd, std::vector<struct pollfd>& poll
         if (errno != EINTR) {
             std::cerr << "Accept failed" << std::endl;
             return;
-        }
-        else {
-            ; //処理を再実行する
-        }
+        } //EINTRの場合は処理を継続する
     }
     struct pollfd new_socket_struct = {new_socket, POLLIN, 0};
     requestMap.insert(std::make_pair(new_socket, requestMap.find(server_fd)->second));
@@ -233,6 +230,12 @@ void Server::runEventLoop()
                 else if (pollfds[i].revents & POLLIN) 
                     handleExistingConnection(pollfds[i]);
             }
+        }
+        else {
+            if (errno != EINTR) {
+                std::cerr << "Accept failed" << std::endl;
+                return;
+            } //EINTRの場合は処理を継続する
         }
     }
 }
