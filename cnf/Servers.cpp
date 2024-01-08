@@ -232,14 +232,14 @@ void Servers::processMultiValueDirective(std::vector<std::string>::iterator& it,
         throw std::runtime_error("Parse error: Unexpected end of tokens before " + directive + " value");
     if (*it == "index")
     {
-        while (it != end && it->find(";") == std::string::npos) 
+        it++;
+        for (; it != end && it->find(";") == std::string::npos; ++it) 
         {
             location.setIndex(*it);
-            it++;
         }
         if (it == end) 
                 throw std::runtime_error("Parse error: Unexpected end of tokens before index block");
-        removeTrailingSemicolon(*it);
+        removeTrailingSemicolon(*it); 
         location.setIndex(*it);
     }
     else if (*it == "method") 

@@ -77,6 +77,14 @@ void Request::remakeUri(ExclusivePath& exclusivePath, Locations& location, std::
                 path = servers_root;
             std::cout << "IN S_ISDIR  second  path = " << path << std::endl;
             std::vector<std::string> indexs = location.getIndex();//locationのindexを取得
+
+            std::vector<std::string>::iterator it = indexs.begin();
+            for(; it != indexs.end(); it++)
+            {
+                std::cout << "location index = " << *it << std::endl;
+            }
+
+
             if (indexs.empty())
                 indexs.push_back("");
             std::cout << "IN S_ISDIR  third  indexs.front() = " << indexs.front() << std::endl;
