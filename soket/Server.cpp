@@ -88,7 +88,6 @@ void Server::initializeServers(const std::vector<Servers>& servers)
     }
 }
 
-
 Server::Server(const MainConfig& conf)
 {
     std::vector<Servers> servers = conf.getServers();
@@ -105,10 +104,10 @@ void Server::acceptNewConnection(int server_fd, std::vector<struct pollfd>& poll
 {
     int new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
     if (new_socket < 0) {
-        if (errno != EINTR) {
+        if (errno != EINTR || errno != EAGAIN || errno != EWOULDBLOCK) {
             std::cerr << "Accept failed" << std::endl;
             return;
-        } //EINTRの場合は処理を継続する
+        } //上記errnoの場合は処理を継続する
     }
     struct pollfd new_socket_struct = {new_socket, POLLIN, 0};
     requestMap.insert(std::make_pair(new_socket, requestMap.find(server_fd)->second));
@@ -135,10 +134,10 @@ bool Server::receiveRequest(int socket_fd, std::string &Request)
             return true;
     }
     if (valread == -1) {
-        if (errno != EAGAIN) {
+        if (errno != EINTR || errno != EAGAIN || errno != EWOULDBLOCK) {
             std::cerr << "Read failed" << std::endl;
             return false;
-        }
+        } //上記errnoの場合は処理を継続する
     }
     Request += buffer;
     return false;
@@ -177,10 +176,10 @@ void Server::sendResponse(int socket_fd, Response& res)
         throw std::runtime_error("Response too large");
     }
     if (send(socket_fd, response.c_str(), response.size(), SO_NOSIGPIPE) == -1) {
-        if (errno != EAGAIN) {
+        if (errno != EINTR || errno != EAGAIN || errno != EWOULDBLOCK) {
             std::cerr << "Send failed" << std::endl;
             return;
-        }
+        } //上記errnoの場合は処理を継続する
     }
 }
 
@@ -233,7 +232,7 @@ void Server::runEventLoop()
         }
         else {
             if (errno != EINTR) {
-                std::cerr << "Accept failed" << std::endl;
+                std::cerr << "poll failed" << std::endl;
                 return;
             } //EINTRの場合は処理を継続する
         }
