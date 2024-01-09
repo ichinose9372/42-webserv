@@ -26,7 +26,9 @@ jobs:
 
       - name: download GoogleTest and build test
         run: |
-          cd googletest/build
+          cd googletest
+          ls
+          cd build
           cmake ..
           cmake --build .
           ctest
