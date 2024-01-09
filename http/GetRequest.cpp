@@ -11,7 +11,7 @@ bool isCgiScript(const std::string &filePath)
 
 int GetRequest::openFile(const std::string &filePath)
 {
-    std::cout << "In GetRequest::openFile   file psth = " << filePath << std::endl;
+    // std::cout << "In GetRequest::openFile   file psth = " << filePath << std::endl;
 
     struct stat buffer;
     if (stat(filePath.c_str(), &buffer) != 0)
