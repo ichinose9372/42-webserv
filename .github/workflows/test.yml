@@ -32,6 +32,7 @@ jobs:
           cmake ..
           cmake --build .
           ctest
-     - name: stop wevserver
-       run: |
-         kill webserv
+
+      - name: stop wevserver
+        run:
+          pkill webserv
