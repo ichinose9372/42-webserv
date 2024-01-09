@@ -32,8 +32,3 @@ jobs:
           cmake ..
           cmake --build .
           ctest
-        
-      - name: kill
-        run: |
-          kill wevserv
-          make fclean
