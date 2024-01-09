@@ -34,7 +34,7 @@ void setReturnCode(Request& req, Response& res)
     }
     else if (returnCode == 405)
     {
-        std::cout << " IN 405 \n";
+        // std::cout << " IN 405 \n";
         res.setStatus("405 Method Not Allowed");
         res.setHeaders("Content-Type: ", "text/html");
         res.setBody("<html><body><h1>405 Method Not Allowed</h1></body></html>");
@@ -42,7 +42,7 @@ void setReturnCode(Request& req, Response& res)
     }
     else if (returnCode == 404)
     {
-        std::cout << " IN 404 \n";
+        // std::cout << " IN 404 \n";
         res.setStatus("404 Not Found");
         res.setHeaders("Content-Type: ", "text/html");
         res.setBody("<html><body><h1>404 Not Found</h1></body></html>");
@@ -112,7 +112,7 @@ void setReturnCode(Request& req, Response& res)
     //     res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
     // }
     res.setResponse();
-    std::cout << "res.getResponse() = " << res.getResponse() << std::endl;
+    // std::cout << "res.getResponse() = " << res.getResponse() << std::endl;
 }
 
 void Controller::processFile(Request& req, Response& res) 

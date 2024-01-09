@@ -3,14 +3,9 @@
 #include <cstdlib>
 #include <unistd.h>
 
-TEST(WebServerTest, Response200OK) 
-{
-    // Webサーバーを起動
-    system("../webserv ../configurations/default.conf &");
 
-    // curlコマンドを実行し、レスポンスを取得
-    std::string command = "curl -o /dev/null -s -w \"%{http_code}\" http://localhost:8080";
-    //commandを実行し、結果を取得
+std::string getHttpResponseCode(const std::string& url) {
+    std::string command = "curl -o /dev/null -s -w \"%{http_code}\" " + url;
     FILE* fp = popen(command.c_str(), "r");
     char buf[1024];
     std::string httpCode;
@@ -18,16 +13,25 @@ TEST(WebServerTest, Response200OK)
         httpCode += buf;
     }
     pclose(fp);
-
-    // レスポンスコードが200かどうか確認
-    EXPECT_EQ(httpCode, "200");
-
-    // Webサーバーを終了
-    system("pkill webserv");
+    return httpCode;
 }
 
 
-int main(int argc, char **argv)
+TEST(WebServerTest, Response200OK) {
+
+    // 正常なページにアクセスして200 OKを確認
+    std::string httpCode = getHttpResponseCode("http://localhost:8080");
+    EXPECT_EQ(httpCode, "200");
+}
+
+TEST(WebServerTest, Response404NotFound) {
+
+    // 存在しないページにアクセスして404 Not Foundを確認
+    std::string httpCode = getHttpResponseCode("http://localhost:8080/nonexistentpage");
+    EXPECT_EQ(httpCode, "404");
+}
+
+int main(int argc, char **argv) 
 {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

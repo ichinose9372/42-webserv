@@ -1,0 +1,30 @@
+Start testing: Jan 09 15:29 JST
+----------------------------------------------------------
+1/1 Testing: my_test
+1/1 Test: my_test
+Command: "/Users/ichinoseyuuki/tokyo42/webserv/googletest/build/my_test_executable"
+Directory: /Users/ichinoseyuuki/tokyo42/webserv/googletest/build
+"my_test" start time: Jan 09 15:29 JST
+Output:
+----------------------------------------------------------
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from WebServerTest
+[ RUN      ] WebServerTest.Response200OK
+[       OK ] WebServerTest.Response200OK (3853 ms)
+[ RUN      ] WebServerTest.Response404NotFound
+[       OK ] WebServerTest.Response404NotFound (3316 ms)
+[----------] 2 tests from WebServerTest (7170 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (7170 ms total)
+[  PASSED  ] 2 tests.
+<end of output>
+Test time =   7.20 sec
+----------------------------------------------------------
+Test Passed.
+"my_test" end time: Jan 09 15:29 JST
+"my_test" time elapsed: 00:00:07
+----------------------------------------------------------
+
+End testing: Jan 09 15:29 JST

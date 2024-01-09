@@ -71,38 +71,38 @@ void Request::remakeUri(ExclusivePath& exclusivePath, Locations& location, std::
         }
         else if (S_ISDIR(statbuf.st_mode))
         {
-            std::cout << "IN S_ISDIR  first  uri = " << uri << std::endl; //./YoupiBanane/nop ここでディレクトリが確定している
+            // std::cout << "IN S_ISDIR  first  uri = " << uri << std::endl; //./YoupiBanane/nop ここでディレクトリが確定している
             std::string path = exclusivePath.getPath(); //locationのrootかaliasを取得
             if (path.empty())
                 path = servers_root;
-            std::cout << "IN S_ISDIR  second  path = " << path << std::endl;
+            // std::cout << "IN S_ISDIR  second  path = " << path << std::endl;
             std::vector<std::string> indexs = location.getIndex();//locationのindexを取得
 
-            std::vector<std::string>::iterator it = indexs.begin();
-            for(; it != indexs.end(); it++)
-            {
-                std::cout << "location index = " << *it << std::endl;
-            }
+            // std::vector<std::string>::iterator it = indexs.begin();
+            // for(; it != indexs.end(); it++)
+            // {
+            //     std::cout << "location index = " << *it << std::endl;
+            // }
 
 
             if (indexs.empty())
                 indexs.push_back("");
-            std::cout << "IN S_ISDIR  third  indexs.front() = " << indexs.front() << std::endl;
+            // std::cout << "IN S_ISDIR  third  indexs.front() = " << indexs.front() << std::endl;
             if (!filepath.empty())
             {
-                std::cout << " IN IF filepath = " << std::endl;
+                // std::cout << " IN IF filepath = " << std::endl;
                 uri = getAbsolutepath(indexs.front(), uri);
             }
             else
             {
-                std::cout << " IN ELSE indexs.front() = " << indexs.front() << std::endl;
+                // std::cout << " IN ELSE indexs.front() = " << indexs.front() << std::endl;
                 uri = getAbsolutepath(indexs.front(), path);
             }
         }
     }
     else
     {
-        std::cout << "SONOMAMA IN ELSE  uri = " << uri << std::endl;
+        // std::cout << "SONOMAMA IN ELSE  uri = " << uri << std::endl;
         std::string path = exclusivePath.getPath(); //locationのrootかaliasを取得
         if (path.empty())
             path = servers_root;
@@ -123,7 +123,7 @@ void Request::remakeUri(ExclusivePath& exclusivePath, Locations& location, std::
 bool Request::checkRequestmethod(Locations& location)
 {
     std::vector<std::string>::const_iterator it = location.getMethod().begin();
-    std::cout << "location.getMethod().size() = " << location.getMethod().size() << std::endl;
+    // std::cout << "location.getMethod().size() = " << location.getMethod().size() << std::endl;
     for(; it != location.getMethod().end(); it++)
     {
         if (*it == method)
@@ -140,7 +140,7 @@ void Request::remakeRequest(Servers& server)
     std::vector<Locations> locations = server.getLocations();
     for(std::vector<Locations>::iterator it = locations.begin(); it != locations.end(); it++) //リクエストに対してのlocationを探す
     {   
-        std::cout << "location = " << it->getPath()  << " : " << uri << std::endl;
+        // std::cout << "location = " << it->getPath()  << " : " << uri << std::endl;
         if (uri == it->getPath()) //locationが一致した場合
         {
             if (it->getReturnCode().first != 0)//returnCodeが設定されている場合
@@ -170,7 +170,7 @@ void Request::remakeRequest(Servers& server)
         }
     }
     //locationが一致しなかった場合
-    std::cout << "location not found" << std::endl;
+    // std::cout << "location not found" << std::endl;
     returnParameter.first = 404;
     returnParameter.second = "404.html";
 }
