@@ -35,5 +35,5 @@ jobs:
         
       - name: kill
         run: |
-          killall wevserv
+          kill wevserv
           make fclean
