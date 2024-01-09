@@ -9,9 +9,12 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: install compiler
-        run: brew install gcc make
+        run: |
+          brew install gcc make
+          brew instal googletest
 
-      - name: build
+
+      - name: Build webserb
         run: |
           make
           ./webserv configrations/default.conf &
