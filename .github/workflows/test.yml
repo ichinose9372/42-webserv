@@ -26,7 +26,6 @@ jobs:
       - name: build test
         run: |
           cd googletest
-          ls
           mkdir build
           cd build
           cmake ..
