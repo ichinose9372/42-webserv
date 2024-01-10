@@ -61,12 +61,21 @@ std::string GetRequest::getBody(const std::string &status, const std::string &fi
     if (status == "200 OK")
     {
         std::ifstream file(filePath);
-        std::string line;
-        while (getline(file, line))
+        std::stringstream buffer;
+        if (file)
         {
-            body += line;
+            buffer << file.rdbuf();
+            file.close();
+
+            std::string content = buffer.str();
+            std::cout << "Read content size: " << content.size() << " characters." << std::endl;
+            return content;
         }
-        file.close();
+        else
+        {
+            std::cout << "Failed to open file: " << filePath << std::endl;
+            return "<html><body><h1>Unable to open file</h1></body></html>";
+        }
     }
     else
     {
