@@ -68,17 +68,35 @@ std::string GetRequest::getBody(const std::string &filePath)
 void GetRequest::handleGetRequest(Request &req, Response &res)
 {
     if (isCgiScript(req.getUri()))
+        handleCgiScript(req, res);
+    else
+        handleRegularFile(req, res);
+}
+
+void GetRequest::handleCgiScript(Request &req, Response &res)
+{
+    std::cout << "In GetRequest::handleGetRequest" << std::endl;
+    ExecCgi::executeCgiScript(req, res);
+}
+
+void GetRequest::handleRegularFile(Request &req, Response &res)
+{
+    int statusCode = openFile(req.getUri());
+    std::string message = res.getStatusMessage(statusCode);
+    res.setStatus(message);
+
+    if (statusCode == 200)
     {
-        std::cout << "In GetRequest::handleGetRequest" << std::endl;
-        ExecCgi::executeCgiScript(req, res);
+        std::string content = getBody(req.getUri());
+        res.setBody(content);
+        res.setHeaders("Content-Type: ", "text/html");
+        res.setHeaders("Content-Length: ", std::to_string(content.size()));
     }
     else
     {
-        const std::string message = res.getStatusMessage(openFile(req.getUri()));
-        res.setStatus(message);
-        res.setHeaders("Content-Type: ", "text/html");
-        res.setBody(getBody(req.getUri()));
-        res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
+        // 適切なエラーページをセット
+        res.setBody("<html><body><h1>" + message + "</h1></body></html>");
     }
-    res.setResponse();
+
+    res.setResponse(); // HTTPレスポンスを設定
 }
