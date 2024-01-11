@@ -55,33 +55,29 @@ int GetRequest::openFile(const std::string &filePath)
     // return content;
 }
 
-std::string GetRequest::getBody(const std::string &status, const std::string &filePath)
+std::string GetRequest::getBody(const std::string &filePath)
 {
-    std::string body;
-    if (status == "200 OK")
+    std::ifstream file(filePath);
+    if (!file)
     {
-        std::ifstream file(filePath);
-        std::stringstream buffer;
-        if (file)
-        {
-            buffer << file.rdbuf();
-            file.close();
+        // ファイルが開けない場合のエラーハンドリング
+        std::cerr << "Error: Unable to open file: " << filePath << std::endl;
+        return "<html><body><h1>404 Not Found</h1><p>Unable to open file.</p></body></html>";
+    }
 
-            std::string content = buffer.str();
-            std::cout << "Read content size: " << content.size() << " characters." << std::endl;
-            return content;
-        }
-        else
-        {
-            std::cout << "Failed to open file: " << filePath << std::endl;
-            return "<html><body><h1>Unable to open file</h1></body></html>";
-        }
-    }
-    else
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    if (file.fail() || file.bad())
     {
-        body = "<html><body><h1>404 Not Found</h1></body></html>";
+        // ファイルの読み込み中にエラーが発生した場合のハンドリング
+        std::cerr << "Error: Unable to read file: " << filePath << std::endl;
+        file.close();
+        return "<html><body><h1>500 Internal Server Error</h1><p>Error reading file.</p></body></html>";
     }
-    return body;
+    file.close();
+
+    std::cout << "Read content size: " << buffer.str().size() << " characters." << std::endl;
+    return buffer.str();
 }
 
 void GetRequest::executeCgiScript(Request &req, Response &res)
@@ -155,7 +151,7 @@ void GetRequest::handleGetRequest(Request &req, Response &res)
         const std::string message = res.getStatusMessage(openFile(req.getUri()));
         res.setStatus(message);
         res.setHeaders("Content-Type: ", "text/html");
-        res.setBody(getBody(res.getStatus(), req.getUri()));
+        res.setBody(getBody(req.getUri()));
         res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
     }
     res.setResponse();
