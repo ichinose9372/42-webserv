@@ -70,7 +70,6 @@ void Server::initializeServerSocket(const Servers& server, size_t port)
 
 }
 
-
 void Server::initializeServers(const std::vector<Servers>& servers)
 {
     std::vector<size_t> ports;
@@ -89,7 +88,6 @@ void Server::initializeServers(const std::vector<Servers>& servers)
     }
 }
 
-
 Server::Server(const MainConfig& conf)
 {
     std::vector<Servers> servers = conf.getServers();
@@ -106,8 +104,10 @@ void Server::acceptNewConnection(int server_fd, std::vector<struct pollfd>& poll
 {
     int new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
     if (new_socket < 0) {
-        std::cerr << "Accept failed" << std::endl;
-        return;
+        if (errno != EINTR || errno != EAGAIN || errno != EWOULDBLOCK) {
+            std::cerr << "Accept failed" << std::endl;
+            return;
+        } //上記errnoの場合は処理を継続する
     }
     struct pollfd new_socket_struct = {new_socket, POLLIN, 0};
     requestMap.insert(std::make_pair(new_socket, requestMap.find(server_fd)->second));
@@ -121,18 +121,23 @@ bool Server::isTimeout(clock_t start)
     return time > TIMEOUT;
 }
 
-
 bool Server::receiveRequest(int socket_fd, std::string &Request)
 {
     int valread;
     char buffer[BUFFER_SIZE] = {0};
     clock_t start = Timer::startTimer();
-    while ((valread = read(socket_fd, buffer, BUFFER_SIZE)) == BUFFER_SIZE) 
+    while ((valread = recv(socket_fd, buffer, BUFFER_SIZE, SO_NOSIGPIPE)) == BUFFER_SIZE) 
     {
         Request += buffer;
         memset(buffer, 0, BUFFER_SIZE);
         if (isTimeout(start))
             return true;
+    }
+    if (valread == -1) {
+        if (errno != EINTR || errno != EAGAIN || errno != EWOULDBLOCK) {
+            std::cerr << "Read failed" << std::endl;
+            return false;
+        } //上記errnoの場合は処理を継続する
     }
     Request += buffer;
     return false;
@@ -148,8 +153,6 @@ Servers Server::findServerBySocket(int socket_fd)
     }
     throw std::runtime_error("Server not found");
 }
-
-
 
 Request Server::findServerandlocaitons(int socket_fd, const std::string& buffer) 
 {
@@ -172,7 +175,12 @@ void Server::sendResponse(int socket_fd, Response& res)
     {
         throw std::runtime_error("Response too large");
     }
-    send(socket_fd, response.c_str(), response.size(), 0);
+    if (send(socket_fd, response.c_str(), response.size(), SO_NOSIGPIPE) == -1) {
+        if (errno != EINTR || errno != EAGAIN || errno != EWOULDBLOCK) {
+            std::cerr << "Send failed" << std::endl;
+            return;
+        } //上記errnoの場合は処理を継続する
+    }
 }
 
 void Server::sendTimeoutResponse(int socket_fd) 
@@ -221,6 +229,12 @@ void Server::runEventLoop()
                 else if (pollfds[i].revents & POLLIN) 
                     handleExistingConnection(pollfds[i]);
             }
+        }
+        else {
+            if (errno != EINTR) {
+                std::cerr << "poll failed" << std::endl;
+                return;
+            } //EINTRの場合は処理を継続する
         }
     }
 }
