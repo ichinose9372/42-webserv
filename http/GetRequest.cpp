@@ -6,11 +6,7 @@ GetRequest::~GetRequest() {}
 
 bool isCgiScript(const std::string &filePath)
 {
-    if (filePath.size() >= 4 && filePath.substr(filePath.size() - 3) == ".sh")
-        return (true);
-    if (filePath.size() >= 4 && filePath.substr(filePath.size() - 3) == ".py")
-        return (true);
-    return (false);
+    return filePath.size() >= 4 && filePath.substr(filePath.size() - 3) == ".sh";
 }
 
 int GetRequest::openFile(const std::string &filePath)
