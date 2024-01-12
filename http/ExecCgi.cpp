@@ -6,10 +6,15 @@ ExecCgi::~ExecCgi(){}
 
 void ExecCgi::executeCgiScript(Request& req, Response& res)
 {
+    const char *argv[] = {"/usr/bin/python", "./docs/py-files/app.py", NULL};
+
+    std::string path = req.getUri();
+    std::cout << "pwd = " << system("pwd") << std::endl;
+    std::cout << "path = " << path << std::endl;
+
     if (req.getMethod() == "GET")
     {
         std::cout << "GET" << std::endl;
-        std::string path = req.getUri();
         if (access(path.c_str(), F_OK | X_OK) != 0) 
         {
             res.setStatus("404 Not Found");
@@ -25,7 +30,9 @@ void ExecCgi::executeCgiScript(Request& req, Response& res)
             dup2(pipefd[1], STDOUT_FILENO); 
             dup2(pipefd[1], STDERR_FILENO);
             close(pipefd[1]);
-            execve(path.c_str(), NULL, NULL);
+            char methodEnv[] = "REQUEST_METHOD=GET";
+            char* envp[] = { methodEnv, NULL };
+            execve("/usr/bin/python", const_cast<char *const *>(argv), envp);
             exit(500);
         }
         else if (pid > 0) 
@@ -60,8 +67,7 @@ void ExecCgi::executeCgiScript(Request& req, Response& res)
     }
     else if (req.getMethod() == "POST")
     {
-        std::string path = req.getUri();
-        // std::cout << "path = " << path << std::endl;
+        std::cout << "POST" << std::endl;
         if (access(path.c_str(), F_OK | X_OK) != 0) 
         {
             res.setStatus("404 Not Found");
@@ -79,8 +85,7 @@ void ExecCgi::executeCgiScript(Request& req, Response& res)
             close(pipefd[1]);
             char methodEnv[] = "REQUEST_METHOD=POST";
             char* envp[] = { methodEnv, NULL };
-            // std::cout << "methodEnv = " << methodEnv << std::endl;
-            execve(path.c_str(), NULL, envp);
+            execve("/usr/bin/python", const_cast<char *const *>(argv), envp);
             exit(500);
         }
         else if (pid > 0) 
