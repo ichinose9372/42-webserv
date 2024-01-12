@@ -8,4 +8,4 @@ include_directories(googletestcode/include) # テストコードのインクル�
 add_executable(my_test_executable mainTest.cpp) # テストコードの実行ファイルを指定
 target_link_libraries(my_test_executable gtest) # テストコードの実行ファイルにgtestをリンク
 enable_testing()
-add_test(NAME my_test COMMAND my_test_executable --gtest_list_tests) # テストコードの実行ファイルをテストとして登録
+add_test(NAME my_test COMMAND my_test_executable ) # テストコードの実行ファイルをテストとして登録
