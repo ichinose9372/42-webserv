@@ -34,7 +34,7 @@ void setReturnCode(Request& req, Response& res)
     }
     else if (returnCode == 405)
     {
-        std::cout << " IN 405 \n";
+        // std::cout << " IN 405 \n";
         res.setStatus("405 Method Not Allowed");
         res.setHeaders("Content-Type: ", "text/html");
         res.setBody("<html><body><h1>405 Method Not Allowed</h1></body></html>");
@@ -42,7 +42,7 @@ void setReturnCode(Request& req, Response& res)
     }
     else if (returnCode == 404)
     {
-        std::cout << " IN 404 \n";
+        // std::cout << " IN 404 \n";
         res.setStatus("404 Not Found");
         res.setHeaders("Content-Type: ", "text/html");
         res.setBody("<html><body><h1>404 Not Found</h1></body></html>");
@@ -62,6 +62,34 @@ void setReturnCode(Request& req, Response& res)
         res.setBody("<html><body><h1>414 URI Too Long</h1></body></html>");
         res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
     }
+    else if (returnCode == 408)
+    {
+        res.setStatus("408 Request Timeout");
+        res.setHeaders("Content-Type: ", "text/html");
+        res.setBody("<html><body><h1>408 Request Timeout</h1></body></html>");
+        res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
+    }
+    // else if (returnCode == 500)
+    // {
+    //     res.setStatus("500 Internal Server Error");
+    //     res.setHeaders("Content-Type: ", "text/html");
+    //     res.setBody("<html><body><h1>500 Internal Server Error</h1></body></html>");
+    //     res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
+    // }
+    // else if (returnCode == 501)
+    // {
+    //     res.setStatus("501 Not Implemented");
+    //     res.setHeaders("Content-Type: ", "text/html");
+    //     res.setBody("<html><body><h1>501 Not Implemented</h1></body></html>");
+    //     res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
+    // }
+    // else if (returnCode == 505)
+    // {
+    //     res.setStatus("505 HTTP Version Not Supported");
+    //     res.setHeaders("Content-Type: ", "text/html");
+    //     res.setBody("<html><body><h1>505 HTTP Version Not Supported</h1></body></html>");
+    //     res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
+    // }
     // else if (returnCode == 500)
     // {
     //     res.setStatus("500 Internal Server Error");
@@ -84,14 +112,13 @@ void setReturnCode(Request& req, Response& res)
     //     res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
     // }
     res.setResponse();
-    std::cout << "res.getResponse() = " << res.getResponse() << std::endl;
+    // std::cout << "res.getResponse() = " << res.getResponse() << std::endl;
 }
 
 void Controller::processFile(Request& req, Response& res) 
 {
     if (req.getReturnParameter().first != 0)
     {
-        // std::cout << "In Controller::processFile returnCode != 0" << std::endl;
         setReturnCode(req, res);
         return;
     }

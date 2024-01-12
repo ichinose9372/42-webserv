@@ -7,6 +7,7 @@
 #include "Locations.hpp"
 #include <sstream>
 #include <unistd.h>
+#include <set>
 
 #define YELLOW "\033[0;33m"
 #define NORMAL "\033[0m"
@@ -44,13 +45,13 @@ class Servers
         const std::vector<Locations>& getLocations(void) const; 
         const std::string& getRoot(void) const;
         //check functions
-        void  checkPathName(const std::string& path);
+        void  isPathDuplicate(const std::string& path);
+        void  processSingleValueDirective(std::vector<std::string>::iterator& it, std::vector<std::string>::iterator& end, Locations& location, const std::string& directive);
+        void  processMultiValueDirective(std::vector<std::string>::iterator& it, std::vector<std::string>::iterator& end, Locations& location, const std::string& directive);
+        void  processErrorPageDirective(std::vector<std::string>::iterator& it, std::vector<std::string>::iterator& end, Locations& location, bool& setErrorPage);
        
 };
 
 void  removeTrailingSemicolon(std::string& str);
-void  checkFileExists(const std::string& filename);
-void  checkFileAccess(const std::string& filename);
-
 
 #endif

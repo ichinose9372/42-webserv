@@ -7,7 +7,7 @@ MainConfig::MainConfig(const std::string& filename)
     if (!file.is_open())
         throw std::runtime_error("[KO] file not found");
     parseLine();
-    tokenSearchandSet();
+    parseConfigurationTokens();
     file.close();
 }
 
@@ -37,46 +37,48 @@ void MainConfig::lineToToken(std::string& line)
         tokens.push_back(token);
 }
 
-void MainConfig::tokenSearchandSet() 
+void MainConfig::parseServerBlock(std::vector<std::string>::iterator& it) 
+{
+    Servers server;
+    ++it;
+    if (it == tokens.end())
+        throw std::runtime_error("Parse error: Unexpected end of file, expecting '{' for server block");
+    if (*it != "{")
+        throw std::runtime_error("Parse error: Expected '{' after server keyword");
+    ++it;
+    while (it != tokens.end() && *it != "}") 
+    {
+        parseServerBlock(it, server);
+        ++it;
+    }
+    if (it == tokens.end() && *it != "}")
+        throw std::runtime_error("Parse error: server block not closed with '}'");
+    servers.push_back(server);
+}
+
+void MainConfig::parseClientMaxBodySize(std::vector<std::string>::iterator& it) 
+{
+    it++;
+    removeTrailingSemicolon(*it);
+    setClientMaxBodySize(*it);
+}
+
+void MainConfig::parseConfigurationTokens() 
 {
     std::vector<std::string>::iterator it = tokens.begin();
     while (it != tokens.end()) 
     {
-        if (*it == "server") 
-        {
-            Servers server;
-            ++it;
-            if (it == tokens.end())
-                throw std::runtime_error("Parse error: Unexpected end of file, expecting '{' for server block");
-            if (*it != "{")
-                throw std::runtime_error("Parse error: Expected '{' after server keyword");
-            ++it;
-            while (it != tokens.end() && *it != "}") 
-            {
-                inputServers(it, server);
-                ++it;
-            }
-            if (it == tokens.end() && *it != "}")
-                throw std::runtime_error("Parse error: server block not closed with '}'");
-            servers.push_back(server);
-        }
+        if (*it == "server")
+            parseServerBlock(it);
         else if (*it == "client_max_body_size")
-        {
-            it++;
-            removeTrailingSemicolon(*it);
-            setClientMaxBodySize(*it);
-        }
+            parseClientMaxBodySize(it);
         else
-        {
             throw std::runtime_error("Parse error: Unexpected token in main block");
-        }
-        if (it != tokens.end()) {
-            ++it;
-        }
+        ++it;
     }
 }
 
-bool MainConfig::checkPortNum(const size_t& port)
+bool MainConfig::isPortUsed(const size_t& port)
 {
     for (std::vector<Servers>::iterator it = servers.begin(); it != servers.end(); ++it)
     {
@@ -98,6 +100,7 @@ size_t MainConfig::validatePort(const std::string& port )
         throw std::runtime_error("1 port number is not a number");
     return port_num;
 }
+
 void MainConfig::setClientMaxBodySize(const std::string& client_max_body_size)
 {
     if (client_max_body_size.empty()) 
@@ -129,62 +132,23 @@ void MainConfig::setClientMaxBodySize(const std::string& client_max_body_size)
 }
 
 
-void MainConfig::inputServers(std::vector<std::string>::iterator& it, Servers& server)
+void MainConfig::parseServerBlock(std::vector<std::string>::iterator& it, Servers& server)
 {
-    if (*it == "listen")
+    if (*it == "listen") 
+        handleListen(it, server);
+    else if (*it == "server_name") 
+        handleServerName(it, server);
+    else if (*it == "index") 
+        handleIndex(it, server);
+    else if (*it == "location") 
+        handleLocation(it, server);
+    else if (*it == "client_max_body_size") 
+        handleClientMaxBodySize(it, server);
+    else if (*it == "root") 
+        handleRoot(it, server);
+    else 
     {
-        it++;
-        removeTrailingSemicolon(*it);
-        size_t port = validatePort(*it);
-        if(checkPortNum(port) )
-            checkServerName(server.getServerNames(), port);
-        server.setPort(port);
-    }
-    else if (*it == "server_name")
-    {
-        it++;
-        removeTrailingSemicolon(*it);
-        checkServerName(*it, server.getPort());
-        server.setSeverNames(*it);
-    }
-    else if (*it == "index")
-    {
-        it++;
-        while (it != tokens.end() && it->find(";") == std::string::npos)
-        {
-            checkFileExists(*it);
-            checkFileAccess(*it);
-            server.setIndex(*it);
-            it++;
-        }
-        if (it == tokens.end())
-            throw std::runtime_error("Parse error: Unexpected end of tokens before index block");
-        checkFileExists(*it);
-        checkFileAccess(*it);
-        removeTrailingSemicolon(*it);
-        server.setIndex(*it);
-    }
-    else if (*it == "location")
-    {
-        it++;
-        std::vector<std::string>::iterator end = tokens.end();
-        server.setLocations(it, end);
-    }
-    else if (*it == "client_max_body_size")
-    {
-        it++;
-        removeTrailingSemicolon(*it);
-        server.setClientMaxBodySize(*it);
-    }
-    else if (*it == "root")
-    {
-        it++;
-        removeTrailingSemicolon(*it);
-        server.setRoot(*it);
-    }
-    else
-    {
-        std::cout << *it << std::endl;
+        std::cout << "it: " << *it << std::endl;
         throw std::runtime_error("Parse error: Unexpected token in server block");
     }
 }
@@ -195,7 +159,7 @@ const size_t& MainConfig::getClientMaxBodySize(void) const
 }
 
 
-void MainConfig::checkServerName(const std::string& server_name, size_t port)
+void MainConfig::isServerName(const std::string& server_name, size_t port)
 {
     for (std::vector<Servers>::iterator it = servers.begin(); it != servers.end(); ++it)
     {
@@ -211,4 +175,57 @@ void MainConfig::checkServerName(const std::string& server_name, size_t port)
 const std::vector<Servers>& MainConfig::getServers(void) const
 {
     return (this->servers);
+}
+
+void MainConfig::handleListen(std::vector<std::string>::iterator& it, Servers& server) 
+{
+    it++;
+    removeTrailingSemicolon(*it);
+    size_t port = validatePort(*it);
+    if(isPortUsed(port) )
+        isServerName(server.getServerNames(), port);
+    server.setPort(port);
+}
+
+void MainConfig::handleServerName(std::vector<std::string>::iterator& it, Servers& server) 
+{
+    it++;
+    removeTrailingSemicolon(*it);
+    isServerName(*it, server.getPort());
+    server.setSeverNames(*it);
+}
+
+void MainConfig::handleIndex(std::vector<std::string>::iterator& it, Servers& server) 
+{
+    it++;
+    while (it != tokens.end() && it->find(";") == std::string::npos)
+    {
+        server.setIndex(*it);
+        it++;
+    }
+    if (it == tokens.end())
+        throw std::runtime_error("Parse error: Unexpected end of tokens before index block");
+    removeTrailingSemicolon(*it);
+    server.setIndex(*it);
+}
+
+void MainConfig::handleLocation(std::vector<std::string>::iterator& it, Servers& server) 
+{
+    it++;
+    std::vector<std::string>::iterator end = tokens.end();
+    server.setLocations(it, end);
+}
+
+void MainConfig::handleClientMaxBodySize(std::vector<std::string>::iterator& it, Servers& server) 
+{
+    it++;
+    removeTrailingSemicolon(*it);
+    server.setClientMaxBodySize(*it);
+}
+
+void MainConfig::handleRoot(std::vector<std::string>::iterator& it, Servers& server) 
+{
+    it++;
+    removeTrailingSemicolon(*it);
+    server.setRoot(*it);
 }

@@ -1,6 +1,6 @@
 CXX = c++
 CXXFLAGS = -Wall -Wextra -Werror -std=c++98
-SRCS = Server.cpp Timer.cpp 
+SRCS = Signal.cpp
 OBJS = $(SRCS:.cpp=.o)
 OBJDIR = objs
 

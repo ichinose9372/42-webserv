@@ -1,7 +1,7 @@
 NAME = webserv
 CXX = c++
 CXXFLAGS = -Wall -Wextra -Werror -std=c++98
-SUBDIRS = cnf http soket
+SUBDIRS = cnf http soket signal
 
 RM = rm -rf
 
