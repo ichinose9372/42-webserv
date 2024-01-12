@@ -26,7 +26,6 @@ std::vector<std::string> Request::split(const std::string &s, char delimiter)
     return tokens;
 }
 
-
 //絶対パスの作成
 std::string getAbsolutepath(const std::string& filePath, std::string rootDir) 
 {
@@ -47,13 +46,11 @@ std::string getAbsolutepath(const std::string& filePath, std::string rootDir)
     return absolutePath;
 }
 
-
 void Request::parseRequest(const std::string& rawRequest) 
 {
     RequestParse requestParse;
     requestParse.parseRequest(*this, rawRequest);
 }
-
 
 void Request::remakeUri(ExclusivePath& exclusivePath, Locations& location, std::string servers_root)
 {
@@ -133,7 +130,6 @@ bool Request::checkRequestmethod(Locations& location)
     }
     return true;
 }
-
 
 void Request::remakeRequest(Servers& server)
 {
@@ -225,4 +221,3 @@ void Request::setReturnParameter(int status, std::string filename)
     returnParameter.first = status;
     returnParameter.second = filename;
 }
-

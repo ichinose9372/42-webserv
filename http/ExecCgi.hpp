@@ -9,7 +9,6 @@ class ExecCgi
         ExecCgi();
         ~ExecCgi();
         static void executeCgiScript(Request& req, Response& res);
-        static std::string getBody(const std::string& status, const std::string& filePath);
 };
 
 #endif
