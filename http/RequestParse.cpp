@@ -16,7 +16,6 @@ std::vector<std::string> split(const std::string &s, char delimiter)
     return tokens;
 }
 
-
 void RequestParse::parseRequest(Request& request, const std::string& rawRequest)
 {
     // std::cout << "IN REQUESTPARSE::PARSEREQUEST request size == " << rawRequest.size() << std::endl;
@@ -54,7 +53,6 @@ std::string getfilepathtoURI(const std::string& uri, Request& request)
     return return_uri;
 }
 
-
 void RequestParse::parseRequestLine(const std::string& line, Request& request)
 {
 
@@ -85,7 +83,6 @@ void RequestParse::parseRequestLine(const std::string& line, Request& request)
 }
 
 // location separat filename and path
-
 
 void RequestParse::parseHeader(const std::string& line, Request& request)
 {
