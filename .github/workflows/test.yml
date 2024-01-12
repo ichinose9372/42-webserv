@@ -29,7 +29,3 @@ jobs:
           cmake ..
           cmake --build .
           ctest --verbose 
-
-      - name: webservを終了
-        run:
-          pkill webserv
