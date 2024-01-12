@@ -39,6 +39,22 @@ TEST(WebServerTest, Response405MethodNotAllowed)
     EXPECT_EQ(httpCode, "405");
 }
 
+
+TEST(WebServerTest, Response200Index) 
+{
+    // POSTメソッドでアクセスして405 Method Not Allowedを確認
+    std::string httpCode = getHttpResponseCode("http://localhost:8080/index", "GET");
+    EXPECT_EQ(httpCode, "200");
+}
+
+TEST(WebServerTest, Response200Cgi) 
+{
+    // POSTメソッドでアクセスして405 Method Not Allowedを確認
+    std::string httpCode = getHttpResponseCode("http://localhost:8080/cgi/cgi.sh", "GET");
+    EXPECT_EQ(httpCode, "200");
+} 
+
+
 int main(int argc, char **argv) 
 {
     ::testing::InitGoogleTest(&argc, argv);
