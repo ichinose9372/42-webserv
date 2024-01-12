@@ -43,14 +43,14 @@ TEST(WebServerTest, Response405MethodNotAllowed)
 TEST(WebServerTest, Response200Index) 
 {
     // POSTメソッドでアクセスして405 Method Not Allowedを確認
-    std::string httpCode = getHttpResponseCode("http://localhost:8080/index", "GET");
+    std::string httpCode = getHttpResponseCode("http://localhost:8080/index/", "GET");
     EXPECT_EQ(httpCode, "200");
 }
 
 TEST(WebServerTest, Response200Cgi) 
 {
     // POSTメソッドでアクセスして405 Method Not Allowedを確認
-    std::string httpCode = getHttpResponseCode("http://localhost:8080/cgi/cgi.sh", "GET");
+    std::string httpCode = getHttpResponseCode("http://localhost:8080/cgi/", "GET");
     EXPECT_EQ(httpCode, "200");
 } 
 
