@@ -9,4 +9,3 @@ add_executable(my_test_executable mainTest.cpp) # テストコードの実行フ
 target_link_libraries(my_test_executable gtest) # テストコードの実行ファイルにgtestをリンク
 enable_testing()
 add_test(NAME my_test COMMAND my_test_executable) # テストコードの実行ファイルをテストとして登録
-```
