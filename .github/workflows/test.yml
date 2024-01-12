@@ -22,13 +22,13 @@ jobs:
         run: |
           git clone https://github.com/google/googletest.git googletest/googletestcode
 
-      - name: テストを実行！
+      - name: テストを実行
         run: |
           mkdir -p googletest/build
           cd googletest/build
           cmake ..
           cmake --build .
-          ctest
+          ctest --verbose
 
       - name: webservを終了
         run:
