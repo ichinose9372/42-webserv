@@ -71,6 +71,7 @@ void GetRequest::handleGetRequest(Request &req, Response &res)
         handleCgiScript(req, res);
     else
         handleRegularFile(req, res);
+    res.setResponse(); // HTTPレスポンスを設定
 }
 
 void GetRequest::handleCgiScript(Request &req, Response &res)
@@ -97,6 +98,4 @@ void GetRequest::handleRegularFile(Request &req, Response &res)
         // 適切なエラーページをセット
         res.setBody("<html><body><h1>" + message + "</h1></body></html>");
     }
-
-    res.setResponse(); // HTTPレスポンスを設定
 }
