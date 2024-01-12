@@ -1,6 +1,6 @@
 #include "soket/Server.hpp"
 #include "cnf/MainConfig.hpp"
-
+#include "signal/Signal.hpp"
 
 int main(int argc, char **argv)
 {
@@ -10,6 +10,7 @@ int main(int argc, char **argv)
     }
     try
     {
+        ignore_sig();
         std::string filename;
         filename = argv[1];
         MainConfig myconf(filename);
