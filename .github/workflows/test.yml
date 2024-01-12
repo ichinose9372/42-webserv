@@ -1,0 +1,38 @@
+name: learn-github-actions
+on: 
+    push:
+    pull_request:
+jobs:
+  check-bats-version:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: install compiler
+        run: 
+          brew install gcc make cmake
+
+      - name: Build webserv
+        run: |
+          make
+          ./webserv configrations/default.conf &
+          sleep 1
+
+      - name: download GoogleTest
+        run: |
+          cd googletest
+          git clone https://github.com/google/googletest.git googletestcode
+
+      - name: build test
+        run: |
+          cd googletest
+          ls
+          mkdir build
+          cd build
+          cmake ..
+          cmake --build .
+          ctest
+
+      - name: stop wevserver
+        run:
+          pkill webserv
