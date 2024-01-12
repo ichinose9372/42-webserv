@@ -1,37 +1,35 @@
-name: learn-github-actions
+name: webserb-push-test
 on: 
     push:
     pull_request:
 jobs:
-  check-bats-version:
+  build-and-test-webserver:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
 
-      - name: install compiler
+      - name: コンパイラのインストール
         run: 
           brew install gcc make cmake
 
-      - name: Build webserv
+      - name: wevservをビルド
         run: |
           make
           ./webserv configrations/default.conf &
           sleep 1
 
-      - name: download GoogleTest
+      - name: google testをインストール
         run: |
-          cd googletest
-          git clone https://github.com/google/googletest.git googletestcode
+          git clone https://github.com/google/googletest.git googletest/googletestcode
 
-      - name: build test
+      - name: テストを実行！
         run: |
-          cd googletest
-          mkdir build
-          cd build
+          mkdir -p googletest/build
+          cd googletest/build
           cmake ..
           cmake --build .
           ctest
 
-      - name: stop wevserver
+      - name: webservを終了
         run:
           pkill webserv
