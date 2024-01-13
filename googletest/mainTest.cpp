@@ -54,12 +54,12 @@ TEST(WebServerTest, Response200Cgi)
     EXPECT_EQ(httpCode, "200");
 } 
 
-// TEST(WebServerTest, ResponseCgi2) 
-// {
-//     // POSTメソッドでアクセスして405 Method Not Allowedを確認
-//     std::string httpCode = getHttpResponseCode("http://localhost:8080/cgi/cgi.sh", "GET");
-//     EXPECT_EQ(httpCode, "200");
-// }
+TEST(WebServerTest, Response200Port8081) 
+{
+    //8081ポートにアクセスして200 OKを確認
+    std::string httpCode = getHttpResponseCode("http://localhost:8081", "GET");
+    EXPECT_EQ(httpCode, "200");
+}
 
 
 int main(int argc, char **argv) 
