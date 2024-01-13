@@ -13,11 +13,13 @@
 
 class Controller
 {
-    public:
-        Controller();
-        ~Controller();
-        void processFile(Request& req, Response& res);
-        static std::string getFilepath(Request& req);
+public:
+    Controller();
+    ~Controller();
+    void processFile(Request &req, Response &res);
+    void setReturnCode(Request &req, Response &res);
+    std::string getResponseHtml(int statusCode);
+    static std::string getFilepath(Request &req);
 };
 
 #endif
