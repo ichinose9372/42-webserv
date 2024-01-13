@@ -40,7 +40,7 @@ void ExecCgi::executeCommonCgiScript(Request &req, Response &res, const std::str
     pipe(pipefd);
 
     // タイムアウト設定
-    const double timeout = 0.1;
+    const double timeout = 0.2;
     clock_t start_time = Timer::startTimer();
 
     // CGIスクリプト実行のための子プロセスを作成

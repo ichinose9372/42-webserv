@@ -11,15 +11,42 @@ Controller::~Controller()
 std::string Controller::getFilepath(Request &req)
 {
     std::map<std::string, std::string> headers = req.getHeaders();
-    if (headers.find("Content-Disposition") == headers.end())
-    {
+    std::string dispositionHeader = "Content-Disposition";
+
+    if (headers.find(dispositionHeader) == headers.end())
         return "";
-    }
-    std::vector<std::string> hedderValueTokens = Request::split(headers["Content-Disposition"], ';');
-    std::string filename = hedderValueTokens[2];
-    filename = filename.substr(10, filename.size() - 11);
+
+    std::string headerValue = headers[dispositionHeader];
+    std::size_t filenamePos = headerValue.find("filename=");
+
+    if (filenamePos == std::string::npos)
+        return "";
+
+    filenamePos += 9; // Skip past "filename="
+    std::size_t filenameEnd = headerValue.find(';', filenamePos);
+
+    std::string filename = headerValue.substr(filenamePos, filenameEnd - filenamePos);
+    filename = sanitizeFilename(filename);
+
     std::string path = req.getUri() + filename;
     return path;
+}
+
+std::string Controller::sanitizeFilename(const std::string &filename)
+{
+    std::string sanitizedFilename;
+    for (std::size_t i = 0; i < filename.size(); ++i)
+    {
+        char ch = filename[i];
+        // 無効または危険な文字をスキップ
+        if (ch == '/' || ch == '\\' || ch == ':' || ch == '*' || ch == '?' || ch == '\"' || ch == '<' || ch == '>' || ch == '|')
+            continue;
+        // ディレクトリトラバーサル攻撃を防ぐためのチェック
+        if (sanitizedFilename.length() >= 2 && sanitizedFilename.substr(sanitizedFilename.length() - 2) == "..")
+            sanitizedFilename.erase(sanitizedFilename.length() - 2);
+        sanitizedFilename += ch;
+    }
+    return sanitizedFilename;
 }
 
 void Controller::setReturnCode(Request &req, Response &res)

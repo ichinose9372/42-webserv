@@ -20,6 +20,7 @@ public:
     void setReturnCode(Request &req, Response &res);
     std::string getResponseHtml(int statusCode);
     static std::string getFilepath(Request &req);
+    static std::string sanitizeFilename(const std::string &filename);
 };
 
 #endif
