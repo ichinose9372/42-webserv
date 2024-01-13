@@ -110,7 +110,7 @@ void setReturnCode(Request &req, Response &res)
     //     res.setBody("<html><body><h1>500 Internal Server Error</h1></body></html>");
     //     res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
     // }
-    // res.setResponse();
+    res.setResponse();
     // std::cout << "res.getResponse() = " << res.getResponse() << std::endl;
 }
 
@@ -133,5 +133,4 @@ void Controller::processFile(Request &req, Response &res)
         res.setStatus(res.getStatusMessage(405));
         res.setBody("<html><body><h1>405 Method Not Allowed</h1></body></html>");
     }
-    res.setResponse();
 }
