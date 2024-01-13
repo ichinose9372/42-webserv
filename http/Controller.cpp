@@ -8,7 +8,7 @@ Controller::~Controller()
 {
 }
 
-std::string Controller::getFilepath(Request& req)
+std::string Controller::getFilepath(Request &req)
 {
     std::map<std::string, std::string> headers = req.getHeaders();
     if (headers.find("Content-Disposition") == headers.end())
@@ -22,10 +22,10 @@ std::string Controller::getFilepath(Request& req)
     return path;
 }
 
-void setReturnCode(Request& req, Response& res)
+void setReturnCode(Request &req, Response &res)
 {
     int returnCode = req.getReturnParameter().first;
-    std::string returnPage =  req.getReturnParameter().second;
+    std::string returnPage = req.getReturnParameter().second;
     if (returnCode == 301)
     {
         res.setStatus("301 Moved Permanently");
@@ -114,7 +114,7 @@ void setReturnCode(Request& req, Response& res)
     // std::cout << "res.getResponse() = " << res.getResponse() << std::endl;
 }
 
-void Controller::processFile(Request& req, Response& res) 
+void Controller::processFile(Request &req, Response &res)
 {
     if (req.getReturnParameter().first != 0)
     {
@@ -123,17 +123,14 @@ void Controller::processFile(Request& req, Response& res)
     }
     std::string method = req.getMethod();
     if (method == "GET")
-    {
-        // std::cout << "In Controller::processFile" << std::endl;
         GetRequest::handleGetRequest(req, res);
-    }
     else if (method == "POST")
-    {   
-        // std::cout << "In Controller::processFile POST" << std::endl;
         PostRequest::handlePostRequest(req, res);
-    }
-    else if(method == "DELETE")
-    {
+    else if (method == "DELETE")
         DeleteRequest::handleDeleteRequest(req, res);
+    else
+    {
+        res.setStatus(res.getStatusMessage(405));
+        res.setBody("<html><body><h1>405 Method Not Allowed</h1></body></html>");
     }
 }
