@@ -52,9 +52,12 @@ std::string Controller::sanitizeFilename(const std::string &filename)
 void Controller::setReturnCode(Request &req, Response &res)
 {
     int returnCode = req.getReturnParameter().first;
+    std::string returnPage = req.getReturnParameter().second;
     std::string responseHtml = getResponseHtml(returnCode);
 
     res.setStatus(res.getStatusMessage(returnCode));
+    if (returnCode == 301)
+        res.setHeaders("Location: ", returnPage);
     res.setHeaders("Content-Type: ", "text/html");
     res.setBody(responseHtml);
     res.setHeaders("Content-Length: ", std::to_string(responseHtml.size()));
