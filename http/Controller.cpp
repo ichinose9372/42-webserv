@@ -58,6 +58,8 @@ void Controller::setReturnCode(Request &req, Response &res)
     res.setStatus(res.getStatusMessage(returnCode));
     if (returnCode == 301)
         res.setHeaders("Location: ", returnPage);
+    if (returnCode == 405)
+        res.setHeaders("Allow:", " GET, POST");
     res.setHeaders("Content-Type: ", "text/html");
     res.setBody(responseHtml);
     res.setHeaders("Content-Length: ", std::to_string(responseHtml.size()));
