@@ -6,13 +6,15 @@ GetRequest::~GetRequest() {}
 
 bool isCgiScript(const std::string &filePath)
 {
-    return filePath.size() >= 4 && filePath.substr(filePath.size() - 3) == ".sh";
+    if (filePath.size() >= 4 && filePath.substr(filePath.size() - 3) == ".sh")
+        return (true);
+    if (filePath.size() >= 4 && filePath.substr(filePath.size() - 3) == ".py")
+        return (true);
+    return (false);
 }
 
 int GetRequest::openFile(const std::string &filePath)
 {
-    // std::cout << "In GetRequest::openFile   file psth = " << filePath << std::endl;
-
     struct stat buffer;
     if (stat(filePath.c_str(), &buffer) != 0)
     {
@@ -60,8 +62,6 @@ std::string GetRequest::getBody(const std::string &filePath)
         return "<html><body><h1>500 Internal Server Error</h1><p>Error reading file.</p></body></html>";
     }
     file.close();
-
-    // std::cout << "Read content size: " << buffer.str().size() << " characters." << std::endl;
     return buffer.str();
 }
 
