@@ -2,21 +2,23 @@ NAME = webserv
 CXX = c++
 CXXFLAGS = -Wall -Wextra -Werror -std=c++98
 SUBDIRS = cnf http soket signal
-
+OBJS = $(foreach dir, $(SUBDIRS), $(wildcard $(dir)/objs/*.o)) 
 RM = rm -rf
+MAIN = main.cpp
 
-all: $(SUBDIRS)
-	$(eval OBJS = $(foreach dir, $(SUBDIRS), $(wildcard $(dir)/objs/*.o)))
-	$(CXX) $(CXXFLAGS) $(OBJS) main.cpp -o $(NAME)
+all: $(SUBDIRS) $(NAME)
+
+$(NAME): $(OBJS) $(MAIN) 
+	$(CXX) $(CXXFLAGS) $(OBJS) $(MAIN) -o $(NAME)
 
 $(SUBDIRS):
-	$(MAKE) -C $@
+		$(MAKE) -C $@
 
 clean:
-	for dir in $(SUBDIRS); do \
-        $(MAKE) -C $$dir clean; \
-    done
-	$(RM) main.o
+	@for dir in $(SUBDIRS); do \
+		$(MAKE) -C $$dir clean; \
+	done
+	$(RM) $(MAIN) $(NAME)
 
 fclean: clean
 	$(RM) $(NAME)
