@@ -17,19 +17,7 @@ int GetRequest::openFile(const std::string &filePath)
 {
     struct stat buffer;
     if (stat(filePath.c_str(), &buffer) != 0)
-    {
-        switch (errno)
-        {
-        // 存在しないファイル・ディレクトリ
-        case ENOENT:
-            return 404;
-        // アクセス権限がない
-        case EACCES:
-            return 403;
-        default:
-            return 500;
-        }
-    }
+        return 404;
 
     // 読み取り可能か確認
     if ((buffer.st_mode & S_IRUSR) == 0)
