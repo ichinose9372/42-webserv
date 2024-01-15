@@ -89,7 +89,7 @@ void ExecCgi::executeCommonCgiScript(Request &req, Response &res, const std::str
             else if (len == 0)
                 break;
             // エラーの場合
-            else if (errno != EAGAIN && errno != EWOULDBLOCK)
+            else if (len < 0)
                 break;
             // タイムアウトチェック
             if (Timer::calculateTime(start_time) > timeout)
