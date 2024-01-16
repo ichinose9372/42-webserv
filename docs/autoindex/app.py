@@ -1,6 +1,19 @@
 import os
 
-def getDirectoryContents():
+def ft_render_template(template, **context):
+	try:
+		path = os.path.join(os.path.dirname(__file__), template)
+
+		with open(path, 'r', encoding='utf-8') as template_file:
+			template_content = template_file.read()
+		
+		rendered_content = template_content.format(**context)
+		return rendered_content
+
+	except OSError as e:
+		print("Error reading directory: {}".format(e))
+
+def get_directory_contents():
 	try:
 		path = os.getcwd()
 		target = "/autoindex"
@@ -18,8 +31,8 @@ def getDirectoryContents():
 				directories.append(entry)
 			else:
 				files.append(entry)
-
-# 		return files, directories
+				
+		# return files, directories
 
 		files_contents = "<html><body><h1>Files:</h1><ul>"
 		directories_contents = "<html><body><h1>nDirectories:</h1><ul>"
@@ -33,18 +46,21 @@ def getDirectoryContents():
 		files_contents += "</ul></body></html>"
 		directories_contents += "</ul></body></html>"
 
-		return files_contents, directories_contents
+		# return files_contents, directories_contents
+
+		ft_render_template("autoindex.html", files=files_contents, directories=directories_contents)
 
 	except OSError as e:
 		print("Error reading directory: {}".format(e))
-		return [],[]
+		return []
 
 # #---test---
 # files, directories = getDirectoryContents()
 # print("Files: ")
 # for file in files:
 # 	print(file)
-
 # print("\nDirectories: ")
 # for directory in directories:
 # 	print(directory)
+content = get_directory_contents()
+print(content)

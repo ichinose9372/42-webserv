@@ -13,14 +13,14 @@
             <th>Path</th>
         </tr>
 
-        {% for file in files_contents %}
+        {% for file in files %}
             <tr>
                 <td>{{ file }}</td>
                 <td>{{ path }}</td>
             </tr>
         {% endfor %}
 
-        {% for directory in directories_contents %}
+        {% for directory in directories %}
             <tr>
                 <td>{{ directory }}</td>
                 <td>{{ path }}</td>
