@@ -146,7 +146,7 @@ void Request::remakeRequest(Servers& server)
             }
             if (it->getAutoindex()) // autoindexが設定されている場合
             {
-                uri = getAbsolutepath("autoindex.html", server.getRoot());
+                uri = getAbsolutepath("./autoindex/autoindex.html", server.getRoot());
                 return;
             }
             if (checkRequestmethod(*it)) // locationのmethodとリクエストmethodが一致しない場合
