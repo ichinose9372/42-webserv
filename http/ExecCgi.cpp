@@ -88,9 +88,9 @@ void ExecCgi::executeCommonCgiScript(Request &req, Response &res, const std::str
             // EOFに到達した場合
             else if (len == 0)
                 break;
-            // エラーの場合
+            // エラーの場合（非ブロッキング読み取りの場合、データがない場合に-1を返す）
             else if (len < 0)
-                break;
+                continue;
             // タイムアウトチェック
             if (Timer::calculateTime(start_time) > timeout)
             {
