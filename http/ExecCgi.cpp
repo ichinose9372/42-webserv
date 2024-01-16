@@ -45,6 +45,14 @@ void ExecCgi::executeCommonCgiScript(Request &req, Response &res, const std::str
 
     // CGIスクリプト実行のための子プロセスを作成
     pid_t pid = fork();
+    if (pid < 0)
+    {
+        res.setStatus("500 Internal Server Error");
+        res.setBody("<html><body><h1>500 Internal Server Error</h1><p>Failed to fork process.</p></body></html>");
+        close(pipefd[0]);
+        close(pipefd[1]);
+        return;
+    }
     if (pid == 0)
     { // 子プロセス
         // 環境変数の設定
