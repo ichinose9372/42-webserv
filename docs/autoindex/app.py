@@ -1,17 +1,8 @@
+from flask import Flask, render_template
 import os
 
-def ft_render_template(template, **context):
-	try:
-		path = os.path.join(os.path.dirname(__file__), template)
-
-		with open(path, 'r', encoding='utf-8') as template_file:
-			template_content = template_file.read()
-		
-		rendered_content = template_content.format(**context)
-		return rendered_content
-
-	except OSError as e:
-		print("Error reading directory: {}".format(e))
+app = Flask(__name__)
+app.template_folder = os.path.join(os.path.dirname(__file__), "templates")
 
 def get_directory_contents():
 	try:
@@ -31,28 +22,44 @@ def get_directory_contents():
 				directories.append(entry)
 			else:
 				files.append(entry)
+		
+		with app.app_context():
+			return render_template("autoindex.html", files=files, directories=directories)
 				
-		# return files, directories
+		# # return files, directories
 
-		files_contents = "<html><body><h1>Files:</h1><ul>"
-		directories_contents = "<html><body><h1>nDirectories:</h1><ul>"
+		# files_contents = "<html><body><h1>Files:</h1><ul>"
+		# directories_contents = "<html><body><h1>nDirectories:</h1><ul>"
 
-		for file in files:
-			files_contents += f"<li>{file}</li>"
+		# for file in files:
+		# 	files_contents += f"<li>{file}</li>"
 		
-		for directory in directories:
-			directories_contents += f"<li>{directory}</li>"
+		# for directory in directories:
+		# 	directories_contents += f"<li>{directory}</li>"
 		
-		files_contents += "</ul></body></html>"
-		directories_contents += "</ul></body></html>"
+		# files_contents += "</ul></body></html>"
+		# directories_contents += "</ul></body></html>"
 
-		# return files_contents, directories_contents
+		# # return files_contents, directories_contents
 
-		ft_render_template("autoindex.html", files=files_contents, directories=directories_contents)
+		# ft_render_template("autoindex.html", files=files_contents, directories=directories_contents)
 
 	except OSError as e:
 		print("Error reading directory: {}".format(e))
 		return []
+
+# def ft_render_template(template, **context):
+# 	try:
+# 		path = os.path.join(os.path.dirname(__file__), template)
+
+# 		with open(path, 'r', encoding='utf-8') as template_file:
+# 			template_content = template_file.read()
+		
+# 		rendered_content = template_content.format(**context)
+# 		return rendered_content
+
+# 	except OSError as e:
+# 		print("Error reading directory: {}".format(e))
 
 # #---test---
 # files, directories = getDirectoryContents()
@@ -62,5 +69,4 @@ def get_directory_contents():
 # print("\nDirectories: ")
 # for directory in directories:
 # 	print(directory)
-content = get_directory_contents()
-print(content)
+print(get_directory_contents())

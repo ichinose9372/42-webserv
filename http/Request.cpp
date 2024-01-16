@@ -146,7 +146,7 @@ void Request::remakeRequest(Servers& server)
             }
             if (it->getAutoindex()) // autoindexが設定されている場合
             {
-                uri = getAbsolutepath("./autoindex/autoindex.html", server.getRoot());
+                uri = getAbsolutepath("./autoindex/app.py", server.getRoot());
                 return;
             }
             if (checkRequestmethod(*it)) // locationのmethodとリクエストmethodが一致しない場合
