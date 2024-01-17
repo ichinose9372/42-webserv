@@ -45,6 +45,7 @@ void Server::initializeServerSocket(const Servers& server, size_t port)
     }
 
     int opt = 1;
+
     if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) 
     {
         close(socket_fd);
@@ -57,17 +58,14 @@ void Server::initializeServerSocket(const Servers& server, size_t port)
         throw std::runtime_error("bind out");
 
     }
-
     if (listen(socket_fd, 3) < 0) 
     {
         close(socket_fd);
         throw std::runtime_error("listen");
     }
-
     requestMap.insert(std::make_pair(socket_fd, server));
     struct pollfd server_pollfd = {socket_fd, POLLIN, 0};
     this->pollfds.push_back(server_pollfd);
-
 }
 
 void Server::initializeServers(const std::vector<Servers>& servers)
@@ -97,17 +95,22 @@ Server::Server(const MainConfig& conf)
 
 Server::~Server()
 {
-    //
 }
 
 void Server::acceptNewConnection(int server_fd, std::vector<struct pollfd>& pollfds, struct sockaddr_in& address, int& addrlen) 
 {
     int new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
-    if (new_socket < 0) {
-        if (errno != EINTR || errno != EAGAIN || errno != EWOULDBLOCK) {
-            std::cerr << "Accept failed" << std::endl;
-            return;
-        } //上記errnoの場合は処理を継続する
+    if (new_socket == 0)
+    {
+        //クライアントの削除が必要か確認
+        std::cerr << "Accept failed" << std::endl;
+        return;
+    }
+    else if (new_socket < 0)
+    {
+        //クライアントの削除が必要か確認
+        std::cerr << "Accept failed" << std::endl;
+        return;
     }
     struct pollfd new_socket_struct = {new_socket, POLLIN, 0};
     requestMap.insert(std::make_pair(new_socket, requestMap.find(server_fd)->second));
@@ -133,11 +136,17 @@ bool Server::receiveRequest(int socket_fd, std::string &Request)
         if (isTimeout(start))
             return true;
     }
-    if (valread == -1) {
-        if (errno != EINTR || errno != EAGAIN || errno != EWOULDBLOCK) {
-            std::cerr << "Read failed" << std::endl;
-            return false;
-        } //上記errnoの場合は処理を継続する
+    if (valread == 0)
+    {
+        //クライアントの削除が必要か確認
+        std::cerr << "Read failed" << std::endl;
+        return false;
+    }
+    else if (valread < 0)
+    {
+        //クライアントの削除が必要か確認
+        std::cerr << "Read failed" << std::endl;
+        return false;
     }
     Request += buffer;
     return false;
@@ -175,11 +184,18 @@ void Server::sendResponse(int socket_fd, Response& res)
     {
         throw std::runtime_error("Response too large");
     }
-    if (send(socket_fd, response.c_str(), response.size(), SO_NOSIGPIPE) == -1) {
-        if (errno != EINTR || errno != EAGAIN || errno != EWOULDBLOCK) {
-            std::cerr << "Send failed" << std::endl;
-            return;
-        } //上記errnoの場合は処理を継続する
+    int status = send(socket_fd, response.c_str(), response.size(), SO_NOSIGPIPE);
+    if (status == 0)
+    {
+        //クライアントの削除が必要か確認
+        std::cerr << "Send failed" << std::endl;
+        return;
+    }
+    else if (status < 0)
+    {
+        //クライアントの削除が必要か確認
+        std::cerr << "Send failed" << std::endl;
+        return;
     }
 }
 
@@ -209,7 +225,7 @@ void Server::handleExistingConnection(struct pollfd& pfd)
     bool timeout = receiveRequest(pfd.fd, request);
     if (timeout)
         sendTimeoutResponse(pfd.fd);
-    else//timeoutでない場合にはrequestを処理する
+    else //timeoutでない場合にはrequestを処理する
         processRequestAndSendResponse(pfd.fd, request);//タイムアウトの場合にはreturncodeを設定する
     close(pfd.fd);
 }
@@ -230,11 +246,11 @@ void Server::runEventLoop()
                     handleExistingConnection(pollfds[i]);
             }
         }
-        else {
-            if (errno != EINTR) {
-                std::cerr << "poll failed" << std::endl;
-                return;
-            } //EINTRの場合は処理を継続する
+        else
+        {
+            //クライアントの削除が必要か確認
+            std::cerr << "poll failed" << std::endl;
+            return;
         }
     }
 }
