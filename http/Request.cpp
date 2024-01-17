@@ -136,7 +136,6 @@ void Request::remakeRequest(Servers& server)
     std::vector<Locations> locations = server.getLocations();
     for(std::vector<Locations>::iterator it = locations.begin(); it != locations.end(); it++) //リクエストに対してのlocationを探す
     {   
-        // std::cout << "location = " << it->getPath()  << " : " << uri << std::endl;
         if (uri == it->getPath()) //locationが一致した場合
         {
             if (it->getReturnCode().first != 0)//returnCodeが設定されている場合
@@ -146,7 +145,7 @@ void Request::remakeRequest(Servers& server)
             }
             if (it->getAutoindex()) // autoindexが設定されている場合
             {
-                uri = getAbsolutepath("./autoindex/app.py", server.getRoot());
+                uri = getAbsolutepath("autoindex/app.py", server.getRoot());
                 return;
             }
             if (checkRequestmethod(*it)) // locationのmethodとリクエストmethodが一致しない場合
