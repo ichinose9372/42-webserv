@@ -63,55 +63,33 @@ void Request::remakeUri(ExclusivePath& exclusivePath, Locations& location, std::
     if (stat(uri.c_str(), &statbuf) == 0) 
     {
         if (S_ISREG(statbuf.st_mode) && access(uri.c_str(), R_OK) == 0)
-        {
             return;
-        }
         else if (S_ISDIR(statbuf.st_mode))
         {
-            // std::cout << "IN S_ISDIR  first  uri = " << uri << std::endl; //./YoupiBanane/nop ここでディレクトリが確定している
             std::string path = exclusivePath.getPath(); //locationのrootかaliasを取得
             if (path.empty())
                 path = servers_root;
-            // std::cout << "IN S_ISDIR  second  path = " << path << std::endl;
-            std::vector<std::string> indexs = location.getIndex();//locationのindexを取得
-
-            // std::vector<std::string>::iterator it = indexs.begin();
-            // for(; it != indexs.end(); it++)
-            // {
-            //     std::cout << "location index = " << *it << std::endl;
-            // }
-
-
+            std::vector<std::string> indexs = location.getIndex(); //locationのindexを取得
             if (indexs.empty())
                 indexs.push_back("");
-            // std::cout << "IN S_ISDIR  third  indexs.front() = " << indexs.front() << std::endl;
             if (!filepath.empty())
-            {
-                // std::cout << " IN IF filepath = " << std::endl;
                 uri = getAbsolutepath(indexs.front(), uri);
-            }
             else
-            {
-                // std::cout << " IN ELSE indexs.front() = " << indexs.front() << std::endl;
                 uri = getAbsolutepath(indexs.front(), path);
-            }
         }
     }
     else
     {
-        // std::cout << "SONOMAMA IN ELSE  uri = " << uri << std::endl;
         std::string path = exclusivePath.getPath(); //locationのrootかaliasを取得
         if (path.empty())
             path = servers_root;
         else 
             path = getAbsolutepath(path, servers_root);
-        std::vector<std::string> indexs = location.getIndex();//locationのindexを取得
+        std::vector<std::string> indexs = location.getIndex(); //locationのindexを取得
         if (indexs.empty())
             indexs.push_back("");
         if (!filepath.empty())
-        {
             uri = getAbsolutepath(filepath, path);
-        }
         else
             uri = getAbsolutepath(indexs.front(), path);
     }
@@ -120,13 +98,10 @@ void Request::remakeUri(ExclusivePath& exclusivePath, Locations& location, std::
 bool Request::checkRequestmethod(Locations& location)
 {
     std::vector<std::string>::const_iterator it = location.getMethod().begin();
-    // std::cout << "location.getMethod().size() = " << location.getMethod().size() << std::endl;
     for(; it != location.getMethod().end(); it++)
     {
         if (*it == method)
-        {
             return false;
-        }
     }
     return true;
 }
@@ -138,34 +113,32 @@ void Request::remakeRequest(Servers& server)
     {   
         if (uri == it->getPath()) //locationが一致した場合
         {
-            if (it->getReturnCode().first != 0)//returnCodeが設定されている場合
+            if (it->getReturnCode().first != 0) //returnCodeが設定されている場合
             {
                 returnParameter = it->getReturnCode();
                 return;
             }
-            if (it->getAutoindex()) // autoindexが設定されている場合
+            if (it->getAutoindex()) //autoindexが設定されている場合
             {
                 uri = getAbsolutepath("autoindex/app.py", server.getRoot());
                 return;
             }
-            if (checkRequestmethod(*it)) // locationのmethodとリクエストmethodが一致しない場合
+            if (checkRequestmethod(*it)) //locationのmethodとリクエストmethodが一致しない場合
             {
                 returnParameter.first = 405;
                 returnParameter.second = "405.html";
                 return;
             }
-            if (it->getMaxBodySize() != 0) // maxBodySizeが設定されている場合
+            if (it->getMaxBodySize() != 0) //maxBodySizeが設定されている場合
             {
                 max_body_size = it->getMaxBodySize();
             }
             ExclusivePath exclusivePath = it->getExclusivePath();
-            remakeUri(exclusivePath, *it, server.getRoot());
-            //filepathが設定されているのならURIをfilepathを使って作り直す
+            remakeUri(exclusivePath, *it, server.getRoot()); //filepathが設定されているのならURIをfilepathを使って作り直す
             return;
         }
     }
     //locationが一致しなかった場合
-    // std::cout << "location not found" << std::endl;
     returnParameter.first = 404;
     returnParameter.second = "404.html";
 }
