@@ -13,7 +13,6 @@ void ExecCgi::executeCgiScript(Request &req, Response &res)
         res.setBody("<html><body><h1>404 Not Found</h1><p>Requested script not found.</p></body></html>");
         return;
     }
-
     // CGI実行のための共通処理
     executeCommonCgiScript(req, res, path);
 }

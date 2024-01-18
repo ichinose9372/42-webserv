@@ -64,7 +64,6 @@ void GetRequest::handleGetRequest(Request &req, Response &res)
 
 void GetRequest::handleCgiScript(Request &req, Response &res)
 {
-    std::cout << "In GetRequest::handleGetRequest" << std::endl;
     ExecCgi::executeCgiScript(req, res);
 }
 
