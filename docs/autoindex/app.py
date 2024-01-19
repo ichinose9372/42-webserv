@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from flask import Flask, render_template
 import os
+# print(os.environ.get('PATH'))
+# print(os.environ.get('PYTHONPATH'))
+
+from flask import Flask, render_template
 
 app = Flask(__name__)
 app.template_folder = os.path.join(os.path.dirname(__file__), "templates")
