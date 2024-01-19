@@ -153,7 +153,7 @@ std::vector<std::string> ExecCgi::buildEnvVars(Request &req)
         // その他のPOSTに特有の環境変数設定
     }
     // 共通の環境変数設定
-    envVars.push_back("PYTHONPATH=./env/lib/python3.9/site-packages");
+    envVars.push_back("PYTHONPATH=./env/lib/python3.12/site-packages");
     // ...
     return envVars;
 }
