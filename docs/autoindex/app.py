@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 from flask import Flask, render_template
@@ -29,6 +29,10 @@ def get_directory_contents():
 		with app.app_context():
 			return render_template("autoindex.html", files=files, directories=directories)
 				
+	except OSError as e:
+		print("Error reading directory: {}".format(e))
+		return []
+
 		# # return files, directories
 
 		# files_contents = "<html><body><h1>Files:</h1><ul>"
@@ -46,10 +50,6 @@ def get_directory_contents():
 		# # return files_contents, directories_contents
 
 		# ft_render_template("autoindex.html", files=files_contents, directories=directories_contents)
-
-	except OSError as e:
-		print("Error reading directory: {}".format(e))
-		return []
 
 # def ft_render_template(template, **context):
 # 	try:
@@ -72,4 +72,4 @@ def get_directory_contents():
 # print("\nDirectories: ")
 # for directory in directories:
 # 	print(directory)
-print(get_directory_contents())
+# print(get_directory_contents())
