@@ -1,6 +1,6 @@
 #include "Server.hpp"
 
-void Server::validateServers(const std::vector<Servers>& servers) 
+void Server::validateServers(const std::vector<Servers>& servers)
 {
     if (servers.size() == 0) {
         throw std::runtime_error("No servers in config");
@@ -38,7 +38,7 @@ void Server::initializeServerSocket(const Servers& server, size_t port)
 {
     int socket_fd;
 
-    if ((socket_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) 
+    if ((socket_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
     {
         close(socket_fd);
         throw std::runtime_error("Socket creation failed");
@@ -46,18 +46,18 @@ void Server::initializeServerSocket(const Servers& server, size_t port)
 
     int opt = 1;
 
-    if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) 
+    if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)))
     {
         close(socket_fd);
         throw std::runtime_error("setsockopt");
     }
     initializeSocketAddress(port);
-    if (bind(socket_fd, (struct sockaddr *)&this->address, sizeof(this->address)) < 0) 
+    if (bind(socket_fd, (struct sockaddr *)&this->address, sizeof(this->address)) < 0)
     {
         close(socket_fd);
         throw std::runtime_error("bind out");
     }
-    if (listen(socket_fd, 3) < 0) 
+    if (listen(socket_fd, 3) < 0)
     {
         close(socket_fd);
         throw std::runtime_error("listen");
@@ -75,7 +75,7 @@ void Server::initializeServers(const std::vector<Servers>& servers)
     for(; it != servers.end(); it++)
     {
         size_t port = it->getPort();
-        if (std::find(ports.begin(), ports.end(), port) != ports.end()) 
+        if (std::find(ports.begin(), ports.end(), port) != ports.end())
         {
             handleDuplicatePort(port, *it);
             continue;
@@ -96,7 +96,7 @@ Server::~Server()
 {
 }
 
-void Server::acceptNewConnection(int server_fd, std::vector<struct pollfd>& pollfds, struct sockaddr_in& address, int& addrlen) 
+void Server::acceptNewConnection(int server_fd, std::vector<struct pollfd>& pollfds, struct sockaddr_in& address, int& addrlen)
 {
     int new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
     if (new_socket < 0)
@@ -120,7 +120,7 @@ bool Server::receiveRequest(int socket_fd, std::string &Request)
     int valread;
     char buffer[BUFFER_SIZE] = {0};
     clock_t start = Timer::startTimer();
-    while ((valread = recv(socket_fd, buffer, BUFFER_SIZE, SO_NOSIGPIPE)) == BUFFER_SIZE) 
+    while ((valread = recv(socket_fd, buffer, BUFFER_SIZE, SO_NOSIGPIPE)) == BUFFER_SIZE)
     {
         Request += buffer;
         memset(buffer, 0, BUFFER_SIZE);
@@ -154,7 +154,7 @@ Servers Server::findServerBySocket(int socket_fd)
     throw std::runtime_error("Server not found");
 }
 
-Request Server::findServerandlocaitons(int socket_fd, const std::string& buffer) 
+Request Server::findServerandlocaitons(int socket_fd, const std::string& buffer)
 {
     Request req(buffer);
     Servers server = findServerBySocket(socket_fd);
@@ -164,7 +164,7 @@ Request Server::findServerandlocaitons(int socket_fd, const std::string& buffer)
     return req;
 }
 
-void Server::sendResponse(int socket_fd, Response& res) 
+void Server::sendResponse(int socket_fd, Response& res)
 {
     std::string response = res.getResponse();
     if (response.empty())
@@ -187,7 +187,7 @@ void Server::sendResponse(int socket_fd, Response& res)
     }
 }
 
-void Server::sendTimeoutResponse(int socket_fd) 
+void Server::sendTimeoutResponse(int socket_fd)
 {
     Response res;
     res.setStatus("408 Request Timeout");
@@ -198,7 +198,7 @@ void Server::sendTimeoutResponse(int socket_fd)
     sendResponse(socket_fd, res);
 }
 
-void Server::processRequestAndSendResponse(int socket_fd, std::string& request) 
+void Server::processRequestAndSendResponse(int socket_fd, std::string& request)
 {
     Request req = findServerandlocaitons(socket_fd, request);
     Response res;
@@ -207,35 +207,42 @@ void Server::processRequestAndSendResponse(int socket_fd, std::string& request)
     sendResponse(socket_fd, res);
 }
 
-void Server::handleExistingConnection(struct pollfd& pfd) 
+void Server::handleExistingConnection(struct pollfd& pfd)
 {
-    std::string request; 
+    std::string request;
     bool timeout = receiveRequest(pfd.fd, request);
     if (timeout)
         sendTimeoutResponse(pfd.fd);
     else
         processRequestAndSendResponse(pfd.fd, request);
     close(pfd.fd);
+    // pollfdsから該当するエントリを削除
+    for (std::vector<struct pollfd>::iterator it = pollfds.begin(); it != pollfds.end(); ) {
+        if (it->fd == pfd.fd) {
+            it = pollfds.erase(it);
+            // エントリを削除した場合は、イテレータを進めない
+        } else {
+            ++it;
+        }
+    }
 }
 
 void Server::runEventLoop()
 {
     size_t start_pollfds_size = pollfds.size();
-    while (true) 
+    while (true)
     {
         if (poll(pollfds.data(), pollfds.size(), -1) > 0)
         {
-            for (size_t i = 0; i < pollfds.size(); ++i) 
+            for (size_t i = 0; i < pollfds.size(); ++i)
             {
-                if (i < start_pollfds_size && pollfds[i].revents & POLLIN) 
+                if (i < start_pollfds_size && pollfds[i].revents & POLLIN)
                     acceptNewConnection(pollfds[i].fd, pollfds, address, addrlen);
-                else if (pollfds[i].revents & POLLIN) 
+                else if (pollfds[i].revents & POLLIN)
                     handleExistingConnection(pollfds[i]);
             }
         }
         else
-        {
             throw std::runtime_error("Poll failed");
-        }
     }
 }
