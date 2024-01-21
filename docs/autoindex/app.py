@@ -1,5 +1,14 @@
-from flask import Flask, render_template
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import os
+# print(os.environ.get('PATH'))
+# print(os.environ.get('PYTHONPATH'))
+
+# import sys
+# print(sys.path)
+
+from flask import Flask, render_template
 
 app = Flask(__name__)
 app.template_folder = os.path.join(os.path.dirname(__file__), "templates")
@@ -26,6 +35,10 @@ def get_directory_contents():
 		with app.app_context():
 			return render_template("autoindex.html", files=files, directories=directories)
 				
+	except OSError as e:
+		print("Error reading directory: {}".format(e))
+		return []
+
 		# # return files, directories
 
 		# files_contents = "<html><body><h1>Files:</h1><ul>"
@@ -43,10 +56,6 @@ def get_directory_contents():
 		# # return files_contents, directories_contents
 
 		# ft_render_template("autoindex.html", files=files_contents, directories=directories_contents)
-
-	except OSError as e:
-		print("Error reading directory: {}".format(e))
-		return []
 
 # def ft_render_template(template, **context):
 # 	try:
