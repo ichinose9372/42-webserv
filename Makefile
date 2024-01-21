@@ -1,26 +1,31 @@
 NAME = webserv
 CXX = c++
 CXXFLAGS = -Wall -Wextra -Werror -std=c++98
-SUBDIRS = cnf http soket signal
-
+SUBDIRS = cnf http signal soket
+OBJDIR = objs
 RM = rm -rf
 
-all: $(SUBDIRS)
-	$(eval OBJS = $(foreach dir, $(SUBDIRS), $(wildcard $(dir)/objs/*.o)))
+# ソースファイルの検索
+SRCS = $(shell find $(SUBDIRS) -type f -name "*.cpp")
+# オブジェクトファイルのパスの生成
+OBJS = $(SRCS:%.cpp=$(OBJDIR)/%.o)
+
+all: $(NAME)
+
+$(NAME): $(OBJS) main.cpp
 	$(CXX) $(CXXFLAGS) $(OBJS) main.cpp -o $(NAME)
 
-$(SUBDIRS):
-	$(MAKE) -C $@
+# オブジェクトファイルのコンパイルルール
+$(OBJDIR)/%.o: %.cpp
+	@mkdir -p $(@D)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	for dir in $(SUBDIRS); do \
-        $(MAKE) -C $$dir clean; \
-    done
-	$(RM) main.o
+	$(RM) $(OBJDIR)
 
 fclean: clean
 	$(RM) $(NAME)
 
 re: fclean all
 
-.PHONY: $(SUBDIRS) all clean fclean re
+.PHONY: all clean fclean re
