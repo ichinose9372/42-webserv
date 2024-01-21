@@ -56,7 +56,7 @@ void ExecCgi::executeCommonCgiScript(Request &req, Response &res, const std::str
     { // 子プロセス
         // 環境変数の設定
         std::vector<std::string> envVars = buildEnvVars(req);
-        std::vector<char *> envp = convertToEnvp(envVars);
+        std::vector<char *> envpCGI = convertToEnvp(envVars);
 
         // 標準出力をパイプにリダイレクト
         dup2(pipefd[1], STDOUT_FILENO);
@@ -64,12 +64,19 @@ void ExecCgi::executeCommonCgiScript(Request &req, Response &res, const std::str
         close(pipefd[0]);
         close(pipefd[1]);
 
-        // argvの準備
-        const char *scriptName = path.c_str();
-        char *argv[] = {const_cast<char *>(scriptName), NULL};
-
         // CGIスクリプトの実行
-        execve(path.c_str(), argv, envp.data());
+        const char *scriptName = path.c_str();
+        if (path.substr(path.size() - 3) == ".py")
+        {
+            const char *pythonPath = "./venv/bin/python3";
+            char *pythonArgv[] = {const_cast<char *>(pythonPath), const_cast<char *>(scriptName), NULL};
+            execve(pythonPath, pythonArgv, envpCGI.data());
+        }
+        else
+        {
+            char *argv[] = {const_cast<char *>(scriptName), NULL};
+            execve(path.c_str(), argv, envpCGI.data());
+        }
         exit(EXIT_FAILURE);
     }
     else if (pid > 0)
@@ -127,7 +134,6 @@ void ExecCgi::executeCommonCgiScript(Request &req, Response &res, const std::str
                 return;
             }
         }
-        // std::cout << "output = " << output << std::endl;
         res.setStatus("200 OK");
         res.setHeaders("Content-Type: ", "text/html");
         res.setBody(output);
@@ -153,7 +159,6 @@ std::vector<std::string> ExecCgi::buildEnvVars(Request &req)
         // その他のPOSTに特有の環境変数設定
     }
     // 共通の環境変数設定
-    envVars.push_back("PYTHONPATH=./venv/lib/python3.9/site-packages");
     // ...
     return envVars;
 }

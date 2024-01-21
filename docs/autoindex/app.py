@@ -1,9 +1,12 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import os
 # print(os.environ.get('PATH'))
 # print(os.environ.get('PYTHONPATH'))
+
+# import sys
+# print(sys.path)
 
 from flask import Flask, render_template
 
@@ -75,4 +78,4 @@ def get_directory_contents():
 # print("\nDirectories: ")
 # for directory in directories:
 # 	print(directory)
-# print(get_directory_contents())
+print(get_directory_contents())
