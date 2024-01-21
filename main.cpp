@@ -2,6 +2,7 @@
 #include "cnf/MainConfig.hpp"
 #include "signal/Signal.hpp"
 
+
 int main(int argc, char **argv)
 {
     if (argc != 2)
