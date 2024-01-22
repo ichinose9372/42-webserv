@@ -1,31 +1,25 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-
-<html xmlns="http://www.w3.org/1999/XSL/Transform">
+<html>
 <head>
-    <title>Autoindex</title>
+    <title>autoindex</title>
 </head>
 <body>
     <h2>Directory Listing</h2>
     <table>
-        <tr>
-            <th>Name</th>
-            <th>Path</th>
-        </tr>
-
-        {% for file in files %}
+        <thead>
             <tr>
-                <td>{{ file }}</td>
-                <td>{{ path }}</td>
+                <th>Name</th>
+                <th>Path</th>
             </tr>
-        {% endfor %}
-
-        {% for directory in directories %}
-            <tr>
-                <td>{{ directory }}</td>
-                <td>{{ path }}</td>
-            </tr>
-        {% endfor %}
-    </table>
-</body>
+        </thead>
+        <tbody>
+            {% for file, path in combined_data %}
+                <tr>
+                    <td>{{ file }}</td>
+                    <td>{{ path }}</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </body>
 </html>
