@@ -52,13 +52,13 @@ TEST(WebServerTest, Response200Port8081)
     EXPECT_EQ(httpCode, "200");
 }
 
-TEST(WebServerTest, Response200Python) 
+TEST(WebServerTest, Response200PythonGET) 
 {
     std::string httpCode = getHttpResponseCode("http://localhost:8080/python/", "GET");
     EXPECT_EQ(httpCode, "200");
 }
 
-TEST(WebServerTest, Response200Python) 
+TEST(WebServerTest, Response200PythonPOST)
 {
     std::string httpCode = getHttpResponseCode("http://localhost:8080/python/", "POST");
     EXPECT_EQ(httpCode, "200");
