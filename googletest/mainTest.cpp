@@ -54,8 +54,13 @@ TEST(WebServerTest, Response200Port8081)
 
 TEST(WebServerTest, Response200Python) 
 {
-    // POSTメソッドでアクセスして405 Method Not Allowedを確認
     std::string httpCode = getHttpResponseCode("http://localhost:8080/python/", "GET");
+    EXPECT_EQ(httpCode, "200");
+}
+
+TEST(WebServerTest, Response200Python) 
+{
+    std::string httpCode = getHttpResponseCode("http://localhost:8080/python/", "POST");
     EXPECT_EQ(httpCode, "200");
 }
 
