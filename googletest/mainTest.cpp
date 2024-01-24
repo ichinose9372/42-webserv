@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <unistd.h>
 #include <fstream>
-
+#include <stdio.h>
 
 std::string getHttpResponseCode(const std::string& url, const std::string method) 
 {
@@ -38,25 +38,21 @@ std::string getHttpResponseUpload(const std::string& url, const std::string meth
     std::string httpCode;
     while (fgets(buf, 1024, fp) != NULL) {
         httpCode += buf;
-    }
+    }   
     pclose(fp);
-    //delete file
-    // if (httpCode == "200")
-    // {
-    //     system("pwd");
-    //     system("ls -l ../../docs/upload/");
-    //     //ファイルの確認をしたいのでlsコマンドを実行
-    //     if (fileExists("../../docs/upload/42tokyo.txt")) 
-    //     {
-    //         // ファイルが存在する場合
-    //         return "200";
-    //     } 
-    //     else 
-    //     {
-    //         // ファイルが存在しない場合
-    //         return "404";
-    //     }
-    // }
+    if (httpCode == "200")
+    {
+        if (fileExists("../../docs/upload/42tokyo.txt")) 
+        {
+            // ファイルが存在する場合
+            httpCode = "200";
+        } 
+        else 
+        {
+            // ファイルが存在しない場合
+            httpCode =  "404";
+        }
+    }
     remove(filename.c_str());
     return httpCode;
 }
