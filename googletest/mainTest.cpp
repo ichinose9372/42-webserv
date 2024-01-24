@@ -43,6 +43,8 @@ std::string getHttpResponseUpload(const std::string& url, const std::string meth
     //delete file
     if (httpCode == "200")
     {
+        system("pwd");
+        system("ls -l ../../docs/upload/");
         //ファイルの確認をしたいのでlsコマンドを実行
         if (fileExists("../../docs/upload/42tokyo.txt")) 
         {
