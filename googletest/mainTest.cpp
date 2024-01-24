@@ -45,6 +45,7 @@ std::string getHttpResponseUpload(const std::string& url, const std::string meth
     if (httpCode == "200")
     {
         //ファイルの確認をしたいのでlsコマンドを実行
+        system("ls ./docs/upload/");
         if (fileExists("./docs/upload/42tokyo.txt")) 
         {
             // ファイルが存在する場合
