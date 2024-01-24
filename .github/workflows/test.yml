@@ -28,4 +28,4 @@ jobs:
           cd googletest/build
           cmake ..
           cmake --build .
-          ./my_test_executable
+          ctest --verbose 
