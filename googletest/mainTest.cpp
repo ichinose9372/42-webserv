@@ -41,21 +41,21 @@ std::string getHttpResponseUpload(const std::string& url, const std::string meth
     }
     pclose(fp);
     //delete file
-    remove(filename.c_str());
     if (httpCode == "200")
     {
         //ファイルの確認をしたいのでlsコマンドを実行
-        system("ls ./docs/upload/");
-        if (fileExists("./docs/upload/42tokyo.txt")) 
+        if (fileExists("../../docs/upload/42tokyo.txt")) 
         {
             // ファイルが存在する場合
             return "200";
         } 
-        else {
+        else 
+        {
             // ファイルが存在しない場合
             return "404";
         }
     }
+    remove(filename.c_str());
     return httpCode;
 }
 
