@@ -41,22 +41,22 @@ std::string getHttpResponseUpload(const std::string& url, const std::string meth
     }
     pclose(fp);
     //delete file
-    if (httpCode == "200")
-    {
-        system("pwd");
-        system("ls -l ../../docs/upload/");
-        //ファイルの確認をしたいのでlsコマンドを実行
-        if (fileExists("../../docs/upload/42tokyo.txt")) 
-        {
-            // ファイルが存在する場合
-            return "200";
-        } 
-        else 
-        {
-            // ファイルが存在しない場合
-            return "404";
-        }
-    }
+    // if (httpCode == "200")
+    // {
+    //     system("pwd");
+    //     system("ls -l ../../docs/upload/");
+    //     //ファイルの確認をしたいのでlsコマンドを実行
+    //     if (fileExists("../../docs/upload/42tokyo.txt")) 
+    //     {
+    //         // ファイルが存在する場合
+    //         return "200";
+    //     } 
+    //     else 
+    //     {
+    //         // ファイルが存在しない場合
+    //         return "404";
+    //     }
+    // }
     remove(filename.c_str());
     return httpCode;
 }
@@ -105,12 +105,12 @@ TEST(WebServerTest, Response200Port8081)
     EXPECT_EQ(httpCode, "200");
 }
 
-// TEST(WebServerTest, FileUpload200) 
-// {
-//     //8080ポートにアクセスしてファイルをアップロードできるのかを確認
-//     std::string httpCode = getHttpResponseUpload("http://localhost:8080/upload/", "POST");
-//     EXPECT_EQ(httpCode, "200");
-// }
+TEST(WebServerTest, FileUpload200) 
+{
+    //8080ポートにアクセスしてファイルをアップロードできるのかを確認
+    std::string httpCode = getHttpResponseUpload("http://localhost:8080/upload/", "POST");
+    EXPECT_EQ(httpCode, "200");
+}
 
 
 int main(int argc, char **argv) 
