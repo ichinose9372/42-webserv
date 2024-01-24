@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <unistd.h>
+#include <fstream>
 
 
 std::string getHttpResponseCode(const std::string& url, const std::string method) 
@@ -14,6 +15,46 @@ std::string getHttpResponseCode(const std::string& url, const std::string method
         httpCode += buf;
     }
     pclose(fp);
+    return httpCode;
+}
+
+bool fileExists(const std::string& filename) 
+{
+    std::ifstream file(filename);
+    return file.good();
+}
+
+std::string getHttpResponseUpload(const std::string& url, const std::string method)
+{
+    //make file
+   std::string filename = "./42tokyo.txt";
+    std::ofstream ofs(filename);
+    ofs << "42tokyo" << std::endl;
+    ofs.close();
+
+    std::string command = "curl -X " + method + " -F file=@" + filename + " -o /dev/null -s -w \"%{http_code}\" " + url;
+    FILE* fp = popen(command.c_str(), "r");
+    char buf[1024];
+    std::string httpCode;
+    while (fgets(buf, 1024, fp) != NULL) {
+        httpCode += buf;
+    }
+    pclose(fp);
+    //delete file
+    remove(filename.c_str());
+    if (httpCode == "200")
+    {
+        //ファイルの確認をしたいのでlsコマンドを実行
+        if (fileExists("./docs/upload/42tokyo.txt")) 
+        {
+            // ファイルが存在する場合
+            return "200";
+        } 
+        else {
+            // ファイルが存在しない場合
+            return "404";
+        }
+    }
     return httpCode;
 }
 
@@ -58,6 +99,13 @@ TEST(WebServerTest, Response200Port8081)
 {
     //8081ポートにアクセスして200 OKを確認
     std::string httpCode = getHttpResponseCode("http://localhost:8081", "GET");
+    EXPECT_EQ(httpCode, "200");
+}
+
+TEST(WebServerTest, FileUpload200) 
+{
+    //8080ポートにアクセスしてファイルをアップロードできるのかを確認
+    std::string httpCode = getHttpResponseUpload("http://localhost:8080", "POST");
     EXPECT_EQ(httpCode, "200");
 }
 
