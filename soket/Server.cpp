@@ -125,12 +125,16 @@ bool Server::receiveRequest(int socket_fd, std::string &Request)
         Request += buffer;
         memset(buffer, 0, BUFFER_SIZE);
         if (isTimeout(start))
+        {
             return true;
+        }
     }
     if (valread == 0)
     {
         if (isTimeout(start))
+        {
             return true;
+        }
         return false;
     }
     else if (valread < 0)

@@ -4,12 +4,31 @@ PostRequest::PostRequest() {}
 
 PostRequest::~PostRequest() {}
 
+std::string extractFileContent(const std::string& body) 
+{
+    // ヘッダーの終わりを表す文字列（ここでは空行を仮定）
+    std::string headerEnd = "\r\n\r\n";
+
+    std::size_t startPos = body.find("\r\n\r\n");
+    if (startPos == std::string::npos) {
+        return "";
+    }
+    startPos += headerEnd.length();
+
+    std::size_t endPos = body.find("\r\n-");
+    if (endPos == std::string::npos) {
+        endPos = body.length();
+    }
+
+    return body.substr(startPos, endPos - startPos);
+}
+
+
 void PostRequest::handlePostRequest(Request& req, Response& res)
 {
-    // cgi の実行ななのかファイルのアップロードなのかを判定して処理を分岐する
+    // cgi の実行なのかファイルのアップロードなのかを判定して処理を分岐する
     //ファイルアップロードの場合
-    std::cout << "POST request" << std::endl;
-    std::string path = Controller::getFilepath(req);
+    std::string path = Controller::getFilepath(req); // !!!!!! この関数をどうにかするk !!!!!!
     if (path != "")
     {
         std::ofstream outputFile(path);
@@ -21,6 +40,7 @@ void PostRequest::handlePostRequest(Request& req, Response& res)
             return;
         }
         std::string body = req.getBody();
+        body = extractFileContent(body);
         if (req.getMaxBodySize() != 0 && body.size() > req.getMaxBodySize())
         {
             res.setStatus("413 Request Entity Too Large");
@@ -38,10 +58,8 @@ void PostRequest::handlePostRequest(Request& req, Response& res)
     }
     else
     {
-        // std::cout << "In PostRequest::handlePostRequest   aaaaaaa" << std::endl;
         ExecCgi::executeCgiScript(req, res);
     }
 
     res.setResponse();
-    //cgi の実行の場合
 }
