@@ -18,13 +18,13 @@ std::string Controller::getFilepath(Request &req)
     if (filenamePos == std::string::npos)
         return "";
 
-    filenamePos += filenameKey.length(); // Skip past "filename="
-    std::size_t filenameEnd = body.find(';', filenamePos);
+    filenamePos += filenameKey.length() + 1; // Skip past "filename="
+    std::size_t filenameEnd = body.find('\"', filenamePos);
 
     if (filenameEnd == std::string::npos)
         filenameEnd = body.length(); // In case there's no trailing ';'
 
-    std::string filename = body.substr(filenamePos, filenameEnd - filenamePos);
+    std::string filename = body.substr(filenamePos , filenameEnd - filenamePos);
 
     // std::map<std::string, std::string> headers = req.getHeaders();
     // std::string dispositionHeader = "Content-Disposition";
@@ -45,7 +45,6 @@ std::string Controller::getFilepath(Request &req)
     filename = sanitizeFilename(filename);
 
     std::string path = req.getUri() + filename;
-    std::cout << "path: " << path << std::endl;
     return path;
 }
 

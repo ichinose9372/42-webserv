@@ -2,7 +2,8 @@
 #include <iostream>
 #include <cstdlib>
 #include <unistd.h>
-
+#include <fstream>
+#include <stdio.h>
 
 std::string getHttpResponseCode(const std::string& url, const std::string method) 
 {
@@ -16,6 +17,105 @@ std::string getHttpResponseCode(const std::string& url, const std::string method
     pclose(fp);
     return httpCode;
 }
+
+bool fileExists(const std::string& filename) 
+{
+    std::ifstream file(filename);
+    return file.good();
+}
+
+std::string getHttpResponseUpload(const std::string& url, const std::string method)
+{
+    //make file
+    std::string filename = "./42tokyo.txt";
+    std::ofstream ofs(filename);
+    ofs << "42tokyo" << std::endl;
+    ofs.close();
+
+    std::string command = "curl -X " + method + " -F file=@" + filename + " -o /dev/null -s -w \"%{http_code}\" " + url;
+    FILE* fp = popen(command.c_str(), "r");
+    char buf[1024];
+    std::string httpCode;
+    while (fgets(buf, 1024, fp) != NULL) {
+        httpCode += buf;
+    }   
+    pclose(fp);
+    if (httpCode == "200")
+    {
+        if (fileExists("../../docs/upload/42tokyo.txt")) 
+        {
+            // ファイルが存在する場合
+            httpCode = "200";
+        } 
+        else 
+        {
+            // ファイルが存在しない場合
+            httpCode =  "404";
+        }
+    }
+    remove(filename.c_str());
+    return httpCode;
+}
+
+std::string getHttpResponseDelete(const std::string& url, const std::string method)
+{
+    //make file
+    std::string filename = "../../docs/upload/42Tokyo.txt";
+    std::ofstream ofs(filename);
+    ofs << "42tokyo" << std::endl;
+    ofs.close();
+
+    std::string command = "curl -X " + method + " -o /dev/null -s -w \"%{http_code}\" " + url;
+    FILE* fp = popen(command.c_str(), "r");
+    char buf[1024];
+    std::string httpCode;
+    while (fgets(buf, 1024, fp) != NULL) {
+        httpCode += buf;
+    }   
+    pclose(fp);
+    if (httpCode == "200")
+    {
+        if (fileExists(filename)) 
+        {
+            // ファイルが存在する場合（削除されていないくて正しくない）
+            remove(filename.c_str());
+            httpCode = "404";
+        } 
+    }
+    return httpCode;
+}
+std::string getHttpResponseDelete2(const std::string& url, const std::string method)
+{
+    //make file
+    std::string filename = "../../docs/upload/42Tokyo.txt";
+    std::ofstream ofs(filename);
+    ofs << "42tokyo" << std::endl;
+    ofs.close();
+
+    system("chmod 000 ../../docs/upload/42Tokyo.txt");
+
+    std::string command = "curl -X " + method + " -o /dev/null -s -w \"%{http_code}\" " + url;
+    FILE* fp = popen(command.c_str(), "r");
+    char buf[1024];
+    std::string httpCode;
+    while (fgets(buf, 1024, fp) != NULL) {
+        httpCode += buf;
+    }   
+    pclose(fp);
+    if (httpCode == "200")
+    {
+        if (fileExists(filename))
+        {
+            // ファイルが存在する場合（削除されていないくて正しくない）
+        } 
+    }
+    system("chmod 777 ../../docs/upload/42Tokyo.txt");
+    remove(filename.c_str());
+    return httpCode;
+}
+
+
+
 
 TEST(WebServerTest, Response200OK)
 {
