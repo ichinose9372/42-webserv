@@ -65,6 +65,7 @@ std::string getHttpResponseDelete(const std::string& url, const std::string meth
     ofs << "42tokyo" << std::endl;
     ofs.close();
 
+    system("ls -R ../../docs");
     std::string command = "curl -X " + method + " -o /dev/null -s -w \"%{http_code}\" " + url;
     FILE* fp = popen(command.c_str(), "r");
     char buf[1024];
@@ -75,7 +76,6 @@ std::string getHttpResponseDelete(const std::string& url, const std::string meth
     pclose(fp);
     if (httpCode == "200")
     {
-        system("ls -R ../../docs");
         if (fileExists(filename)) 
         {
             // ファイルが存在する場合（削除されていないくて正しくない）
