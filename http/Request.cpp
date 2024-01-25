@@ -58,7 +58,6 @@ void Request::remakeUri(ExclusivePath& exclusivePath, Locations& location, std::
     if (!filepath.empty())
     {
         uri = getAbsolutepath(filepath, servers_root);
-        std::cout << uri << std::endl;
     }
     if (stat(uri.c_str(), &statbuf) == 0) 
     {

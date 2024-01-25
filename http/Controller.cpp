@@ -45,8 +45,6 @@ std::string Controller::getFilepath(Request &req)
     filename = sanitizeFilename(filename);
 
     std::string path = req.getUri() + filename;
-    // std::cout << "------- filename -------\n " << filename << std::endl;
-    // std::cout << "------------------------\n";
     return path;
 }
 

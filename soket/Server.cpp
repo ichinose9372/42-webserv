@@ -144,6 +144,7 @@ bool Server::receiveRequest(int socket_fd, std::string &Request)
         return false;
     }
     Request += buffer;
+    // std::cout << "--- Request ---\n" << Request << "\n -------------" <<std::endl;
     return false;
 }
 
@@ -163,7 +164,9 @@ Request Server::findServerandlocaitons(int socket_fd, const std::string& buffer)
     Request req(buffer);
     Servers server = findServerBySocket(socket_fd);
     if (req.getReturnParameter().first != 0)
+    {
         return req;
+    }
     req.remakeRequest(server);
     return req;
 }

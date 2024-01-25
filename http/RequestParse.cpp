@@ -41,7 +41,7 @@ std::string getfilepathtoURI(const std::string &uri, Request &request)
     std::vector<std::string> uriTokens = split(uri, '/');
     if (uriTokens.size() >= 3) // /directory/filename の場合にこの条件に入る
     {
-        return_uri = "/" + uriTokens[1];
+        return_uri = "/" + uriTokens[1] + "/";
         std::string filename;
         for (size_t i = 2; i < uriTokens.size(); i++)
         {
