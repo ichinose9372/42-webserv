@@ -110,7 +110,7 @@ std::string getHttpResponseDelete2(const std::string& url, const std::string met
             // ファイルが存在する場合（削除されていないくて正しくない）
         } 
     }
-    system("chmod +R ../../docs/upload/42Tokyo.txt");
+    system("chmod 777 ../../docs/upload/42Tokyo.txt");
     remove(filename.c_str());
     return httpCode;
 }
