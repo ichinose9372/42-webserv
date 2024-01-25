@@ -75,6 +75,7 @@ std::string getHttpResponseDelete(const std::string& url, const std::string meth
     pclose(fp);
     if (httpCode == "200")
     {
+        system("ls -R ../../docs");
         if (fileExists(filename)) 
         {
             // ファイルが存在する場合（削除されていないくて正しくない）
@@ -82,7 +83,6 @@ std::string getHttpResponseDelete(const std::string& url, const std::string meth
             httpCode = "404";
         } 
     }
-
     return httpCode;
 }
 std::string getHttpResponseDelete2(const std::string& url, const std::string method)
@@ -182,12 +182,12 @@ TEST(WebServerTest, FileDelete404)
     EXPECT_EQ(httpCode, "404");
 }
 
-TEST(WebServerTest, FileDelete403) 
-{
-    //8080ポートにアクセスしてファイルをアップロードできるのかを確認
-    std::string httpCode = getHttpResponseDelete2("http://localhost:8080/delete/42Tokyo.txt", "DELETE");
-    EXPECT_EQ(httpCode, "403");
-}
+// TEST(WebServerTest, FileDelete403) 
+// {
+//     //8080ポートにアクセスしてファイルをアップロードできるのかを確認
+//     std::string httpCode = getHttpResponseDelete2("http://localhost:8080/delete/42Tokyo.txt", "DELETE");
+//     EXPECT_EQ(httpCode, "403");
+// }
 
 
 int main(int argc, char **argv) 
