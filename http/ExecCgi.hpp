@@ -2,7 +2,7 @@
 #define EXECCGI_HPP
 
 #include "Controller.hpp"
-#include "../soket/Timer.hpp"
+#include "../socket/Timer.hpp"
 #include <signal.h>
 #include <fcntl.h>
 
