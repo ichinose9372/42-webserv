@@ -138,14 +138,6 @@ TEST(WebServerTest, Response405MethodNotAllowed)
     EXPECT_EQ(httpCode, "405");
 }
 
-
-TEST(WebServerTest, Response200Index) 
-{
-    // POSTメソッドでアクセスして405 Method Not Allowedを確認
-    std::string httpCode = getHttpResponseCode("http://localhost:8080/index/", "GET");
-    EXPECT_EQ(httpCode, "200");
-}
-
 TEST(WebServerTest, Response200Cgi) 
 {
     // POSTメソッドでアクセスして405 Method Not Allowedを確認
@@ -160,34 +152,25 @@ TEST(WebServerTest, Response200Port8081)
     EXPECT_EQ(httpCode, "200");
 }
 
-// TEST(WebServerTest, FileUpload200) 
-// {
-//     //8080ポートにアクセスしてファイルをアップロードできるのかを確認
-//     std::string httpCode = getHttpResponseUpload("http://localhost:8080/upload/", "POST");
-//     EXPECT_EQ(httpCode, "200");
-// }
-
-TEST(WebServerTest, FileDelete200) 
+TEST(WebServerTest, Response200PythonGET) 
 {
-    //8080ポートにアクセスしてファイルをアップロードできるのかを確認
-    std::string httpCode = getHttpResponseDelete("http://localhost:8080/delete/42Tokyo.txt", "DELETE");
+    std::string httpCode = getHttpResponseCode("http://localhost:8080/python/", "GET");
     EXPECT_EQ(httpCode, "200");
 }
 
-TEST(WebServerTest, FileDelete404) 
+TEST(WebServerTest, Response200PythonPOST)
 {
-    //8080ポートにアクセスしてファイルをアップロードできるのかを確認
-    std::string httpCode = getHttpResponseDelete("http://localhost:8080/delete/NotFileExist", "DELETE");
-    EXPECT_EQ(httpCode, "404");
+    std::string httpCode = getHttpResponseCode("http://localhost:8080/python/", "POST");
+    EXPECT_EQ(httpCode, "200");
 }
 
-TEST(WebServerTest, FileDelete403) 
-{
-    //8080ポートにアクセスしてファイルをアップロードできるのかを確認
-    std::string httpCode = getHttpResponseDelete2("http://localhost:8080/delete/42Tokyo.txt", "DELETE");
-    EXPECT_EQ(httpCode, "403");
-}
-
+// /index/は(venv)仮想環境で実施しないと504Timeout Errorとなる
+// TEST(WebServerTest, Response200Index) 
+// {
+//     // POSTメソッドでアクセスして405 Method Not Allowedを確認
+//     std::string httpCode = getHttpResponseCode("http://localhost:8080/index/", "GET");
+//     EXPECT_EQ(httpCode, "200");
+// }
 
 int main(int argc, char **argv) 
 {

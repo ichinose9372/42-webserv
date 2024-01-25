@@ -14,6 +14,9 @@ all: $(NAME)
 
 $(NAME): $(OBJS) main.cpp
 	$(CXX) $(CXXFLAGS) $(OBJS) main.cpp -o $(NAME)
+	python3 -m venv venv
+	. venv/bin/activate && pip install --upgrade pip && pip install flask
+#	source venv/bin/activate
 
 # オブジェクトファイルのコンパイルルール
 $(OBJDIR)/%.o: %.cpp
@@ -25,6 +28,7 @@ clean:
 
 fclean: clean
 	$(RM) $(NAME)
+	$(RM) venv
 
 re: fclean all
 
