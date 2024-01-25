@@ -65,7 +65,6 @@ std::string getHttpResponseDelete(const std::string& url, const std::string meth
     ofs << "42tokyo" << std::endl;
     ofs.close();
 
-    system("ls -R ../../docs");
     std::string command = "curl -X " + method + " -o /dev/null -s -w \"%{http_code}\" " + url;
     FILE* fp = popen(command.c_str(), "r");
     char buf[1024];
@@ -182,12 +181,12 @@ TEST(WebServerTest, FileDelete404)
     EXPECT_EQ(httpCode, "404");
 }
 
-// TEST(WebServerTest, FileDelete403) 
-// {
-//     //8080ポートにアクセスしてファイルをアップロードできるのかを確認
-//     std::string httpCode = getHttpResponseDelete2("http://localhost:8080/delete/42Tokyo.txt", "DELETE");
-//     EXPECT_EQ(httpCode, "403");
-// }
+TEST(WebServerTest, FileDelete403) 
+{
+    //8080ポートにアクセスしてファイルをアップロードできるのかを確認
+    std::string httpCode = getHttpResponseDelete2("http://localhost:8080/delete/42Tokyo.txt", "DELETE");
+    EXPECT_EQ(httpCode, "403");
+}
 
 
 int main(int argc, char **argv) 
