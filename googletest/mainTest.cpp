@@ -138,13 +138,6 @@ TEST(WebServerTest, Response405MethodNotAllowed)
     EXPECT_EQ(httpCode, "405");
 }
 
-TEST(WebServerTest, Response200Cgi) 
-{
-    // POSTメソッドでアクセスして405 Method Not Allowedを確認
-    std::string httpCode = getHttpResponseCode("http://localhost:8080/cgi/", "GET");
-    EXPECT_EQ(httpCode, "200");
-} 
-
 TEST(WebServerTest, Response200Port8081) 
 {
     //8081ポートにアクセスして200 OKを確認
@@ -192,14 +185,24 @@ TEST(WebServerTest, Response200PythonPOST)
     EXPECT_EQ(httpCode, "200");
 }
 
-
 // /index/は(venv)仮想環境で実施しないと504Timeout Errorとなる
 // TEST(WebServerTest, Response200Index) 
 // {
-//     // POSTメソッドでアクセスして405 Method Not Allowedを確認
 //     std::string httpCode = getHttpResponseCode("http://localhost:8080/index/", "GET");
 //     EXPECT_EQ(httpCode, "200");
 // }
+
+TEST(WebServerTest, Response200CgiGET)
+{
+    std::string httpCode = getHttpResponseCode("http://localhost:8080/cgi/", "GET");
+    EXPECT_EQ(httpCode, "200");
+} 
+
+TEST(WebServerTest, Response504InfiniteGET)
+{
+    std::string httpCode = getHttpResponseCode("http://localhost:8080/infinite/", "GET");
+    EXPECT_EQ(httpCode, "504");
+} 
 
 int main(int argc, char **argv) 
 {
