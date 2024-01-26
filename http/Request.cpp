@@ -153,6 +153,7 @@ void Request::printRequest()
         std::cout << it->first << ": " << it->second << std::endl;
     }
     std::cout << "Body: " << body << std::endl;
+    std::cout << "------------------------------------" << std::endl;
 }
 
 const std::string& Request::getMethod() { return method; }
