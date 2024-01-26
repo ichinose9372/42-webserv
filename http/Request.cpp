@@ -144,6 +144,7 @@ void Request::remakeRequest(Servers& server)
 
 void Request::printRequest() 
 {
+    std::cout << "--- Request ---" << std::endl;
     std::cout << "Method: " << method << std::endl;
     std::cout << "URI: " << uri << std::endl;
     std::cout << "HTTP Version: " << httpVersion << std::endl;
@@ -153,7 +154,6 @@ void Request::printRequest()
         std::cout << it->first << ": " << it->second << std::endl;
     }
     std::cout << "Body: " << body << std::endl;
-    std::cout << "------------------------------------" << std::endl;
 }
 
 const std::string& Request::getMethod() { return method; }
