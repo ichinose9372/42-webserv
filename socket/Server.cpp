@@ -135,15 +135,22 @@ bool Server::receiveRequest(int socket_fd, std::string &Request)
     int valread;
     char buffer[BUFFER_SIZE] = {0};
     clock_t start = Timer::startTimer();
-    while ((valread = recv(socket_fd, buffer, BUFFER_SIZE, SO_NOSIGPIPE)) == BUFFER_SIZE)
+    // valreadがBUFFER_SIZEと等しいか、もしくは0以上の場合ループを続ける
+    while ((valread = recv(socket_fd, buffer, BUFFER_SIZE, 0)) > 0)
     {
-        std::cout << "buffer -> " << buffer << std::endl;
-        Request += buffer;
-        memset(buffer, 0, BUFFER_SIZE);
+        // 受信したデータをリクエストに追加
+        Request.append(buffer, valread);
+
+        // BUFFER_SIZE分だけデータを受信した場合、残りのデータがある可能性があるため、ループを続行
+        if (valread < BUFFER_SIZE)
+            break; // 受信データがBUFFER_SIZE未満ならば、これ以上受信するデータはないとみなす
+
+        // タイムアウトチェック
         if (isTimeout(start))
-        {
             return true;
-        }
+
+        // バッファをクリア
+        memset(buffer, 0, BUFFER_SIZE);
     }
     if (valread == 0)
     {
@@ -160,7 +167,7 @@ bool Server::receiveRequest(int socket_fd, std::string &Request)
         return false;
     }
     Request += buffer;
-    // std::cout << "--- Request ---\n" << Request << "\n -------------" <<std::endl;
+
     return false;
 }
 
