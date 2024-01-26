@@ -39,7 +39,7 @@ void ExecCgi::executeCommonCgiScript(Request &req, Response &res, const std::str
     pipe(pipefd);
 
     // タイムアウト設定
-    const double timeout = 0.2;
+    const double timeout = 2;
     clock_t start_time = Timer::startTimer();
 
     // CGIスクリプト実行のための子プロセスを作成
@@ -91,6 +91,39 @@ void ExecCgi::executeCommonCgiScript(Request &req, Response &res, const std::str
         // パイプの読み取り側を非ブロッキングに設定
         fcntl(pipefd[0], F_SETFL, O_NONBLOCK);
 
+        pid_t   ret;
+        while (true)
+        {
+            ret = waitpid(pid, &status, WNOHANG);
+            if (Timer::calculateTime(start_time) > timeout)
+            {
+                timeoutOccurred = true;
+                break;
+            }
+            if (ret == 0)
+                continue ;
+            if (WIFEXITED(status))
+            {
+                if (WEXITSTATUS(status) == 500)
+                {
+                    res.setStatus("500 Internal Server Error");
+                    res.setBody("");
+                    return;
+                }
+                break ;
+            }
+            break ;
+        }
+        // タイムアウトが発生した場合、子プロセスを終了させる
+        if (timeoutOccurred)
+        {
+            kill(pid, SIGKILL);
+            waitpid(pid, &status, 0);
+            res.setStatus("504 Gateway Timeout");
+            res.setBody("<html><body><h1>504 Gateway Timeout</h1><p>CGI script took too long to respond.</p></body></html>");
+            return;
+        }
+
         while (true)
         {
             len = read(pipefd[0], buf, sizeof(buf) - 1);
@@ -113,7 +146,6 @@ void ExecCgi::executeCommonCgiScript(Request &req, Response &res, const std::str
             }
         }
         close(pipefd[0]);
-
         // タイムアウトが発生した場合、子プロセスを終了させる
         if (timeoutOccurred)
         {
@@ -123,17 +155,7 @@ void ExecCgi::executeCommonCgiScript(Request &req, Response &res, const std::str
             res.setBody("<html><body><h1>504 Gateway Timeout</h1><p>CGI script took too long to respond.</p></body></html>");
             return;
         }
-        waitpid(pid, &status, 0);
-        if (WIFEXITED(status))
-        {
-            int exitStatus = WEXITSTATUS(status);
-            if (exitStatus == 500)
-            {
-                res.setStatus("500 Internal Server Error");
-                res.setBody("");
-                return;
-            }
-        }
+
         res.setStatus("200 OK");
         res.setHeaders("Content-Type: ", "text/html");
         res.setBody(output);
