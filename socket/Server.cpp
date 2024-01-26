@@ -1,22 +1,23 @@
 #include "Server.hpp"
 
-void Server::validateServers(const std::vector<Servers>& servers)
+void Server::validateServers(const std::vector<Servers> &servers)
 {
-    if (servers.size() == 0) {
+    if (servers.size() == 0)
+    {
         throw std::runtime_error("No servers in config");
     }
     std::vector<Servers>::const_iterator it = servers.begin();
-    for(; it != servers.end(); it++)
+    for (; it != servers.end(); it++)
     {
         if (it->getPort() == 0)
             throw std::runtime_error("No port in config");
     }
 }
 
-void Server::handleDuplicatePort(size_t port, const Servers& server)
+void Server::handleDuplicatePort(size_t port, const Servers &server)
 {
     std::multimap<int, Servers>::iterator map_itr = requestMap.begin();
-    for(; map_itr != requestMap.end(); map_itr++)
+    for (; map_itr != requestMap.end(); map_itr++)
     {
         if (map_itr->second.getPort() == port)
         {
@@ -34,7 +35,7 @@ void Server::initializeSocketAddress(size_t port)
     addrlen = ADDRLEN;
 }
 
-void Server::initializeServerSocket(const Servers& server, size_t port)
+void Server::initializeServerSocket(const Servers &server, size_t port)
 {
     int socket_fd;
 
@@ -62,17 +63,31 @@ void Server::initializeServerSocket(const Servers& server, size_t port)
         close(socket_fd);
         throw std::runtime_error("listen");
     }
+
+    // ソケットをノンブロッキングモードに設定
+    int flags = fcntl(socket_fd, F_GETFL, 0);
+    if (flags == -1)
+    {
+        close(socket_fd);
+        throw std::runtime_error("Failed to get flags for socket");
+    }
+
+    if (fcntl(socket_fd, F_SETFL, flags | O_NONBLOCK) == -1)
+    {
+        close(socket_fd);
+        throw std::runtime_error("Failed to set socket to non-blocking mode");
+    }
     requestMap.insert(std::make_pair(socket_fd, server));
     struct pollfd server_pollfd = {socket_fd, POLLIN, 0};
     this->pollfds.push_back(server_pollfd);
 }
 
-void Server::initializeServers(const std::vector<Servers>& servers)
+void Server::initializeServers(const std::vector<Servers> &servers)
 {
     std::vector<size_t> ports;
 
     std::vector<Servers>::const_iterator it = servers.begin();
-    for(; it != servers.end(); it++)
+    for (; it != servers.end(); it++)
     {
         size_t port = it->getPort();
         if (std::find(ports.begin(), ports.end(), port) != ports.end())
@@ -85,7 +100,7 @@ void Server::initializeServers(const std::vector<Servers>& servers)
     }
 }
 
-Server::Server(const MainConfig& conf)
+Server::Server(const MainConfig &conf)
 {
     std::vector<Servers> servers = conf.getServers();
     validateServers(servers);
@@ -96,9 +111,9 @@ Server::~Server()
 {
 }
 
-void Server::acceptNewConnection(int server_fd, std::vector<struct pollfd>& pollfds, struct sockaddr_in& address, int& addrlen)
+void Server::acceptNewConnection(int server_fd, std::vector<struct pollfd> &pollfds, struct sockaddr_in &address, int &addrlen)
 {
-    int new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
+    int new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t *)&addrlen);
     if (new_socket < 0)
     {
         close(server_fd);
@@ -122,6 +137,7 @@ bool Server::receiveRequest(int socket_fd, std::string &Request)
     clock_t start = Timer::startTimer();
     while ((valread = recv(socket_fd, buffer, BUFFER_SIZE, SO_NOSIGPIPE)) == BUFFER_SIZE)
     {
+        std::cout << "buffer -> " << buffer << std::endl;
         Request += buffer;
         memset(buffer, 0, BUFFER_SIZE);
         if (isTimeout(start))
@@ -159,7 +175,7 @@ Servers Server::findServerBySocket(int socket_fd)
     throw std::runtime_error("Server not found");
 }
 
-Request Server::findServerandlocaitons(int socket_fd, const std::string& buffer)
+Request Server::findServerandlocaitons(int socket_fd, const std::string &buffer)
 {
     Request req(buffer);
     Servers server = findServerBySocket(socket_fd);
@@ -171,7 +187,7 @@ Request Server::findServerandlocaitons(int socket_fd, const std::string& buffer)
     return req;
 }
 
-void Server::sendResponse(int socket_fd, Response& res)
+void Server::sendResponse(int socket_fd, Response &res)
 {
     std::string response = res.getResponse();
     if (response.empty())
@@ -205,7 +221,7 @@ void Server::sendTimeoutResponse(int socket_fd)
     sendResponse(socket_fd, res);
 }
 
-void Server::processRequestAndSendResponse(int socket_fd, std::string& request)
+void Server::processRequestAndSendResponse(int socket_fd, std::string &request)
 {
     Request req = findServerandlocaitons(socket_fd, request);
     Response res;
@@ -214,7 +230,7 @@ void Server::processRequestAndSendResponse(int socket_fd, std::string& request)
     sendResponse(socket_fd, res);
 }
 
-void Server::handleExistingConnection(struct pollfd& pfd)
+void Server::handleExistingConnection(struct pollfd &pfd)
 {
     std::string request;
     bool timeout = receiveRequest(pfd.fd, request);
@@ -224,11 +240,15 @@ void Server::handleExistingConnection(struct pollfd& pfd)
         processRequestAndSendResponse(pfd.fd, request);
     close(pfd.fd);
     // pollfdsから該当するエントリを削除
-    for (std::vector<struct pollfd>::iterator it = pollfds.begin(); it != pollfds.end(); ) {
-        if (it->fd == pfd.fd) {
+    for (std::vector<struct pollfd>::iterator it = pollfds.begin(); it != pollfds.end();)
+    {
+        if (it->fd == pfd.fd)
+        {
             it = pollfds.erase(it);
             // エントリを削除した場合は、イテレータを進めない
-        } else {
+        }
+        else
+        {
             ++it;
         }
     }
