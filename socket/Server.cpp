@@ -200,7 +200,7 @@ bool Server::receiveRequest(int socket_fd, std::string &Request)
         }
         else
         {
-            if (errno == EWOULDBLOCK || errno == EAGAIN)
+            // if (errno == EWOULDBLOCK || errno == EAGAIN)
                 continue; // データがまだ利用可能でない。後で再試行するためにループを継続する。
             close(socket_fd);
             throw std::runtime_error("Recv failed");
