@@ -130,44 +130,84 @@ bool Server::isTimeout(clock_t start)
     return time > TIMEOUT;
 }
 
+// ヘッダをパースし、Content-Lengthの値を返す。
+int getContentLengthFromHeaders(const std::string &headers) {
+    // ヘッダからContent-Lengthの値を見つけ、整数として返す疑似コード
+    std::string contentLengthKeyword = "Content-Length: ";
+    size_t startPos = headers.find(contentLengthKeyword);
+    if (startPos != std::string::npos) {
+        size_t endPos = headers.find("\r\n", startPos);
+        std::string contentLengthValue = headers.substr(startPos + contentLengthKeyword.length(), endPos - (startPos + contentLengthKeyword.length()));
+        return std::stoi(contentLengthValue);
+    }
+    return -1; // Content-Lengthが見つからない場合
+}
+
 bool Server::receiveRequest(int socket_fd, std::string &Request)
 {
     int valread;
     char buffer[BUFFER_SIZE] = {0};
     clock_t start = Timer::startTimer();
+    int contentLength = -1; // ボディサイズ
+    int receivedLength = 0; // ボディの総受信データ数
+    bool bodyFlg = false;     // 読み込みデータにボディが存在するかどうか
+    bool headerNowFlg = true; // 読み込みデータがヘッダかどうか
+
     // valreadがBUFFER_SIZEと等しいか、もしくは0以上の場合ループを続ける
-    while ((valread = recv(socket_fd, buffer, BUFFER_SIZE, 0)) > 0)
-    {
-        // 受信したデータをリクエストに追加
-        Request.append(buffer, valread);
+    while (true) {
+        valread = recv(socket_fd, buffer, BUFFER_SIZE, 0);
 
-        // BUFFER_SIZE分だけデータを受信した場合、残りのデータがある可能性があるため、ループを続行
-        if (valread < BUFFER_SIZE)
-            break; // 受信データがBUFFER_SIZE未満ならば、これ以上受信するデータはないとみなす
-
-        // タイムアウトチェック
-        if (isTimeout(start))
-            return true;
-
-        // バッファをクリア
-        memset(buffer, 0, BUFFER_SIZE);
-    }
-    if (valread == 0)
-    {
-        if (isTimeout(start))
+        if (valread > 0)
         {
-            return true;
-        }
-        return false;
-    }
-    else if (valread < 0)
-    {
-        close(socket_fd);
-        throw std::runtime_error("Recv failed");
-        return false;
-    }
-    Request += buffer;
+            // 受信したデータをリクエストに追加
+            Request.append(buffer, valread);
 
+            // ボディを持っているかつ読み込み内容がヘッダである場合、総受信データ数をカウント
+            if (!headerNowFlg && bodyFlg)
+                receivedLength += valread;
+
+            // valreadの更新
+            if (contentLength == -1)
+            {
+                // Content-Lengthの値をヘッダから取得する
+                contentLength = getContentLengthFromHeaders(Request);
+                if (contentLength != -1)
+                    bodyFlg = true;
+            }
+            // 読み込み内容がヘッダかどうか
+            if (headerNowFlg)
+            {
+                if (Request.find("\r\n\r\n") != std::string::npos)
+                    headerNowFlg = false;
+            }
+
+            // 必要な量を受信したらループを終了
+            if (!headerNowFlg && receivedLength >= contentLength)
+                break;
+
+            // タイムアウトチェック
+            if (isTimeout(start))
+                return true;
+
+            // バッファをクリア
+            memset(buffer, 0, BUFFER_SIZE);
+        }
+        else if (valread == 0)
+        {
+            if (isTimeout(start))
+                return true;
+            return false;
+        }
+        else
+        {
+            if (errno == EWOULDBLOCK || errno == EAGAIN)
+                continue; // データがまだ利用可能でない。後で再試行するためにループを継続する。
+            close(socket_fd);
+            throw std::runtime_error("Recv failed");
+        }
+    }
+
+    // std::cout << "Request ===>>> " << Request << std::endl;
     return false;
 }
 
