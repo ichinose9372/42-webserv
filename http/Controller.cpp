@@ -30,7 +30,7 @@ std::string Controller::getFilepath(Request &req)
     if (path[path.length() - 1] != '/')
         path += '/';
     path += filename;
-    std::cout << "path: " << path << std::endl;
+    // std::cout << "path: " << path << std::endl;
     return path;
 }
 

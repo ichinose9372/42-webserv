@@ -93,7 +93,6 @@ void Request::remakeUri(ExclusivePath& exclusivePath, Locations& location, std::
         else
             uri = getAbsolutepath(indexs.front(), path);
     }
-    std::cout << "uri: " << uri << std::endl;
 }
 
 bool Request::checkRequestmethod(Locations& location)
