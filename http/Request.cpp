@@ -114,6 +114,24 @@ bool Request::checkRequestmethod(Locations& location)
     return true;
 }
 
+bool isMatch(const std::string& uri, Locations& location) 
+{
+    // 完全一致をチェック
+    if (uri == location.getPath()) 
+    {
+        return true;
+    }
+    // 前方一致をチェック
+    if (uri.find(location.getPath()) == 0) 
+    {
+        // サブディレクトリが正しく一致するかを確認
+        if (uri[location.getPath().length()] == '/' || location.getPath().back() == '/') {
+            return true;
+        }
+    }
+    return false;
+}
+
 void Request::remakeRequest(Servers& server)
 {
     std::string tmp;
@@ -129,19 +147,6 @@ void Request::remakeRequest(Servers& server)
     std::vector<Locations> locations = server.getLocations();
     for(std::vector<Locations>::iterator it = locations.begin(); it != locations.end(); it++) //リクエストに対してのlocationを探す
     {
-        // std::cout << it->getPath() << std::endl;   
-        // std::vector<std::string> tmp = it->getIndex();
-        // for (std::vector<std::string>::iterator it = tmp.begin(); it != tmp.end(); it++)
-        //     std::cout << *it << std::endl;
-        // std::cout << "uri : " << uri << std::endl;   
-        // std::cout << server.getHost() << std::endl;
-        // if (uri == it->getPath() && server.getHost() == tmp) //locationが一致した場合
-
-        // std::cout << server.getHost() << std::endl;
-        // std::cout << tmp << std::endl;
-        // if (tmp != server.getHost())
-        //     continue ;
-
         if (uri == it->getPath()) //locationが一致した場合
         {
             if (it->getReturnCode().first != 0) //returnCodeが設定されている場合
@@ -181,7 +186,36 @@ void Request::remakeRequest(Servers& server)
             return;
         }
     }
-    //locationが一致しなかった場合
+    //locationがない場合前方一致絵尾さがす処理
+    std::vector<Locations> locations2 = server.getLocations();
+    for(std::vector<Locations>::iterator it2 = locations2.begin(); it2 != locations2.end(); it2++)
+    if(isMatch(uri, *it2)) //リクエストに対してのlocationを探す
+    {
+        if (it2->getReturnCode().first != 0) //returnCodeが設定されている場合
+        {
+            returnParameter = it2->getReturnCode();
+            return;
+        }
+        if (it2->getAutoindex()) //autoindexが設定されている場合
+        {
+            uri = getAbsolutepath("autoindex/app.py", server.getRoot());
+            return;
+        }
+        if (checkRequestmethod(*it2)) //locationのmethodとリクエストmethodが一致しない場合
+        {
+            returnParameter.first = 405;
+            returnParameter.second = "405.html";
+            return;
+        }
+        if (it2->getMaxBodySize() != 0) //maxBodySizeが設定されている場合
+        {
+            max_body_size = it2->getMaxBodySize();
+        }
+        ExclusivePath exclusivePath = it2->getExclusivePath();
+        remakeUri(exclusivePath, *it2, server.getRoot()); //filepathが設定されているのならURIをfilepathを使って作り直す
+        return;
+    }
+    //locationがない場合
     returnParameter.first = 404;
     returnParameter.second = "404.html";
 }
