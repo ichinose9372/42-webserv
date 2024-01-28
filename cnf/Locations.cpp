@@ -22,7 +22,7 @@ const std::string& Locations::getPath(void)
 
 void Locations::setIndex(const std::string& index)
 {
-    // std::cout << index << std::endl;
+    std::cout << index << std::endl;
     this->indexes.push_back(index);
 }
 

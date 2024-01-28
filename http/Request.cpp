@@ -69,6 +69,10 @@ void Request::remakeUri(ExclusivePath& exclusivePath, Locations& location, std::
             if (path.empty())
                 path = servers_root;
             std::vector<std::string> indexs = location.getIndex(); //locationのindexを取得
+        // std::cout << "location : " << location.getPath() << std::endl;
+        // std::cout << "path : " << path << std::endl;
+        // std::cout << "filepath : " << filepath << std::endl;
+        // std::cout << "index.front : " << indexs.front() << std::endl;
             if (indexs.empty())
                 indexs.push_back("");
             if (!filepath.empty())

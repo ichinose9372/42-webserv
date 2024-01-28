@@ -79,7 +79,7 @@ void Servers::setIndex(const std::string& index)
 
 void Servers::setSeverNames(const std::string& sever_name)
 {
-    // std::cout << sever_names << std::endl;
+    // std::cout << sever_name << std::endl;
     if (serverNameset)
         throw std::runtime_error("Parse error: Duplicate server name");
     this->sever_name = sever_name;
@@ -128,6 +128,7 @@ void Servers::setLocations(std::vector<std::string>::iterator& it ,std::vector<s
 
     for (++it; it != end && *it != "}"; ++it) 
     {
+        std::cout << *it << std::endl;
         if (validDirectives.find(*it) == validDirectives.end()) // ないものは無視する
             continue;
         if (*it == "error_page" && !setErrorPage) 
@@ -232,6 +233,7 @@ void Servers::processMultiValueDirective(std::vector<std::string>::iterator& it,
         throw std::runtime_error("Parse error: Unexpected end of tokens before " + directive + " value");
     if (*it == "index")
     {
+        // std::cout << "######" << std::endl;
         it++;
         for (; it != end && it->find(";") == std::string::npos; ++it) 
         {
