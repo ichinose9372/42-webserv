@@ -155,34 +155,36 @@ void Request::remakeRequest(Servers& server)
             return;
         }
     }
+    //locationがない場合前方一致絵尾さがす処理
     std::vector<Locations> locations2 = server.getLocations();
-    for(std::vector<Locations>::iterator it = locations.begin(); it != locations.end(); it++)
-    if(isMatch(uri, *it)) //リクエストに対してのlocationを探す
+    for(std::vector<Locations>::iterator it2 = locations2.begin(); it2 != locations2.end(); it2++)
+    if(isMatch(uri, *it2)) //リクエストに対してのlocationを探す
     {
-        if (it->getReturnCode().first != 0) //returnCodeが設定されている場合
+        if (it2->getReturnCode().first != 0) //returnCodeが設定されている場合
         {
-            returnParameter = it->getReturnCode();
+            returnParameter = it2->getReturnCode();
             return;
         }
-        if (it->getAutoindex()) //autoindexが設定されている場合
+        if (it2->getAutoindex()) //autoindexが設定されている場合
         {
             uri = getAbsolutepath("autoindex/app.py", server.getRoot());
             return;
         }
-        if (checkRequestmethod(*it)) //locationのmethodとリクエストmethodが一致しない場合
+        if (checkRequestmethod(*it2)) //locationのmethodとリクエストmethodが一致しない場合
         {
             returnParameter.first = 405;
             returnParameter.second = "405.html";
             return;
         }
-        if (it->getMaxBodySize() != 0) //maxBodySizeが設定されている場合
+        if (it2->getMaxBodySize() != 0) //maxBodySizeが設定されている場合
         {
-            max_body_size = it->getMaxBodySize();
+            max_body_size = it2->getMaxBodySize();
         }
-        ExclusivePath exclusivePath = it->getExclusivePath();
-        remakeUri(exclusivePath, *it, server.getRoot()); //filepathが設定されているのならURIをfilepathを使って作り直す
+        ExclusivePath exclusivePath = it2->getExclusivePath();
+        remakeUri(exclusivePath, *it2, server.getRoot()); //filepathが設定されているのならURIをfilepathを使って作り直す
         return;
     }
+    //locationがない場合
     returnParameter.first = 404;
     returnParameter.second = "404.html";
 }
