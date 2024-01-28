@@ -7,7 +7,7 @@ Request::Request()
 Request::Request(const std::string& request)
 {
     parseRequest(request);
-    printRequest();
+    // printRequest();
 }
 
 Request::~Request()
@@ -44,6 +44,7 @@ std::string getAbsolutepath(const std::string& filePath, std::string rootDir)
         absolutePath = "." + absolutePath;
 
     return absolutePath;
+    std::cout << "absolutePath: " << absolutePath << std::endl;
 }
 
 void Request::parseRequest(const std::string& rawRequest) 
@@ -59,7 +60,7 @@ void Request::remakeUri(ExclusivePath& exclusivePath, Locations& location, std::
     {
         uri = getAbsolutepath(filepath, servers_root);
     }
-    if (stat(uri.c_str(), &statbuf) == 0) 
+    if (stat(uri.c_str(), &statbuf) == 0) //uriが存在する場合
     {
         if (S_ISREG(statbuf.st_mode) && access(uri.c_str(), R_OK) == 0)
             return;
@@ -69,15 +70,6 @@ void Request::remakeUri(ExclusivePath& exclusivePath, Locations& location, std::
             if (path.empty())
                 path = servers_root;
             std::vector<std::string> indexs = location.getIndex(); //locationのindexを取得
-        // std::cout << "location : " << location.getPath() << std::endl;
-        // std::cout << "filepath : " << filepath << std::endl;
-        // std::cout << "index.front : " << indexs.front() << std::endl;
-        // for (std::vector<std::string>::iterator it = indexs.begin(); it != indexs.end(); it++)
-        //     std::cout << *it << std::endl;
-        // std::cout << "uri : " << uri << std::endl;
-        // std::cout << "path : " << path << std::endl;
-        // std::cout << "exclusivePath : " << exclusivePath.getPath() << std::endl;
-        // std::cout << "servers_root : " << servers_root << std::endl;
             if (indexs.empty())
                 indexs.push_back("");
             if (!filepath.empty())
@@ -86,7 +78,7 @@ void Request::remakeUri(ExclusivePath& exclusivePath, Locations& location, std::
                 uri = getAbsolutepath(indexs.front(), path);
         }
     }
-    else
+    else //uriが存在しない場合
     {
         std::string path = exclusivePath.getPath(); //locationのrootかaliasを取得
         if (path.empty())
@@ -141,9 +133,6 @@ void Request::remakeRequest(Servers& server)
         if (it->first == "Host")
             tmp = it->second;
     }
-    // std::cout << tmp << std::endl;
-    // std::cout << server.getServerNames() << std::endl;
-    
     std::vector<Locations> locations = server.getLocations();
     for(std::vector<Locations>::iterator it = locations.begin(); it != locations.end(); it++) //リクエストに対してのlocationを探す
     {
@@ -156,14 +145,11 @@ void Request::remakeRequest(Servers& server)
             }
             if (it->getAutoindex()) //autoindexが設定されている場合
             {
-                // std::cout << it->getPath() << std::endl;
                 std::string oldRoot = server.getRoot();
                 std::string eracePath = "/";
                 oldRoot.erase(oldRoot.size() - eracePath.size());
                 std::string newRoot = oldRoot + it->getPath();
                 server.setRoot(newRoot);
-                // std::cout << server.getRoot() << std::endl;
-                // std::cout << it->getIndex().front() << std::endl;
                 if (it->getIndex().front().empty())
                     uri = server.getRoot();
                 else
