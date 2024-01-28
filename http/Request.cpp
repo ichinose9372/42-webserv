@@ -105,12 +105,29 @@ bool Request::checkRequestmethod(Locations& location)
     return true;
 }
 
+bool isMatch(const std::string& uri, Locations& location) 
+{
+    // 完全一致をチェック
+    if (uri == location.getPath()) {
+        return true;
+    }
+    // 前方一致をチェック
+    if (uri.find(location.getPath()) == 0) 
+    {
+        // サブディレクトリが正しく一致するかを確認
+        if (uri[location.getPath().length()] == '/' || location.getPath().back() == '/') {
+            return true;
+        }
+    }
+    return false;
+}
+
 void Request::remakeRequest(Servers& server)
 {
     std::vector<Locations> locations = server.getLocations();
     for(std::vector<Locations>::iterator it = locations.begin(); it != locations.end(); it++) //リクエストに対してのlocationを探す
     {   
-        if (uri == it->getPath()) //locationが一致した場合
+        if (isMatch(uri, *it)) //locationが一致した場合
         {
             if (it->getReturnCode().first != 0) //returnCodeが設定されている場合
             {
@@ -137,7 +154,7 @@ void Request::remakeRequest(Servers& server)
             return;
         }
     }
-    //locationが一致しなかった場合
+    // locationが一致しなかった場合
     returnParameter.first = 404;
     returnParameter.second = "404.html";
 }
