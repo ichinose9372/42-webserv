@@ -99,7 +99,14 @@ void RequestParse::parseHeader(const std::string &line, Request &request)
         if (key == "Host")
             request.setHost(value);
         if (key == "Content-Length")
-            contentLength = std::stoi(value); // don't use stoi
+        {
+            std::istringstream iss(value);
+            if (!(iss >> contentLength))
+            {
+                request.setReturnParameter(413, "");
+                return;
+            }
+        }
     }
 }
 
