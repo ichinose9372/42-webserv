@@ -119,7 +119,19 @@ void Request::remakeRequest(Servers& server)
             }
             if (it->getAutoindex()) //autoindexが設定されている場合
             {
-                uri = getAbsolutepath("autoindex/app.py", server.getRoot());
+                // std::cout << it->getPath() << std::endl;
+                std::string oldRoot = server.getRoot();
+                std::string eracePath = "/";
+                oldRoot.erase(oldRoot.size() - eracePath.size());
+                std::string newRoot = oldRoot + it->getPath();
+                server.setRoot(newRoot);
+                // std::cout << server.getRoot() << std::endl;
+                // std::cout << it->getIndex().front() << std::endl;
+                if (it->getIndex().front().empty())
+                    uri = server.getRoot();
+                else
+                    uri = getAbsolutepath(it->getIndex().front(), server.getRoot());
+                // std::cout << uri << std::endl;
                 return;
             }
             if (checkRequestmethod(*it)) //locationのmethodとリクエストmethodが一致しない場合
