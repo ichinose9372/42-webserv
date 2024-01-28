@@ -4,9 +4,20 @@ ExecCgi::ExecCgi() {}
 
 ExecCgi::~ExecCgi() {}
 
+bool isDirectory(const std::string &filePath)
+{
+    if (filePath.substr(filePath.size() - 1) == "/")
+        return (true);
+    return (false);
+}
+
 void ExecCgi::executeCgiScript(Request &req, Response &res)
 {
-    std::string path = req.getUri();
+    std::string path;
+    if (isDirectory(req.getUri()))
+        path = "./autoindex/autoindex.py";
+    else
+       path = req.getUri();
     // std::cout << path << std::endl;
     if (!isScriptAccessible(path))
     {
@@ -183,11 +194,11 @@ std::vector<std::string> ExecCgi::buildEnvVars(Request &req)
         // その他のPOSTに特有の環境変数設定
     }
     // 共通の環境変数設定
-    std::string erasePath = "autoindex.py";
+    // std::string erasePath = "autoindex.py";
     std::string autoindexPath = req.getUri();
-    autoindexPath = autoindexPath.erase(autoindexPath.size() - erasePath.size());
+    // autoindexPath = autoindexPath.erase(autoindexPath.size() - erasePath.size());
     autoindexPath = "AUTOINDEX=" + autoindexPath;
-    // std::cout << autoindexPath << std::endl; 
+    // std::cout << autoindexPath << std::endl;  
     envVars.push_back(autoindexPath);
     return envVars;
 }

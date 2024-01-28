@@ -128,10 +128,10 @@ void Request::remakeRequest(Servers& server)
                 // std::cout << server.getRoot() << std::endl;
                 // std::cout << it->getIndex().front() << std::endl;
                 if (it->getIndex().front().empty())
-                    uri = getAbsolutepath("autoindex.py", server.getRoot());
+                    uri = server.getRoot();
                 else
                     uri = getAbsolutepath(it->getIndex().front(), server.getRoot());
-                std::cout << uri << std::endl;
+                // std::cout << uri << std::endl;
                 return;
             }
             if (checkRequestmethod(*it)) //locationのmethodとリクエストmethodが一致しない場合

@@ -10,6 +10,8 @@ bool isCgiScript(const std::string &filePath)
         return (true);
     if (filePath.size() >= 4 && filePath.substr(filePath.size() - 3) == ".py")
         return (true);
+    if (filePath.size() >= 4 && filePath.substr(filePath.size() - 1) == "/")
+        return (true);
     return (false);
 }
 
