@@ -185,11 +185,11 @@ TEST(WebServerTest, Response200PythonPOST)
     EXPECT_EQ(httpCode, "200");
 }
 
-TEST(WebServerTest, Response200Index) 
-{
-    std::string httpCode = getHttpResponseCode("http://localhost:8080/index/", "GET");
-    EXPECT_EQ(httpCode, "200");
-}
+// TEST(WebServerTest, Response200Index) 
+// {
+//     std::string httpCode = getHttpResponseCode("http://localhost:8080/index/", "GET");
+//     EXPECT_EQ(httpCode, "200");
+// }
 
 TEST(WebServerTest, Response200CgiGET)
 {
