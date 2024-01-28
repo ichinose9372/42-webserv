@@ -144,6 +144,7 @@ void Request::remakeRequest(Servers& server)
 
 void Request::printRequest() 
 {
+    std::cout << "--- Request ---" << std::endl;
     std::cout << "Method: " << method << std::endl;
     std::cout << "URI: " << uri << std::endl;
     std::cout << "HTTP Version: " << httpVersion << std::endl;
