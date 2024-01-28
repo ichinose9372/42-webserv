@@ -100,7 +100,6 @@ void Locations::setMaxBodySize(const std::string& max_body_size)
     this->max_body_size = tmp_max_body_size;
 }
 
-
 const ExclusivePath& Locations::getExclusivePath(void)
 {
     return (this->exclusivePath);

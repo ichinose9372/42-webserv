@@ -5,7 +5,9 @@ import os
 from flask import Flask, render_template
 
 # docs_path = os.getcwd()
-docs_path = os.getcwd() + "/docs"
+# docs_path = os.getcwd() + "/docs"
+# print(os.environ.get('AUTOINDEX'))
+docs_path = os.environ.get('AUTOINDEX')
 
 app = Flask(__name__)
 

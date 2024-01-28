@@ -185,16 +185,15 @@ TEST(WebServerTest, Response200PythonPOST)
     EXPECT_EQ(httpCode, "200");
 }
 
-// /index/は(venv)仮想環境で実施しないと504Timeout Errorとなる
-// TEST(WebServerTest, Response200Index) 
-// {
-//     std::string httpCode = getHttpResponseCode("http://localhost:8080/index/", "GET");
-//     EXPECT_EQ(httpCode, "200");
-// }
-
-TEST(WebServerTest, Response200CgiGET)
+TEST(WebServerTest, Response200ShellGET)
 {
-    std::string httpCode = getHttpResponseCode("http://localhost:8080/cgi/", "GET");
+    std::string httpCode = getHttpResponseCode("http://localhost:8080/shell/", "GET");
+    EXPECT_EQ(httpCode, "200");
+} 
+
+TEST(WebServerTest, Response200ShellPOST)
+{
+    std::string httpCode = getHttpResponseCode("http://localhost:8080/shell/", "POST");
     EXPECT_EQ(httpCode, "200");
 } 
 

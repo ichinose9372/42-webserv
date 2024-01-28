@@ -26,6 +26,7 @@ void MainConfig::parseLine(void)
         if (line.empty())
             continue;
         lineToToken(line);
+        // std::cout << line << std::endl;
     }
 }
 
@@ -34,7 +35,10 @@ void MainConfig::lineToToken(std::string& line)
     std::stringstream ss(line);
     std::string token;
     while (ss >> token)
+    {
+        // std::cout << token << std::endl;
         tokens.push_back(token);
+    }
 }
 
 void MainConfig::parseServerBlock(std::vector<std::string>::iterator& it) 

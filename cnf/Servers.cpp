@@ -61,7 +61,6 @@ void Servers::setClientMaxBodySize(const std::string& client_max_body_size)
         throw std::runtime_error("Parse error: Invalid client_max_body_size");
 }
 
-
 void Servers::setPort(const size_t& port)
 {
     if (portset)
@@ -69,7 +68,6 @@ void Servers::setPort(const size_t& port)
     this->port = port;
     portset = true;
 }
-
 
 void Servers::setIndex(const std::string& index)
 {
@@ -79,7 +77,7 @@ void Servers::setIndex(const std::string& index)
 
 void Servers::setSeverNames(const std::string& sever_name)
 {
-    // std::cout << sever_names << std::endl;
+    // std::cout << sever_name << std::endl;
     if (serverNameset)
         throw std::runtime_error("Parse error: Duplicate server name");
     this->sever_name = sever_name;
@@ -108,8 +106,6 @@ void checkExpectedToken(std::vector<std::string>::iterator& it, std::vector<std:
         throw std::runtime_error("Parse error: Expected " + expectedToken + " " + errorMessage);
 }
 
-
-
 void Servers::setLocations(std::vector<std::string>::iterator& it ,std::vector<std::string>::iterator& end) // s
 {
     if (it == end) {
@@ -128,6 +124,7 @@ void Servers::setLocations(std::vector<std::string>::iterator& it ,std::vector<s
 
     for (++it; it != end && *it != "}"; ++it) 
     {
+        // std::cout << *it << std::endl;
         if (validDirectives.find(*it) == validDirectives.end()) // ないものは無視する
             continue;
         if (*it == "error_page" && !setErrorPage) 
@@ -141,7 +138,6 @@ void Servers::setLocations(std::vector<std::string>::iterator& it ,std::vector<s
     }
     locations.push_back(location);
 }
-
 
 size_t Servers::getPort(void) const
 {
@@ -158,7 +154,6 @@ const std::string& Servers::getServerNames(void) const
     return (this->sever_name);
 }
 
-
 const std::vector<Locations>& Servers::getLocations(void) const
 {
     return (this->locations);
@@ -173,7 +168,6 @@ const std::string& Servers::getHost(void) const
 {
     return (this->sever_name);
 }
-
 
 const std::string& Servers::getRoot(void) const
 {
@@ -232,6 +226,7 @@ void Servers::processMultiValueDirective(std::vector<std::string>::iterator& it,
         throw std::runtime_error("Parse error: Unexpected end of tokens before " + directive + " value");
     if (*it == "index")
     {
+        // std::cout << "######" << std::endl;
         it++;
         for (; it != end && it->find(";") == std::string::npos; ++it) 
         {
@@ -289,4 +284,3 @@ void Servers::processErrorPageDirective(std::vector<std::string>::iterator& it, 
     }
     setErrorPage = false;
 }
-

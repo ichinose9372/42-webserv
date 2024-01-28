@@ -7,7 +7,7 @@ Request::Request()
 Request::Request(const std::string& request)
 {
     parseRequest(request);
-    // printRequest();
+    printRequest();
 }
 
 Request::~Request()
@@ -69,6 +69,15 @@ void Request::remakeUri(ExclusivePath& exclusivePath, Locations& location, std::
             if (path.empty())
                 path = servers_root;
             std::vector<std::string> indexs = location.getIndex(); //locationのindexを取得
+        // std::cout << "location : " << location.getPath() << std::endl;
+        // std::cout << "filepath : " << filepath << std::endl;
+        // std::cout << "index.front : " << indexs.front() << std::endl;
+        // for (std::vector<std::string>::iterator it = indexs.begin(); it != indexs.end(); it++)
+        //     std::cout << *it << std::endl;
+        // std::cout << "uri : " << uri << std::endl;
+        // std::cout << "path : " << path << std::endl;
+        // std::cout << "exclusivePath : " << exclusivePath.getPath() << std::endl;
+        // std::cout << "servers_root : " << servers_root << std::endl;
             if (indexs.empty())
                 indexs.push_back("");
             if (!filepath.empty())
@@ -125,10 +134,20 @@ bool isMatch(const std::string& uri, Locations& location)
 
 void Request::remakeRequest(Servers& server)
 {
+    std::string tmp;
+    for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); ++it) 
+    {
+        // std::cout << it->first << ": " << it->second << std::endl;
+        if (it->first == "Host")
+            tmp = it->second;
+    }
+    // std::cout << tmp << std::endl;
+    // std::cout << server.getServerNames() << std::endl;
+    
     std::vector<Locations> locations = server.getLocations();
     for(std::vector<Locations>::iterator it = locations.begin(); it != locations.end(); it++) //リクエストに対してのlocationを探す
-    {   
-        if (uri == it->getPath())
+    {
+        if (uri == it->getPath()) //locationが一致した場合
         {
             if (it->getReturnCode().first != 0) //returnCodeが設定されている場合
             {
@@ -137,7 +156,19 @@ void Request::remakeRequest(Servers& server)
             }
             if (it->getAutoindex()) //autoindexが設定されている場合
             {
-                uri = getAbsolutepath("autoindex/app.py", server.getRoot());
+                // std::cout << it->getPath() << std::endl;
+                std::string oldRoot = server.getRoot();
+                std::string eracePath = "/";
+                oldRoot.erase(oldRoot.size() - eracePath.size());
+                std::string newRoot = oldRoot + it->getPath();
+                server.setRoot(newRoot);
+                // std::cout << server.getRoot() << std::endl;
+                // std::cout << it->getIndex().front() << std::endl;
+                if (it->getIndex().front().empty())
+                    uri = server.getRoot();
+                else
+                    uri = getAbsolutepath(it->getIndex().front(), server.getRoot());
+                // std::cout << uri << std::endl;
                 return;
             }
             if (checkRequestmethod(*it)) //locationのmethodとリクエストmethodが一致しない場合
@@ -191,6 +222,7 @@ void Request::remakeRequest(Servers& server)
 
 void Request::printRequest() 
 {
+    std::cout << "--- Request ---" << std::endl;
     std::cout << "Method: " << method << std::endl;
     std::cout << "URI: " << uri << std::endl;
     std::cout << "HTTP Version: " << httpVersion << std::endl;
@@ -200,6 +232,7 @@ void Request::printRequest()
         std::cout << it->first << ": " << it->second << std::endl;
     }
     std::cout << "Body: " << body << std::endl;
+    std::cout << "--- Request End ---" << std::endl;
 }
 
 const std::string& Request::getMethod() { return method; }

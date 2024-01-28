@@ -10,6 +10,8 @@ bool isCgiScript(const std::string &filePath)
         return (true);
     if (filePath.size() >= 4 && filePath.substr(filePath.size() - 3) == ".py")
         return (true);
+    if (filePath.size() >= 4 && filePath.substr(filePath.size() - 1) == "/")
+        return (true);
     return (false);
 }
 
@@ -32,6 +34,7 @@ int GetRequest::openFile(const std::string &filePath)
 
 std::string GetRequest::getBody(const std::string &filePath)
 {
+    // std::cout << filePath << std::endl;
     std::ifstream file(filePath);
     if (!file)
     {
@@ -69,6 +72,7 @@ void GetRequest::handleCgiScript(Request &req, Response &res)
 
 void GetRequest::handleRegularFile(Request &req, Response &res)
 {
+    // std::cout << req.getUri() << std::endl;
     int statusCode = openFile(req.getUri());
     std::string message = res.getStatusMessage(statusCode);
     res.setStatus(message);

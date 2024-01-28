@@ -76,18 +76,17 @@ void RequestParse::parseRequestLine(const std::string &line, Request &request)
     else
     {
         std::cout << "REQUESTLINE ERROR" << std::endl;
-        std::vector<std::string>::iterator it = requestLineTokens.begin();
-        std::cout << "----- ERROR LINE ----\n "
-                  << "size = " << requestLineTokens.size() << std::endl;
-        for (; it != requestLineTokens.end(); it++)
-        {
-            // std::cout << *it << std::endl;
-        }
+        // std::cout << "----- ERROR LINE ----\n "
+        //           << "size = " << requestLineTokens.size() << std::endl;
+        // std::vector<std::string>::iterator it = requestLineTokens.begin();
+        // for (; it != requestLineTokens.end(); it++)
+        // {
+        //     std::cout << *it << std::endl;
+        // }
     }
 }
 
 // location separat filename and path
-
 void RequestParse::parseHeader(const std::string &line, Request &request)
 {
     std::vector<std::string> headerTokens = split(line, ':');
@@ -99,7 +98,14 @@ void RequestParse::parseHeader(const std::string &line, Request &request)
         if (key == "Host")
             request.setHost(value);
         if (key == "Content-Length")
-            contentLength = std::stoi(value); // don't use stoi
+        {
+            std::istringstream iss(value);
+            if (!(iss >> contentLength))
+            {
+                request.setReturnParameter(413, "");
+                return;
+            }
+        }
     }
 }
 
