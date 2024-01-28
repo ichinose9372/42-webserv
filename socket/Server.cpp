@@ -241,6 +241,7 @@ Request Server::findServerandlocaitons(int socket_fd, const std::string &buffer)
 {
     Request req(buffer);
     Servers server = findServerBySocket(socket_fd);
+    // std::cout << server.getServerNames() << std::endl;
     if (req.getReturnParameter().first != 0)
     {
         return req;

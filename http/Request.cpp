@@ -7,7 +7,7 @@ Request::Request()
 Request::Request(const std::string& request)
 {
     parseRequest(request);
-    // printRequest();
+    printRequest();
 }
 
 Request::~Request()
@@ -69,6 +69,15 @@ void Request::remakeUri(ExclusivePath& exclusivePath, Locations& location, std::
             if (path.empty())
                 path = servers_root;
             std::vector<std::string> indexs = location.getIndex(); //locationのindexを取得
+        // std::cout << "location : " << location.getPath() << std::endl;
+        // std::cout << "filepath : " << filepath << std::endl;
+        // std::cout << "index.front : " << indexs.front() << std::endl;
+        // for (std::vector<std::string>::iterator it = indexs.begin(); it != indexs.end(); it++)
+        //     std::cout << *it << std::endl;
+        // std::cout << "uri : " << uri << std::endl;
+        // std::cout << "path : " << path << std::endl;
+        // std::cout << "exclusivePath : " << exclusivePath.getPath() << std::endl;
+        // std::cout << "servers_root : " << servers_root << std::endl;
             if (indexs.empty())
                 indexs.push_back("");
             if (!filepath.empty())
@@ -107,9 +116,32 @@ bool Request::checkRequestmethod(Locations& location)
 
 void Request::remakeRequest(Servers& server)
 {
+    std::string tmp;
+    for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); ++it) 
+    {
+        // std::cout << it->first << ": " << it->second << std::endl;
+        if (it->first == "Host")
+            tmp = it->second;
+    }
+    // std::cout << tmp << std::endl;
+    // std::cout << server.getServerNames() << std::endl;
+    
     std::vector<Locations> locations = server.getLocations();
     for(std::vector<Locations>::iterator it = locations.begin(); it != locations.end(); it++) //リクエストに対してのlocationを探す
-    {   
+    {
+        // std::cout << it->getPath() << std::endl;   
+        // std::vector<std::string> tmp = it->getIndex();
+        // for (std::vector<std::string>::iterator it = tmp.begin(); it != tmp.end(); it++)
+        //     std::cout << *it << std::endl;
+        // std::cout << "uri : " << uri << std::endl;   
+        // std::cout << server.getHost() << std::endl;
+        // if (uri == it->getPath() && server.getHost() == tmp) //locationが一致した場合
+
+        // std::cout << server.getHost() << std::endl;
+        // std::cout << tmp << std::endl;
+        // if (tmp != server.getHost())
+        //     continue ;
+
         if (uri == it->getPath()) //locationが一致した場合
         {
             if (it->getReturnCode().first != 0) //returnCodeが設定されている場合
@@ -166,6 +198,7 @@ void Request::printRequest()
         std::cout << it->first << ": " << it->second << std::endl;
     }
     std::cout << "Body: " << body << std::endl;
+    std::cout << "--- Request End ---" << std::endl;
 }
 
 const std::string& Request::getMethod() { return method; }
