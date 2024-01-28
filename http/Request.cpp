@@ -7,7 +7,7 @@ Request::Request()
 Request::Request(const std::string& request)
 {
     parseRequest(request);
-    printRequest();
+    // printRequest();
 }
 
 Request::~Request()
@@ -44,6 +44,7 @@ std::string getAbsolutepath(const std::string& filePath, std::string rootDir)
         absolutePath = "." + absolutePath;
 
     return absolutePath;
+    std::cout << "absolutePath: " << absolutePath << std::endl;
 }
 
 void Request::parseRequest(const std::string& rawRequest) 
@@ -92,6 +93,7 @@ void Request::remakeUri(ExclusivePath& exclusivePath, Locations& location, std::
         else
             uri = getAbsolutepath(indexs.front(), path);
     }
+    std::cout << "uri: " << uri << std::endl;
 }
 
 bool Request::checkRequestmethod(Locations& location)
