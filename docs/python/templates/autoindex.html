@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>autoindex</title>
+</head>
+<body>
+    <h2>Directory Listing</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Path</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for file, path in combined_data %}
+                <tr>
+                    <td>{{ file }}</td>
+                    <td>{{ path }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
