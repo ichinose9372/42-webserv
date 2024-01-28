@@ -22,7 +22,7 @@ const std::string& Locations::getPath(void)
 
 void Locations::setIndex(const std::string& index)
 {
-    std::cout << index << std::endl;
+    // std::cout << index << std::endl;
     this->indexes.push_back(index);
 }
 
@@ -99,7 +99,6 @@ void Locations::setMaxBodySize(const std::string& max_body_size)
         throw std::runtime_error("Parse error: max body size is not a number");
     this->max_body_size = tmp_max_body_size;
 }
-
 
 const ExclusivePath& Locations::getExclusivePath(void)
 {
