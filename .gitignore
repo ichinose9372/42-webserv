@@ -1,3 +1,5 @@
 venv
 objs
 webserv
+./googletest/googletestcode
+./googletest/build

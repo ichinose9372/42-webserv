@@ -55,7 +55,7 @@ void Controller::setReturnCode(Request &req, Response &res)
 {
     int returnCode = req.getReturnParameter().first;
     std::string returnPage = req.getReturnParameter().second;
-    std::string responseHtml = getResponseHtml(returnCode);
+    std::string responseHtml = getResponseHtml(returnCode, req);
 
     res.setStatus(res.getStatusMessage(returnCode));
     if (returnCode == 301)
@@ -68,7 +68,7 @@ void Controller::setReturnCode(Request &req, Response &res)
     res.setResponse();
 }
 
-std::string Controller::getResponseHtml(int statusCode)
+std::string Controller::getResponseHtml(int statusCode, Request req)
 {
     switch (statusCode)
     {
@@ -77,7 +77,7 @@ std::string Controller::getResponseHtml(int statusCode)
     case 403:
         return "<html><body><h1>403 Forbidden</h1></body></html>";
     case 404:
-        return "<html><body><h1>404 Not Found</h1></body></html>";
+        return GetRequest::getBody(req.getErrorpage(404));
     case 405:
         return "<html><body><h1>405 Method Not Allowed</h1></body></html>";
     case 500:

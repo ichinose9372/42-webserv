@@ -39,7 +39,7 @@ void DeleteRequest::handleDeleteRequest(Request& req, Response& res)
         if (errno == ENOENT) // ファイルが存在しない
         {
             res.setStatus("404 Not Found");
-            res.setBody("<html><body><h1>404 Not Found</h1></body></html>");
+            res.setBody(GetRequest::getBody(req.getErrorpage(404)));
         }
         else if (errno == EACCES) // アクセス権がない
         {

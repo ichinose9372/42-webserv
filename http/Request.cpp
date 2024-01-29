@@ -240,7 +240,10 @@ const std::string& Request::getFilepath() { return filepath; }
 
 size_t Request::getMaxBodySize() { return max_body_size; }
 
-const std::map<int, std::string>& Request::getErrorpage() { return error_page; }
+const std::string& Request::getErrorpage(int statuscode)
+{
+    return error_page[statuscode];
+}
 
 void Request::setMethod(const std::string& method) { this->method = method; }
 

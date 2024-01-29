@@ -160,12 +160,12 @@ TEST(WebServerTest, FileUpload404)
 }
 
 
-// TEST(WebServerTest, FileDelete200) 
-// {
-//     //8080ポートにアクセスしてファイルをアップロードできるのかを確認
-//     std::string httpCode = getHttpResponseDelete("http://localhost:8080/delete/42Tokyo.txt", "DELETE");
-//     EXPECT_EQ(httpCode, "200");
-// }
+TEST(WebServerTest, FileDelete200) 
+{
+    //8080ポートにアクセスしてファイルをアップロードできるのかを確認
+    std::string httpCode = getHttpResponseDelete("http://localhost:8080/delete/42Tokyo.txt", "DELETE");
+    EXPECT_EQ(httpCode, "200");
+}
 
 TEST(WebServerTest, FileDelete404) 
 {

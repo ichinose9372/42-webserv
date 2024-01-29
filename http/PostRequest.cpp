@@ -36,7 +36,7 @@ void PostRequest::handlePostRequest(Request& req, Response& res)
         if (!outputFile.is_open())
         {
             res.setStatus("404 Not Found");
-            res.setBody("<html><body><h1>404 Not Found</h1></body></html>");
+            res.setBody(GetRequest::getBody(req.getErrorpage(404)));
             res.setResponse();
             return;
         }

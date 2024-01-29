@@ -76,17 +76,16 @@ void GetRequest::handleRegularFile(Request &req, Response &res)
     int statusCode = openFile(req.getUri());
     std::string message = res.getStatusMessage(statusCode);
     res.setStatus(message);
-
+    std::string content;
     if (statusCode == 200)
     {
-        std::string content = getBody(req.getUri());
-        res.setBody(content);
-        res.setHeaders("Content-Type: ", "text/html");
-        res.setHeaders("Content-Length: ", std::to_string(content.size()));
+        content = getBody(req.getUri());
     }
-    else
+    else if (statusCode == 404)
     {
-        // 適切なエラーページをセット
-        res.setBody("<html><body><h1>" + message + "</h1></body></html>");
+        content = getBody(req.getErrorpage(404));
     }
+    res.setBody(content);
+    res.setHeaders("Content-Type: ", "text/html");
+    res.setHeaders("Content-Length: ", std::to_string(content.size()));
 }

@@ -33,7 +33,7 @@ class Request
         const std::pair<int, std::string>& getReturnParameter();
         void remakeRequest(Servers& server);
         size_t getMaxBodySize();
-        const std::map<int, std::string>& getErrorpage();
+        const std::string& getErrorpage(int statucode);
         //setter
         void setMethod(const std::string& method);
         void setUri(const std::string& uri);

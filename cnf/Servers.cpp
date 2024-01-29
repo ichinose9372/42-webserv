@@ -187,14 +187,19 @@ void Servers::setErrorPage(const std::string statuscode, const std::string error
     std::stringstream ss(statuscode);
     int code;
     ss >> code;
-    if (!ss.fail())
-    {
-        error_pages[code] = error_page;
-    } 
-    else 
-    {
+
+    if (ss.fail()) {
         std::cerr << "Invalid status code: " << statuscode << std::endl;
+        return;
     }
+    std::string root_tmp = root;
+    // rootとerror_page間のスラッシュの重複を避ける
+    if (!root_tmp.empty() && root_tmp.back() == '/') 
+    { 
+        root_tmp = root_tmp.substr(0, root_tmp.size()-1);
+    }
+    std::string abs_error_page = root_tmp + error_page;
+    error_pages[code] = abs_error_page;
 }
 
 void Servers::processSingleValueDirective(std::vector<std::string>::iterator& it, std::vector<std::string>::iterator& end, Locations& location, const std::string& directive)

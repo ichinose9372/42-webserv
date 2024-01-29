@@ -22,7 +22,7 @@ void ExecCgi::executeCgiScript(Request &req, Response &res)
     if (!isScriptAccessible(path))
     {
         res.setStatus("404 Not Found");
-        res.setBody("<html><body><h1>404 Not Found</h1><p>Requested script not found.</p></body></html>");
+        res.setBody(GetRequest::getBody(req.getErrorpage(404)));
         return;
     }
     // CGI実行のための共通処理
@@ -32,14 +32,17 @@ void ExecCgi::executeCgiScript(Request &req, Response &res)
 bool ExecCgi::isScriptAccessible(const std::string &path)
 {
     struct stat buffer;
-
     // stat関数を使用してファイルの情報を取得
     if (stat(path.c_str(), &buffer) != 0)
-        return false;
+    {
+            return false;
+    }
 
     // S_IXUSRは所有者の実行権限があるかをチェック
     if ((buffer.st_mode & S_IXUSR) == 0)
+    {
         return false;
+    }
 
     return true;
 }
