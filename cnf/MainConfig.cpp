@@ -150,6 +150,8 @@ void MainConfig::parseServerBlock(std::vector<std::string>::iterator& it, Server
         handleClientMaxBodySize(it, server);
     else if (*it == "root") 
         handleRoot(it, server);
+    else if (*it == "error_page")
+        hadleErrorPage(it,server);
     else 
     {
         std::cout << "it: " << *it << std::endl;
@@ -232,4 +234,9 @@ void MainConfig::handleRoot(std::vector<std::string>::iterator& it, Servers& ser
     it++;
     removeTrailingSemicolon(*it);
     server.setRoot(*it);
+}
+
+void MainConfig::handleErrorPage(std::vector<std::string>::iterator& it, Servers& server)
+{
+    
 }

@@ -36,6 +36,7 @@ class Servers
         void setLocations(std::vector<std::string>::iterator& it, std::vector<std::string>::iterator& end);
         void setClientMaxBodySize(const std::string& client_max_body_size);
         void setRoot(const std::string& root);
+        void setErrorPage(const std::string statuscode, const std::string error_page);
         //getter
         size_t getPort(void) const;
         const std::string& getHost(void) const;
@@ -44,11 +45,12 @@ class Servers
         size_t getClientMaxBodySize(void) const;
         const std::vector<Locations>& getLocations(void) const; 
         const std::string& getRoot(void) const;
+        const std::map<int, std::string > getErrorpage(void) const;
         //check functions
         void  isPathDuplicate(const std::string& path);
         void  processSingleValueDirective(std::vector<std::string>::iterator& it, std::vector<std::string>::iterator& end, Locations& location, const std::string& directive);
         void  processMultiValueDirective(std::vector<std::string>::iterator& it, std::vector<std::string>::iterator& end, Locations& location, const std::string& directive);
-        void  processErrorPageDirective(std::vector<std::string>::iterator& it, std::vector<std::string>::iterator& end, Locations& location, bool& setErrorPage);
+
        
 };
 

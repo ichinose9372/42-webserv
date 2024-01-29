@@ -118,7 +118,7 @@ void Servers::setLocations(std::vector<std::string>::iterator& it ,std::vector<s
 
     static bool setErrorPage = true;
     std::string tmp[] =  {
-        "root", "alias", "index", "autoindex", "error_page", "return", "cgi_path", "upload_path", "client_max_body_size", "method"
+        "root", "alias", "index", "autoindex", "return", "cgi_path", "client_max_body_size", "method"
     };
     static const std::set<std::string> validDirectives = std::set<std::string>(tmp, tmp + sizeof(tmp) / sizeof(tmp[0]));
 
@@ -133,8 +133,6 @@ void Servers::setLocations(std::vector<std::string>::iterator& it ,std::vector<s
             processSingleValueDirective(it, end, location, *it);
         else if (*it == "index" || *it == "method" || *it == "return") 
             processMultiValueDirective(it, end, location, *it);
-        else if (*it == "error_page") 
-            processErrorPageDirective(it, end, location, setErrorPage);
     }
     locations.push_back(location);
 }
@@ -174,6 +172,11 @@ const std::string& Servers::getRoot(void) const
     return (this->root);
 }
 
+const std::map<int, std::string> Servers::getErrorpage(void) const
+{
+    return(this->error_pages);
+}
+
 void Servers::setRoot(const std::string& root)
 {
     this->root = root;
@@ -207,11 +210,6 @@ void Servers::processSingleValueDirective(std::vector<std::string>::iterator& it
     {
         removeTrailingSemicolon(*it);
         location.setCgiExtension(*it);
-    }
-    else if (directive == "upload_path") 
-    {
-        removeTrailingSemicolon(*it);
-        location.setUploadPath(*it);
     }
     else if (directive == "client_max_body_size") 
     {
@@ -259,28 +257,4 @@ void Servers::processMultiValueDirective(std::vector<std::string>::iterator& it,
         removeTrailingSemicolon(*it);
         location.setReturnCode(tmp_return_code, *it);
     }
-}
-
-void Servers::processErrorPageDirective(std::vector<std::string>::iterator& it, std::vector<std::string>::iterator& end, Locations& location, bool& setErrorPage)
-{
-    it++;
-    std::vector<std::string>::iterator it2 = it;
-    while (it2->find(';') == std::string::npos)
-    {
-        it2++;
-        if (it2 == end)
-            throw std::runtime_error("Parse error: Unexpected end of tokens before error_page code");
-    }
-    removeTrailingSemicolon(*it2);
-    while(it != it2)
-    {
-        std::stringstream ss(*it);
-        int tmp_error_code;
-        ss >> tmp_error_code;
-        if (tmp_error_code < 400 || tmp_error_code > 599)
-            throw std::runtime_error("Parse error: Invalid error code");
-        location.setErrorPages(tmp_error_code, *it2);
-        it++;
-    }
-    setErrorPage = false;
 }

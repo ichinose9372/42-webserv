@@ -58,10 +58,7 @@ bool Locations::getAutoindex(void)
     return (this->autoindex);
 }
 
-const std::map<int, std::string>& Locations::getErrorPages(void)
-{
-    return (this->error_pages);
-}  
+
 
 const std::pair<int, std::string>& Locations::getReturnCode(void)
 {
@@ -83,10 +80,7 @@ void Locations::setExclusivePath(const std::string& path, std::string pathType)
         throw std::runtime_error("Parse error: Invalid path type");
 }
 
-void Locations::setUploadPath(const std::string& upload_path)
-{
-    this->upload_path = upload_path;
-}
+
 
 void Locations::setMaxBodySize(const std::string& max_body_size)
 {
