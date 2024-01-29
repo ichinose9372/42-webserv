@@ -17,7 +17,7 @@ void ExecCgi::executeCgiScript(Request &req, Response &res)
     if (isDirectory(req.getUri()))
         path = "./autoindex/autoindex.py";
     else
-       path = req.getUri();
+        path = req.getUri();
     // std::cout << path << std::endl;
     if (!isScriptAccessible(path))
     {
@@ -90,7 +90,7 @@ void ExecCgi::executeCommonCgiScript(Request &req, Response &res, const std::str
             char *argv[] = {const_cast<char *>(scriptName), NULL};
             execve(path.c_str(), argv, envpCGI.data());
         }
-        exit(EXIT_FAILURE);
+        std::exit(EXIT_FAILURE);
     }
     else if (pid > 0)
     {
@@ -104,7 +104,7 @@ void ExecCgi::executeCommonCgiScript(Request &req, Response &res, const std::str
         // パイプの読み取り側を非ブロッキングに設定
         fcntl(pipefd[0], F_SETFL, O_NONBLOCK);
 
-        pid_t   ret;
+        pid_t ret;
         while (true)
         {
             ret = waitpid(pid, &status, WNOHANG);
@@ -114,7 +114,7 @@ void ExecCgi::executeCommonCgiScript(Request &req, Response &res, const std::str
                 break;
             }
             if (ret == 0)
-                continue ;
+                continue;
             if (WIFEXITED(status))
             {
                 if (WEXITSTATUS(status) == 500)
@@ -123,9 +123,9 @@ void ExecCgi::executeCommonCgiScript(Request &req, Response &res, const std::str
                     res.setBody("");
                     return;
                 }
-                break ;
+                break;
             }
-            break ;
+            break;
         }
         // タイムアウトが発生した場合、子プロセスを終了させる
         if (timeoutOccurred)
@@ -198,7 +198,7 @@ std::vector<std::string> ExecCgi::buildEnvVars(Request &req)
     std::string autoindexPath = req.getUri();
     // autoindexPath = autoindexPath.erase(autoindexPath.size() - erasePath.size());
     autoindexPath = "AUTOINDEX=" + autoindexPath;
-    // std::cout << autoindexPath << std::endl;  
+    // std::cout << autoindexPath << std::endl;
     envVars.push_back(autoindexPath);
     return envVars;
 }
