@@ -34,7 +34,6 @@ int GetRequest::openFile(const std::string &filePath)
 
 std::string GetRequest::getBody(const std::string &filePath)
 {
-    // std::cout << filePath << std::endl;
     std::ifstream file(filePath);
     if (!file)
     {
