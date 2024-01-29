@@ -7,7 +7,7 @@ Request::Request()
 Request::Request(const std::string& request)
 {
     parseRequest(request);
-    printRequest();
+    // printRequest();
 }
 
 Request::~Request()
@@ -44,6 +44,7 @@ std::string getAbsolutepath(const std::string& filePath, std::string rootDir)
         absolutePath = "." + absolutePath;
 
     return absolutePath;
+    std::cout << "absolutePath: " << absolutePath << std::endl;
 }
 
 void Request::parseRequest(const std::string& rawRequest) 
@@ -59,7 +60,7 @@ void Request::remakeUri(ExclusivePath& exclusivePath, Locations& location, std::
     {
         uri = getAbsolutepath(filepath, servers_root);
     }
-    if (stat(uri.c_str(), &statbuf) == 0) 
+    if (stat(uri.c_str(), &statbuf) == 0) //uriが存在する場合
     {
         if (S_ISREG(statbuf.st_mode) && access(uri.c_str(), R_OK) == 0)
             return;
@@ -77,7 +78,7 @@ void Request::remakeUri(ExclusivePath& exclusivePath, Locations& location, std::
                 uri = getAbsolutepath(indexs.front(), path);
         }
     }
-    else
+    else //uriが存在しない場合
     {
         std::string path = exclusivePath.getPath(); //locationのrootかaliasを取得
         if (path.empty())
@@ -131,8 +132,7 @@ void Request::remakeRequest(Servers& server)
         if (it->first == "Host")
             tmp = it->second;
     }
-    
-     std::vector<Locations> locations = server.getLocations();
+    std::vector<Locations> locations = server.getLocations();
     for(std::vector<Locations>::iterator it = locations.begin(); it != locations.end(); it++) //リクエストに対してのlocationを探す
     {
         if (uri == it->getPath()) //locationが一致した場合
@@ -168,6 +168,7 @@ void Request::remakeRequest(Servers& server)
             }
             ExclusivePath exclusivePath = it->getExclusivePath();
             remakeUri(exclusivePath, *it, server.getRoot()); //filepathが設定されているのならURIをfilepathを使って作り直す
+            error_page = server.getErrorpage();
             return;
         }
     }
@@ -198,6 +199,7 @@ void Request::remakeRequest(Servers& server)
         }
         ExclusivePath exclusivePath = it2->getExclusivePath();
         remakeUri(exclusivePath, *it2, server.getRoot()); //filepathが設定されているのならURIをfilepathを使って作り直す
+        error_page = server.getErrorpage();
         return;
     }
     //locationがない場合

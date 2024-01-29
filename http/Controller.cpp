@@ -25,10 +25,12 @@ std::string Controller::getFilepath(Request &req)
         filenameEnd = body.length(); // In case there's no trailing ';'
 
     std::string filename = body.substr(filenamePos , filenameEnd - filenamePos);
-
     filename = sanitizeFilename(filename);
-
-    std::string path = req.getUri() + filename;
+    std::string path = req.getUri();
+    if (path[path.length() - 1] != '/')
+        path += '/';
+    path += filename;
+    // std::cout << "path: " << path << std::endl;
     return path;
 }
 
