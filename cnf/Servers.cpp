@@ -199,6 +199,7 @@ void Servers::setErrorPage(const std::string statuscode, const std::string error
         root_tmp = root_tmp.substr(0, root_tmp.size()-1);
     }
     std::string abs_error_page = root_tmp + error_page;
+    // std::cout << code << " : " <<abs_error_page << std::endl;
     error_pages[code] = abs_error_page;
 }
 

@@ -70,6 +70,7 @@ void Controller::setReturnCode(Request &req, Response &res)
 
 std::string Controller::getResponseHtml(int statusCode, Request req)
 {
+    std::cout << "statuscode = " << statusCode << std::endl;
     switch (statusCode)
     {
     case 301:
@@ -81,7 +82,7 @@ std::string Controller::getResponseHtml(int statusCode, Request req)
     case 405:
         return "<html><body><h1>405 Method Not Allowed</h1></body></html>";
     case 500:
-        return "<html><body><h1>500 Internal Server Error</h1></body></html>";
+        return GetRequest::getBody(req.getErrorpage(500));
     // 他のステータスコードに対するHTMLテキスト
     default:
         return "<html><body><h1>Error</h1><p>Unknown Error Occurred</p></body></html>";

@@ -135,6 +135,7 @@ void Request::remakeRequest(Servers& server)
     std::vector<Locations> locations = server.getLocations();
     for(std::vector<Locations>::iterator it = locations.begin(); it != locations.end(); it++) //リクエストに対してのlocationを探す
     {
+        error_page = server.getErrorpage();
         if (uri == it->getPath()) //locationが一致した場合
         {
             if (it->getReturnCode().first != 0) //returnCodeが設定されている場合
@@ -166,9 +167,9 @@ void Request::remakeRequest(Servers& server)
             {
                 max_body_size = it->getMaxBodySize();
             }
+            return;
             ExclusivePath exclusivePath = it->getExclusivePath();
             remakeUri(exclusivePath, *it, server.getRoot()); //filepathが設定されているのならURIをfilepathを使って作り直す
-            error_page = server.getErrorpage();
             return;
         }
     }
@@ -177,6 +178,7 @@ void Request::remakeRequest(Servers& server)
     for(std::vector<Locations>::iterator it2 = locations2.begin(); it2 != locations2.end(); it2++)
     if(isMatch(uri, *it2)) //リクエストに対してのlocationを探す
     {
+        error_page = server.getErrorpage();
         if (it2->getReturnCode().first != 0) //returnCodeが設定されている場合
         {
             returnParameter = it2->getReturnCode();
@@ -199,7 +201,6 @@ void Request::remakeRequest(Servers& server)
         }
         ExclusivePath exclusivePath = it2->getExclusivePath();
         remakeUri(exclusivePath, *it2, server.getRoot()); //filepathが設定されているのならURIをfilepathを使って作り直す
-        error_page = server.getErrorpage();
         return;
     }
     //locationがない場合

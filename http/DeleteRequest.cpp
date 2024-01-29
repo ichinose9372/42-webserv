@@ -27,7 +27,7 @@ void DeleteRequest::handleDeleteRequest(Request& req, Response& res)
         else // その他のエラー
         {
             res.setStatus("500 Internal Server Error");
-            res.setBody("<html><body><h1>500 Internal Server Error</h1></body></html>");
+            res.setBody(GetRequest::getBody(req.getErrorpage(500)));
         }
         res.setHeaders("Content-Type: ", "text/html");
         res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
