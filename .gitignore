@@ -2,4 +2,7 @@ venv
 objs
 webserv
 ./googletest/googletestcode
+./googletest/googletestcode/*
+
 ./googletest/build
+./googletest/build/*
