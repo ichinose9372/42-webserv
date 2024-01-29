@@ -236,7 +236,23 @@ void MainConfig::handleRoot(std::vector<std::string>::iterator& it, Servers& ser
     server.setRoot(*it);
 }
 
-void MainConfig::handleErrorPage(std::vector<std::string>::iterator& it, Servers& server)
+void MainConfig::hadleErrorPage(std::vector<std::string>::iterator& it, Servers& server)
 {
+     while (it != tokens.end()) 
+    {
+        it++;
+        std::string statusCode = *it;
+        ++it; // 次のトークンへ移動
+
+        if (it != tokens.end() && it->find(";") != std::string::npos) 
+        {
+            removeTrailingSemicolon(*it);
+            std::string errorPagePath = *it;
+            server.setErrorPage(statusCode, errorPagePath);
+            return;
+        }
+        std::string errorPagePath = *it;
+        server.setErrorPage(statusCode, errorPagePath);
+    }
     
 }

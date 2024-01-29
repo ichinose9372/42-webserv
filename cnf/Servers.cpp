@@ -182,6 +182,21 @@ void Servers::setRoot(const std::string& root)
     this->root = root;
 }
 
+void Servers::setErrorPage(const std::string statuscode, const std::string error_page)
+{
+    std::stringstream ss(statuscode);
+    int code;
+    ss >> code;
+    if (!ss.fail())
+    {
+        error_pages[code] = error_page;
+    } 
+    else 
+    {
+        std::cerr << "Invalid status code: " << statuscode << std::endl;
+    }
+}
+
 void Servers::processSingleValueDirective(std::vector<std::string>::iterator& it, std::vector<std::string>::iterator& end, Locations& location, const std::string& directive)
 {
     if (++it == end) 
