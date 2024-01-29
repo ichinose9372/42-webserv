@@ -37,11 +37,6 @@ void Locations::setAutoindex(bool autoindex)
     this->autoindex = autoindex;
 }
 
-void Locations::setErrorPages(int error_code, const std::string& error_page)
-{
-    error_pages[error_code] = error_page;
-}
-
 void Locations::setReturnCode(int return_code, const std::string& return_page)
 {
     this->return_code.first = return_code;
