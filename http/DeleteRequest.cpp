@@ -12,7 +12,6 @@ void DeleteRequest::handleDeleteRequest(Request& req, Response& res)
 {
     
     std::string path = req.getUri();
-    //先にファイルにアクセス権があるかどうかを確認する
     if (access(path.c_str(), W_OK) != -1)
     {
     // 実行権限がある場合（ファイルにアクセスできる）

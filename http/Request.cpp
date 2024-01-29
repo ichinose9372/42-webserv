@@ -44,7 +44,6 @@ std::string getAbsolutepath(const std::string& filePath, std::string rootDir)
         absolutePath = "." + absolutePath;
 
     return absolutePath;
-    std::cout << "absolutePath: " << absolutePath << std::endl;
 }
 
 void Request::parseRequest(const std::string& rawRequest) 
@@ -167,7 +166,6 @@ void Request::remakeRequest(Servers& server)
             {
                 max_body_size = it->getMaxBodySize();
             }
-            return;
             ExclusivePath exclusivePath = it->getExclusivePath();
             remakeUri(exclusivePath, *it, server.getRoot()); //filepathが設定されているのならURIをfilepathを使って作り直す
             return;
