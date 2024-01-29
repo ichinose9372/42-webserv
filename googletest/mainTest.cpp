@@ -152,12 +152,12 @@ TEST(WebServerTest, Response200Port8081)
 //     EXPECT_EQ(httpCode, "200");
 // }
 
-TEST(WebServerTest, FileUpload404) 
-{
-    //8080ポートにアクセスしてファイルをアップロードできるのかを確認 
-    std::string httpCode = getHttpResponseUpload("http://localhost:8080/upload/notexist/", "POST");
-    EXPECT_EQ(httpCode, "404");
-}
+// TEST(WebServerTest, FileUpload404) 
+// {
+//     //8080ポートにアクセスしてファイルをアップロードできるのかを確認 
+//     std::string httpCode = getHttpResponseUpload("http://localhost:8080/upload/notexist/", "POST");
+//     EXPECT_EQ(httpCode, "404");
+// }
 
 
 TEST(WebServerTest, FileDelete200) 

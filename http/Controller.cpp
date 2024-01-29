@@ -70,7 +70,6 @@ void Controller::setReturnCode(Request &req, Response &res)
 
 std::string Controller::getResponseHtml(int statusCode, Request req)
 {
-    std::cout << "statuscode = " << statusCode << std::endl;
     switch (statusCode)
     {
     case 301:
