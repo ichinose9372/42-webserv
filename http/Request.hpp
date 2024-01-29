@@ -33,6 +33,7 @@ class Request
         const std::pair<int, std::string>& getReturnParameter();
         void remakeRequest(Servers& server);
         size_t getMaxBodySize();
+        const std::string& getErrorpage(int statucode);
         //setter
         void setMethod(const std::string& method);
         void setUri(const std::string& uri);
@@ -42,6 +43,7 @@ class Request
         void setHost(const std::string& host);
         void setBody(const std::string& body);
         void setReturnParameter(int status, std::string filename);
+        void setErrorPage(std::map<int, std::string> error_pages);
         static std::vector<std::string> split(const std::string &s, char delimiter);
         void remakeUri(ExclusivePath& exclusivePath, Locations& location, std::string servers_root);
         bool checkRequestmethod(Locations& location);
@@ -57,6 +59,7 @@ class Request
         std::pair<int, std::string> returnParameter;
         std::string fileName;
         size_t max_body_size;
+        std::map<int, std::string> error_page;
         void parseRequest(const std::string& request);
         void printRequest();
 };

@@ -44,7 +44,6 @@ std::string getAbsolutepath(const std::string& filePath, std::string rootDir)
         absolutePath = "." + absolutePath;
 
     return absolutePath;
-    std::cout << "absolutePath: " << absolutePath << std::endl;
 }
 
 void Request::parseRequest(const std::string& rawRequest) 
@@ -129,13 +128,13 @@ void Request::remakeRequest(Servers& server)
     std::string tmp;
     for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); ++it) 
     {
-        // std::cout << it->first << ": " << it->second << std::endl;
         if (it->first == "Host")
             tmp = it->second;
     }
     std::vector<Locations> locations = server.getLocations();
     for(std::vector<Locations>::iterator it = locations.begin(); it != locations.end(); it++) //リクエストに対してのlocationを探す
     {
+        error_page = server.getErrorpage();
         if (uri == it->getPath()) //locationが一致した場合
         {
             if (it->getReturnCode().first != 0) //returnCodeが設定されている場合
@@ -177,6 +176,7 @@ void Request::remakeRequest(Servers& server)
     for(std::vector<Locations>::iterator it2 = locations2.begin(); it2 != locations2.end(); it2++)
     if(isMatch(uri, *it2)) //リクエストに対してのlocationを探す
     {
+        error_page = server.getErrorpage();
         if (it2->getReturnCode().first != 0) //returnCodeが設定されている場合
         {
             returnParameter = it2->getReturnCode();
@@ -239,6 +239,11 @@ const std::string& Request::getFilepath() { return filepath; }
 
 size_t Request::getMaxBodySize() { return max_body_size; }
 
+const std::string& Request::getErrorpage(int statuscode)
+{
+    return error_page[statuscode];
+}
+
 void Request::setMethod(const std::string& method) { this->method = method; }
 
 void Request::setUri(const std::string& uri) { this->uri = uri; }
@@ -258,3 +263,5 @@ void Request::setReturnParameter(int status, std::string filename)
     returnParameter.first = status;
     returnParameter.second = filename;
 }
+
+void Request::setErrorPage(std::map<int, std::string> error_pages) {this->error_page = error_pages; }

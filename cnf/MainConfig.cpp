@@ -150,6 +150,8 @@ void MainConfig::parseServerBlock(std::vector<std::string>::iterator& it, Server
         handleClientMaxBodySize(it, server);
     else if (*it == "root") 
         handleRoot(it, server);
+    else if (*it == "error_page")
+        hadleErrorPage(it,server);
     else 
     {
         std::cout << "it: " << *it << std::endl;
@@ -232,4 +234,25 @@ void MainConfig::handleRoot(std::vector<std::string>::iterator& it, Servers& ser
     it++;
     removeTrailingSemicolon(*it);
     server.setRoot(*it);
+}
+
+void MainConfig::hadleErrorPage(std::vector<std::string>::iterator& it, Servers& server)
+{
+     while (it != tokens.end()) 
+    {
+        it++;
+        std::string statusCode = *it;
+        ++it; // 次のトークンへ移動
+
+        if (it != tokens.end() && it->find(";") != std::string::npos) 
+        {
+            removeTrailingSemicolon(*it);
+            std::string errorPagePath = *it;
+            server.setErrorPage(statusCode, errorPagePath);
+            return;
+        }
+        std::string errorPagePath = *it;
+        server.setErrorPage(statusCode, errorPagePath);
+    }
+    
 }

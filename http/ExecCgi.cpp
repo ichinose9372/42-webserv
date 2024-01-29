@@ -22,7 +22,7 @@ void ExecCgi::executeCgiScript(Request &req, Response &res)
     if (!isScriptAccessible(path))
     {
         res.setStatus("404 Not Found");
-        res.setBody("<html><body><h1>404 Not Found</h1><p>Requested script not found.</p></body></html>");
+        res.setBody(GetRequest::getBody(req.getErrorpage(404)));
         return;
     }
     // CGI実行のための共通処理
@@ -32,14 +32,17 @@ void ExecCgi::executeCgiScript(Request &req, Response &res)
 bool ExecCgi::isScriptAccessible(const std::string &path)
 {
     struct stat buffer;
-
     // stat関数を使用してファイルの情報を取得
     if (stat(path.c_str(), &buffer) != 0)
-        return false;
+    {
+            return false;
+    }
 
     // S_IXUSRは所有者の実行権限があるかをチェック
     if ((buffer.st_mode & S_IXUSR) == 0)
+    {
         return false;
+    }
 
     return true;
 }
@@ -59,7 +62,7 @@ void ExecCgi::executeCommonCgiScript(Request &req, Response &res, const std::str
     if (pid < 0)
     {
         res.setStatus("500 Internal Server Error");
-        res.setBody("<html><body><h1>500 Internal Server Error</h1><p>Failed to fork process.</p></body></html>");
+        res.setBody(GetRequest::getBody(req.getErrorpage(500)));
         close(pipefd[0]);
         close(pipefd[1]);
         return;
@@ -120,7 +123,7 @@ void ExecCgi::executeCommonCgiScript(Request &req, Response &res, const std::str
                 if (WEXITSTATUS(status) == 500)
                 {
                     res.setStatus("500 Internal Server Error");
-                    res.setBody("");
+                    res.setBody(GetRequest::getBody(req.getErrorpage(500)));
                     return;
                 }
                 break;

@@ -40,6 +40,7 @@ class MainConfig
         void handleLocation(std::vector<std::string>::iterator& it, Servers& server);
         void handleRoot(std::vector<std::string>::iterator& it, Servers& server);
         void handleClientMaxBodySize(std::vector<std::string>::iterator& it, Servers& server);
+        void hadleErrorPage(std::vector<std::string>::iterator& it, Servers& server);
         MainConfig(const std::string& filename);
         ~MainConfig();
 };
