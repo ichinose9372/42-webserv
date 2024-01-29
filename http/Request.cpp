@@ -142,6 +142,7 @@ void Request::remakeRequest(Servers& server)
                 returnParameter = it->getReturnCode();
                 return;
             }
+            
             if (it->getAutoindex()) //autoindexが設定されている場合
             {
                 std::string oldRoot = server.getRoot();
