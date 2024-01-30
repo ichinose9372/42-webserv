@@ -243,7 +243,7 @@ Request Server::findServerandlocaitons(int socket_fd,const std::string &buffer)
 {
     (void) socket_fd;
     Request req(buffer);
-    Servers server;
+    Servers server = findServerBySocket(socket_fd);
     std::multimap<int, Servers>::iterator it = requestMap.begin();
     for (; it != requestMap.end(); it++)
     {
