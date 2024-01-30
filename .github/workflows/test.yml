@@ -10,7 +10,7 @@ jobs:
 
       - name: コンパイラのインストール
         run: 
-          brew install gcc make cmake
+          apt-get install gcc make cmake
 
       - name: webservをビルド
         run: |
