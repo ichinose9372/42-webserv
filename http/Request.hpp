@@ -34,6 +34,7 @@ public:
     void remakeRequest(Servers &server);
     size_t getMaxBodySize();
     size_t getClientMaxBodySize();
+    size_t getContentLength();
     const std::string &getErrorpage(int statucode);
     // setter
     void setMethod(const std::string &method);
@@ -43,11 +44,13 @@ public:
     void setHeaders(std::string key, std::string value);
     void setHost(const std::string &host);
     void setBody(const std::string &body);
+    void setContentLength(size_t content_length);
     void setReturnParameter(int status, std::string filename);
     void setErrorPage(std::map<int, std::string> error_pages);
     static std::vector<std::string> split(const std::string &s, char delimiter);
     void remakeUri(ExclusivePath &exclusivePath, Locations &location, std::string servers_root);
     bool checkRequestmethod(Locations &location);
+    bool checkClientMaxBodySize(size_t size);
     Request();
 
 private:
@@ -62,6 +65,7 @@ private:
     std::string fileName;
     size_t max_body_size;
     size_t client_max_body_size;
+    size_t content_length;
     std::map<int, std::string> error_page;
     void parseRequest(const std::string &request);
     void printRequest();

@@ -124,6 +124,17 @@ bool isMatch(const std::string &uri, Locations &location)
     return false;
 }
 
+bool Request::checkClientMaxBodySize(size_t size)
+{
+    if (getContentLength() > size)
+    {
+        returnParameter.first = 413;
+        returnParameter.second = "404.html";
+        return false;
+    }
+    return true;
+}
+
 void Request::remakeRequest(Servers &server)
 {
     std::string tmp;
@@ -168,6 +179,12 @@ void Request::remakeRequest(Servers &server)
             {
                 max_body_size = it->getMaxBodySize();
             }
+            if (it->getClientMaxBodySize() != 0) // clientmaxBodySizeが設定されている場合
+            {
+                client_max_body_size = it->getClientMaxBodySize();
+                if (!checkClientMaxBodySize(client_max_body_size))
+                    return;
+            }
             ExclusivePath exclusivePath = it->getExclusivePath();
             remakeUri(exclusivePath, *it, server.getRoot()); // filepathが設定されているのならURIをfilepathを使って作り直す
             return;
@@ -198,6 +215,12 @@ void Request::remakeRequest(Servers &server)
             if (it2->getMaxBodySize() != 0) // maxBodySizeが設定されている場合
             {
                 max_body_size = it2->getMaxBodySize();
+            }
+            if (it2->getClientMaxBodySize() != 0) // clientmaxBodySizeが設定されている場合
+            {
+                client_max_body_size = it2->getClientMaxBodySize();
+                if (!checkClientMaxBodySize(client_max_body_size))
+                    return;
             }
             ExclusivePath exclusivePath = it2->getExclusivePath();
             remakeUri(exclusivePath, *it2, server.getRoot()); // filepathが設定されているのならURIをfilepathを使って作り直す
@@ -248,6 +271,8 @@ const std::string &Request::getErrorpage(int statuscode)
     return error_page[statuscode];
 }
 
+size_t Request::getContentLength() { return content_length; };
+
 void Request::setMethod(const std::string &method) { this->method = method; }
 
 void Request::setUri(const std::string &uri) { this->uri = uri; }
@@ -267,5 +292,7 @@ void Request::setReturnParameter(int status, std::string filename)
     returnParameter.first = status;
     returnParameter.second = filename;
 }
+
+void Request::setContentLength(size_t contentLength) { this->content_length = contentLength; }
 
 void Request::setErrorPage(std::map<int, std::string> error_pages) { this->error_page = error_pages; }
