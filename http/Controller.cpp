@@ -8,22 +8,31 @@ Controller::~Controller()
 {
 }
 
-std::string createNewFilePath(const std::string& originalPath, int number) 
+std::string createNewFilePath(const std::string& originalPath, int number)
 {
-	std::ostringstream numStr;
+    std::ostringstream numStr;
     numStr << number; // int型のnumberを文字列に変換
 
-    std::string::size_type pos = originalPath.find_last_of(".");
-    std::string baseName = originalPath.substr(0, pos);
-    std::string extension = (pos != std::string::npos) ? originalPath.substr(pos) : "";
+    std::string baseName;
+    std::string extension;
+    size_t pos = originalPath.find_last_of(".");
 
-    // 既存の数字を取り除く（例: "test1" から "test" に変換）
+    if (pos != std::string::npos && pos != 0) {
+        // 拡張子がある場合
+        extension = originalPath.substr(pos);
+        baseName = originalPath.substr(0, pos);
+    } else {
+        // 拡張子がない場合
+        baseName = originalPath;
+    }
+
+    // 既存の数字を取り除く
     std::string::size_type lastDigitPos = baseName.find_last_not_of("0123456789");
     if (lastDigitPos != std::string::npos) {
         baseName = baseName.substr(0, lastDigitPos + 1);
     }
 
-    // 新しいファイル名を生成（例: "test" + "2" + ".txt"）
+    // 新しいファイル名を生成
     return baseName + numStr.str() + extension;
 }
 
