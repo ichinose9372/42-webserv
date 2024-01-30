@@ -4,14 +4,13 @@ on:
     pull_request:
 jobs:
   build-and-test-webserver:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
 
       - name: コンパイラのインストール
-        run: |
-          apt update
-          apt install gcc make cmake
+        run: 
+          brew install gcc make cmake
 
       - name: webservをビルド
         run: |
