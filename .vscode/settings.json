@@ -68,6 +68,8 @@
         "span": "cpp",
         "thread": "cpp",
         "unordered_set": "cpp",
+<<<<<<< HEAD
+=======
         "__functional_base": "cpp",
         "__nullptr": "cpp",
         "__string": "cpp",
@@ -79,6 +81,7 @@
         "memory": "cpp",
         "stack": "cpp",
         "type_traits": "cpp",
+>>>>>>> main
         "utility": "cpp"
     }
 }
