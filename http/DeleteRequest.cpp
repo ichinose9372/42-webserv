@@ -12,7 +12,6 @@ void DeleteRequest::handleDeleteRequest(Request& req, Response& res)
 {
     
     std::string path = req.getUri();
-    //先にファイルにアクセス権があるかどうかを確認する
     if (access(path.c_str(), W_OK) != -1)
     {
     // 実行権限がある場合（ファイルにアクセスできる）
@@ -27,7 +26,7 @@ void DeleteRequest::handleDeleteRequest(Request& req, Response& res)
         else // その他のエラー
         {
             res.setStatus("500 Internal Server Error");
-            res.setBody("<html><body><h1>500 Internal Server Error</h1></body></html>");
+            res.setBody(GetRequest::getBody(req.getErrorpage(500)));
         }
         res.setHeaders("Content-Type: ", "text/html");
         res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
@@ -39,7 +38,7 @@ void DeleteRequest::handleDeleteRequest(Request& req, Response& res)
         if (errno == ENOENT) // ファイルが存在しない
         {
             res.setStatus("404 Not Found");
-            res.setBody("<html><body><h1>404 Not Found</h1></body></html>");
+            res.setBody(GetRequest::getBody(req.getErrorpage(404)));
         }
         else if (errno == EACCES) // アクセス権がない
         {

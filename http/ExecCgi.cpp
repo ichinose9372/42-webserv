@@ -4,13 +4,25 @@ ExecCgi::ExecCgi() {}
 
 ExecCgi::~ExecCgi() {}
 
+bool isDirectory(const std::string &filePath)
+{
+    if (filePath.substr(filePath.size() - 1) == "/")
+        return (true);
+    return (false);
+}
+
 void ExecCgi::executeCgiScript(Request &req, Response &res)
 {
-    std::string path = req.getUri();
+    std::string path;
+    if (isDirectory(req.getUri()))
+        path = "./autoindex/autoindex.py";
+    else
+        path = req.getUri();
+    // std::cout << path << std::endl;
     if (!isScriptAccessible(path))
     {
         res.setStatus("404 Not Found");
-        res.setBody("<html><body><h1>404 Not Found</h1><p>Requested script not found.</p></body></html>");
+        res.setBody(GetRequest::getBody(req.getErrorpage(404)));
         return;
     }
     // CGI実行のための共通処理
@@ -20,14 +32,17 @@ void ExecCgi::executeCgiScript(Request &req, Response &res)
 bool ExecCgi::isScriptAccessible(const std::string &path)
 {
     struct stat buffer;
-
     // stat関数を使用してファイルの情報を取得
     if (stat(path.c_str(), &buffer) != 0)
-        return false;
+    {
+            return false;
+    }
 
     // S_IXUSRは所有者の実行権限があるかをチェック
     if ((buffer.st_mode & S_IXUSR) == 0)
+    {
         return false;
+    }
 
     return true;
 }
@@ -47,7 +62,7 @@ void ExecCgi::executeCommonCgiScript(Request &req, Response &res, const std::str
     if (pid < 0)
     {
         res.setStatus("500 Internal Server Error");
-        res.setBody("<html><body><h1>500 Internal Server Error</h1><p>Failed to fork process.</p></body></html>");
+        res.setBody(GetRequest::getBody(req.getErrorpage(500)));
         close(pipefd[0]);
         close(pipefd[1]);
         return;
@@ -66,6 +81,7 @@ void ExecCgi::executeCommonCgiScript(Request &req, Response &res, const std::str
 
         // CGIスクリプトの実行
         const char *scriptName = path.c_str();
+        // std::cout << scriptName << std::endl;
         if (path.substr(path.size() - 3) == ".py")
         {
             const char *pythonPath = "./venv/bin/python3";
@@ -77,7 +93,7 @@ void ExecCgi::executeCommonCgiScript(Request &req, Response &res, const std::str
             char *argv[] = {const_cast<char *>(scriptName), NULL};
             execve(path.c_str(), argv, envpCGI.data());
         }
-        exit(EXIT_FAILURE);
+        std::exit(EXIT_FAILURE);
     }
     else if (pid > 0)
     {
@@ -91,7 +107,7 @@ void ExecCgi::executeCommonCgiScript(Request &req, Response &res, const std::str
         // パイプの読み取り側を非ブロッキングに設定
         fcntl(pipefd[0], F_SETFL, O_NONBLOCK);
 
-        pid_t   ret;
+        pid_t ret;
         while (true)
         {
             ret = waitpid(pid, &status, WNOHANG);
@@ -101,18 +117,18 @@ void ExecCgi::executeCommonCgiScript(Request &req, Response &res, const std::str
                 break;
             }
             if (ret == 0)
-                continue ;
+                continue;
             if (WIFEXITED(status))
             {
                 if (WEXITSTATUS(status) == 500)
                 {
                     res.setStatus("500 Internal Server Error");
-                    res.setBody("");
+                    res.setBody(GetRequest::getBody(req.getErrorpage(500)));
                     return;
                 }
-                break ;
+                break;
             }
-            break ;
+            break;
         }
         // タイムアウトが発生した場合、子プロセスを終了させる
         if (timeoutOccurred)
@@ -181,7 +197,12 @@ std::vector<std::string> ExecCgi::buildEnvVars(Request &req)
         // その他のPOSTに特有の環境変数設定
     }
     // 共通の環境変数設定
-    // ...
+    // std::string erasePath = "autoindex.py";
+    std::string autoindexPath = req.getUri();
+    // autoindexPath = autoindexPath.erase(autoindexPath.size() - erasePath.size());
+    autoindexPath = "AUTOINDEX=" + autoindexPath;
+    // std::cout << autoindexPath << std::endl;
+    envVars.push_back(autoindexPath);
     return envVars;
 }
 

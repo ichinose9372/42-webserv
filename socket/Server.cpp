@@ -130,15 +130,30 @@ bool Server::isTimeout(clock_t start)
     return time > TIMEOUT;
 }
 
+static int stringToInt(const std::string &str, bool &success) {
+    std::istringstream iss(str);
+    int number;
+    iss >> number;
+
+    success = iss.good() || iss.eof();
+    return success ? number : 0;
+}
+
 // ヘッダをパースし、Content-Lengthの値を返す。
-int getContentLengthFromHeaders(const std::string &headers) {
+static int getContentLengthFromHeaders(const std::string &headers) {
     // ヘッダからContent-Lengthの値を見つけ、整数として返す疑似コード
     std::string contentLengthKeyword = "Content-Length: ";
     size_t startPos = headers.find(contentLengthKeyword);
     if (startPos != std::string::npos) {
         size_t endPos = headers.find("\r\n", startPos);
         std::string contentLengthValue = headers.substr(startPos + contentLengthKeyword.length(), endPos - (startPos + contentLengthKeyword.length()));
-        return std::stoi(contentLengthValue);
+        bool conversionSuccess;
+        int contentLength = stringToInt(contentLengthValue, conversionSuccess);
+        if (conversionSuccess) {
+            return contentLength;
+        } else {
+            std::cerr << "Content-Length conversion failed: invalid value" << std::endl;
+        }
     }
     return -1; // Content-Lengthが見つからない場合
 }
@@ -226,6 +241,7 @@ Request Server::findServerandlocaitons(int socket_fd, const std::string &buffer)
 {
     Request req(buffer);
     Servers server = findServerBySocket(socket_fd);
+    // std::cout << server.getServerNames() << std::endl;
     if (req.getReturnParameter().first != 0)
     {
         return req;

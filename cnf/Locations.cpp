@@ -37,11 +37,6 @@ void Locations::setAutoindex(bool autoindex)
     this->autoindex = autoindex;
 }
 
-void Locations::setErrorPages(int error_code, const std::string& error_page)
-{
-    error_pages[error_code] = error_page;
-}
-
 void Locations::setReturnCode(int return_code, const std::string& return_page)
 {
     this->return_code.first = return_code;
@@ -58,10 +53,7 @@ bool Locations::getAutoindex(void)
     return (this->autoindex);
 }
 
-const std::map<int, std::string>& Locations::getErrorPages(void)
-{
-    return (this->error_pages);
-}  
+
 
 const std::pair<int, std::string>& Locations::getReturnCode(void)
 {
@@ -83,10 +75,7 @@ void Locations::setExclusivePath(const std::string& path, std::string pathType)
         throw std::runtime_error("Parse error: Invalid path type");
 }
 
-void Locations::setUploadPath(const std::string& upload_path)
-{
-    this->upload_path = upload_path;
-}
+
 
 void Locations::setMaxBodySize(const std::string& max_body_size)
 {
@@ -99,7 +88,6 @@ void Locations::setMaxBodySize(const std::string& max_body_size)
         throw std::runtime_error("Parse error: max body size is not a number");
     this->max_body_size = tmp_max_body_size;
 }
-
 
 const ExclusivePath& Locations::getExclusivePath(void)
 {

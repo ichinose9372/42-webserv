@@ -25,26 +25,12 @@ std::string Controller::getFilepath(Request &req)
         filenameEnd = body.length(); // In case there's no trailing ';'
 
     std::string filename = body.substr(filenamePos , filenameEnd - filenamePos);
-
-    // std::map<std::string, std::string> headers = req.getHeaders();
-    // std::string dispositionHeader = "Content-Disposition";
-
-    // if (headers.find(dispositionHeader) == headers.end())
-    //     return "";
-
-    // std::string headerValue = headers[dispositionHeader];
-    // std::size_t filenamePos = headerValue.find("filename=");
-
-    // if (filenamePos == std::string::npos)
-    //     return "";
-
-    // filenamePos += 9; // Skip past "filename="
-    // std::size_t filenameEnd = headerValue.find(';', filenamePos);
-
-    // std::string filename = headerValue.substr(filenamePos, filenameEnd - filenamePos);
     filename = sanitizeFilename(filename);
-
-    std::string path = req.getUri() + filename;
+    std::string path = req.getUri();
+    if (path[path.length() - 1] != '/')
+        path += '/';
+    path += filename;
+    // std::cout << "path: " << path << std::endl;
     return path;
 }
 
@@ -69,7 +55,7 @@ void Controller::setReturnCode(Request &req, Response &res)
 {
     int returnCode = req.getReturnParameter().first;
     std::string returnPage = req.getReturnParameter().second;
-    std::string responseHtml = getResponseHtml(returnCode);
+    std::string responseHtml = getResponseHtml(returnCode, req);
 
     res.setStatus(res.getStatusMessage(returnCode));
     if (returnCode == 301)
@@ -82,7 +68,7 @@ void Controller::setReturnCode(Request &req, Response &res)
     res.setResponse();
 }
 
-std::string Controller::getResponseHtml(int statusCode)
+std::string Controller::getResponseHtml(int statusCode, Request req)
 {
     switch (statusCode)
     {
@@ -91,11 +77,11 @@ std::string Controller::getResponseHtml(int statusCode)
     case 403:
         return "<html><body><h1>403 Forbidden</h1></body></html>";
     case 404:
-        return "<html><body><h1>404 Not Found</h1></body></html>";
+        return GetRequest::getBody(req.getErrorpage(404));
     case 405:
         return "<html><body><h1>405 Method Not Allowed</h1></body></html>";
     case 500:
-        return "<html><body><h1>500 Internal Server Error</h1></body></html>";
+        return GetRequest::getBody(req.getErrorpage(500));
     // 他のステータスコードに対するHTMLテキスト
     default:
         return "<html><body><h1>Error</h1><p>Unknown Error Occurred</p></body></html>";

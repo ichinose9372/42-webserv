@@ -59,7 +59,7 @@ void Request::remakeUri(ExclusivePath& exclusivePath, Locations& location, std::
     {
         uri = getAbsolutepath(filepath, servers_root);
     }
-    if (stat(uri.c_str(), &statbuf) == 0) 
+    if (stat(uri.c_str(), &statbuf) == 0) //uriが存在する場合
     {
         if (S_ISREG(statbuf.st_mode) && access(uri.c_str(), R_OK) == 0)
             return;
@@ -77,7 +77,7 @@ void Request::remakeUri(ExclusivePath& exclusivePath, Locations& location, std::
                 uri = getAbsolutepath(indexs.front(), path);
         }
     }
-    else
+    else //uriが存在しない場合
     {
         std::string path = exclusivePath.getPath(); //locationのrootかaliasを取得
         if (path.empty())
@@ -105,11 +105,36 @@ bool Request::checkRequestmethod(Locations& location)
     return true;
 }
 
+bool isMatch(const std::string& uri, Locations& location) 
+{
+    // 完全一致をチェック
+    if (uri == location.getPath()) 
+    {
+        return true;
+    }
+    // 前方一致をチェック
+    if (uri.find(location.getPath()) == 0) 
+    {
+        // サブディレクトリが正しく一致するかを確認
+        if (uri[location.getPath().length()] == '/' || location.getPath().back() == '/') {
+            return true;
+        }
+    }
+    return false;
+}
+
 void Request::remakeRequest(Servers& server)
 {
+    std::string tmp;
+    for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); ++it) 
+    {
+        if (it->first == "Host")
+            tmp = it->second;
+    }
     std::vector<Locations> locations = server.getLocations();
     for(std::vector<Locations>::iterator it = locations.begin(); it != locations.end(); it++) //リクエストに対してのlocationを探す
-    {   
+    {
+        error_page = server.getErrorpage();
         if (uri == it->getPath()) //locationが一致した場合
         {
             if (it->getReturnCode().first != 0) //returnCodeが設定されている場合
@@ -117,9 +142,19 @@ void Request::remakeRequest(Servers& server)
                 returnParameter = it->getReturnCode();
                 return;
             }
+            
             if (it->getAutoindex()) //autoindexが設定されている場合
             {
-                uri = getAbsolutepath("autoindex/app.py", server.getRoot());
+                std::string oldRoot = server.getRoot();
+                std::string eracePath = "/";
+                oldRoot.erase(oldRoot.size() - eracePath.size());
+                std::string newRoot = oldRoot + it->getPath();
+                server.setRoot(newRoot);
+                if (it->getIndex().front().empty())
+                    uri = server.getRoot();
+                else
+                    uri = getAbsolutepath(it->getIndex().front(), server.getRoot());
+                // std::cout << uri << std::endl;
                 return;
             }
             if (checkRequestmethod(*it)) //locationのmethodとリクエストmethodが一致しない場合
@@ -137,13 +172,44 @@ void Request::remakeRequest(Servers& server)
             return;
         }
     }
-    //locationが一致しなかった場合
+    //locationがない場合前方一致絵尾さがす処理
+    std::vector<Locations> locations2 = server.getLocations();
+    for(std::vector<Locations>::iterator it2 = locations2.begin(); it2 != locations2.end(); it2++)
+    if(isMatch(uri, *it2)) //リクエストに対してのlocationを探す
+    {
+        error_page = server.getErrorpage();
+        if (it2->getReturnCode().first != 0) //returnCodeが設定されている場合
+        {
+            returnParameter = it2->getReturnCode();
+            return;
+        }
+        if (it2->getAutoindex()) //autoindexが設定されている場合
+        {
+            uri = getAbsolutepath("autoindex/app.py", server.getRoot());
+            return;
+        }
+        if (checkRequestmethod(*it2)) //locationのmethodとリクエストmethodが一致しない場合
+        {
+            returnParameter.first = 405;
+            returnParameter.second = "405.html";
+            return;
+        }
+        if (it2->getMaxBodySize() != 0) //maxBodySizeが設定されている場合
+        {
+            max_body_size = it2->getMaxBodySize();
+        }
+        ExclusivePath exclusivePath = it2->getExclusivePath();
+        remakeUri(exclusivePath, *it2, server.getRoot()); //filepathが設定されているのならURIをfilepathを使って作り直す
+        return;
+    }
+    //locationがない場合
     returnParameter.first = 404;
     returnParameter.second = "404.html";
 }
 
 void Request::printRequest() 
 {
+    std::cout << "--- Request ---" << std::endl;
     std::cout << "Method: " << method << std::endl;
     std::cout << "URI: " << uri << std::endl;
     std::cout << "HTTP Version: " << httpVersion << std::endl;
@@ -153,6 +219,7 @@ void Request::printRequest()
         std::cout << it->first << ": " << it->second << std::endl;
     }
     std::cout << "Body: " << body << std::endl;
+    std::cout << "--- Request End ---" << std::endl;
 }
 
 const std::string& Request::getMethod() { return method; }
@@ -173,6 +240,11 @@ const std::string& Request::getFilepath() { return filepath; }
 
 size_t Request::getMaxBodySize() { return max_body_size; }
 
+const std::string& Request::getErrorpage(int statuscode)
+{
+    return error_page[statuscode];
+}
+
 void Request::setMethod(const std::string& method) { this->method = method; }
 
 void Request::setUri(const std::string& uri) { this->uri = uri; }
@@ -192,3 +264,5 @@ void Request::setReturnParameter(int status, std::string filename)
     returnParameter.first = status;
     returnParameter.second = filename;
 }
+
+void Request::setErrorPage(std::map<int, std::string> error_pages) {this->error_page = error_pages; }
