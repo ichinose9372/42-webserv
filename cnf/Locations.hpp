@@ -20,6 +20,7 @@ class Locations
         std::pair<int, std::string> return_code;
         std::string cgi_extension;//cgi_path
         size_t max_body_size;
+        size_t client_max_body_size;
         std::vector<std::string> methods;
 
     public:
@@ -33,6 +34,7 @@ class Locations
         void setReturnCode(int return_code, const std::string& return_page);
         void setCgiExtension(const std::string& cgi_extension);
         void setMaxBodySize(const std::string& max_body_size);
+        void setClientMaxBodySize(const std::string& client_max_body_size);
         void setMethod(const std::string& method);
         //getter
         const std::string& getPath(void);
@@ -43,6 +45,7 @@ class Locations
         const ExclusivePath& getExclusivePath(void);
         const std::vector<std::string>& getMethod(void);
         size_t getMaxBodySize(void);
+        size_t getClientMaxBodySize(void);
 };
 
 #endif
