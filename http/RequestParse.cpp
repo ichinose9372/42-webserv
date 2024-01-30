@@ -94,9 +94,17 @@ void RequestParse::parseHeader(const std::string &line, Request &request)
     {
         std::string key = headerTokens[0];
         std::string value = headerTokens[1];
+
+        // 先頭の空白文字を削除
+        size_t start = value.find_first_not_of(' ');
+        if (start != std::string::npos) {
+            value = value.substr(start);
+        }
         request.setHeaders(key, value);
         if (key == "Host")
+        {
             request.setHost(value);
+        }
         if (key == "Content-Length")
         {
             std::istringstream iss(value);

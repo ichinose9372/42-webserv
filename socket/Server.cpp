@@ -232,16 +232,26 @@ Servers Server::findServerBySocket(int socket_fd)
     for (; it != requestMap.end(); it++)
     {
         if (it->first == socket_fd)
+        {
             return it->second;
+        }
     }
     throw std::runtime_error("Server not found");
 }
 
-Request Server::findServerandlocaitons(int socket_fd, const std::string &buffer)
+Request Server::findServerandlocaitons(int socket_fd,const std::string &buffer)
 {
+    (void) socket_fd;
     Request req(buffer);
-    Servers server = findServerBySocket(socket_fd);
-    // std::cout << server.getServerNames() << std::endl;
+    Servers server;
+    std::multimap<int, Servers>::iterator it = requestMap.begin();
+    for (; it != requestMap.end(); it++)
+    {
+        if (it->second.getServerNames() == req.getHost())
+        {
+            server = it->second;
+        }
+    }
     if (req.getReturnParameter().first != 0)
     {
         return req;
