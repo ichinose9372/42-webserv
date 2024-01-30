@@ -8,6 +8,31 @@ Controller::~Controller()
 {
 }
 
+std::string createNewFilePath(const std::string& originalPath, int number) 
+{
+	std::ostringstream numStr;
+    numStr << number; // int型のnumberを文字列に変換
+
+    std::string::size_type pos = originalPath.find_last_of(".");
+    std::string baseName = originalPath.substr(0, pos);
+    std::string extension = (pos != std::string::npos) ? originalPath.substr(pos) : "";
+
+    // 既存の数字を取り除く（例: "test1" から "test" に変換）
+    std::string::size_type lastDigitPos = baseName.find_last_not_of("0123456789");
+    if (lastDigitPos != std::string::npos) {
+        baseName = baseName.substr(0, lastDigitPos + 1);
+    }
+
+    // 新しいファイル名を生成（例: "test" + "2" + ".txt"）
+    return baseName + numStr.str() + extension;
+}
+
+bool fileExists(const std::string& fileName) {
+    std::ifstream file(fileName.c_str());
+    return file.good();
+}
+
+
 std::string Controller::getFilepath(Request &req)
 {
     std::string body = req.getBody();
@@ -29,7 +54,20 @@ std::string Controller::getFilepath(Request &req)
     std::string path = req.getUri();
     if (path[path.length() - 1] != '/')
         path += '/';
+    //check file exist
     path += filename;
+    if (fileExists(path)) 
+    {
+        int copyNumber = 1;
+        std::string copyPath = path;
+
+        // 利用可能なコピー先のファイル名を見つける
+        do {
+            copyPath = createNewFilePath(copyPath, copyNumber);
+            copyNumber++;
+        } while (fileExists(copyPath));
+        path = copyPath;
+    }
     // std::cout << "path: " << path << std::endl;
     return path;
 }
