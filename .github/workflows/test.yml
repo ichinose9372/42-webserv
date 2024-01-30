@@ -4,7 +4,7 @@ on:
     pull_request:
 jobs:
   build-and-test-webserver:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
