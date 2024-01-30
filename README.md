@@ -18,3 +18,23 @@ c1r14s8% source venv/bin/activate
 補足
 c1r14s8% ./webserv configrations/default.conf
 - 通常の環境では/index/以外のlocationは実行できます
+
+
+# Webserv 
+
+## 概要
+webserverを実装した
+
+## セットアップ方法
+```
+git clone git@github.com:ichinose9372/42-webserv.git webserv
+cd webserv
+make
+```
+
+## 実行方法
+引数としてconfiglationsフォルダのファイルを渡します。  
+```
+ ./webserv configrations/default.conf
+```
+ 
