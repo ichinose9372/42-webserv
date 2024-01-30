@@ -113,6 +113,7 @@ void RequestParse::parseHeader(const std::string &line, Request &request)
                 request.setReturnParameter(413, "");
                 return;
             }
+            request.setContentLength(contentLength);
         }
     }
 }
