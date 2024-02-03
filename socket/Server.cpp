@@ -130,130 +130,81 @@ bool Server::isTimeout(clock_t start)
     return time > TIMEOUT;
 }
 
-static int stringToInt(const std::string &str, bool &success) {
-    std::istringstream iss(str);
-    int number;
-    iss >> number;
+// static int stringToInt(const std::string &str, bool &success) {
+//     std::istringstream iss(str);
+//     int number;
+//     iss >> number;
 
-    success = iss.good() || iss.eof();
-    return success ? number : 0;
-}
+//     success = iss.good() || iss.eof();
+//     return success ? number : 0;
+// }
 
 // ヘッダをパースし、Content-Lengthの値を返す。
-static int getContentLengthFromHeaders(const std::string &headers) {
-    // ヘッダからContent-Lengthの値を見つけ、整数として返す疑似コード
-    std::string contentLengthKeyword = "Content-Length: ";
-    size_t startPos = headers.find(contentLengthKeyword);
-    if (startPos != std::string::npos) {
-        size_t endPos = headers.find("\r\n", startPos);
-        std::string contentLengthValue = headers.substr(startPos + contentLengthKeyword.length(), endPos - (startPos + contentLengthKeyword.length()));
-        bool conversionSuccess;
-        int contentLength = stringToInt(contentLengthValue, conversionSuccess);
-        if (conversionSuccess) {
-            return contentLength;
-        } else {
-            std::cerr << "Content-Length conversion failed: invalid value" << std::endl;
-        }
-    }
-    return -1; // Content-Lengthが見つからない場合
-}
+// static int getContentLengthFromHeaders(const std::string &headers) {
+//     // ヘッダからContent-Lengthの値を見つけ、整数として返す疑似コード
+//     std::string contentLengthKeyword = "Content-Length: ";
+//     size_t startPos = headers.find(contentLengthKeyword);
+//     if (startPos != std::string::npos) {
+//         size_t endPos = headers.find("\r\n", startPos);
+//         std::string contentLengthValue = headers.substr(startPos + contentLengthKeyword.length(), endPos - (startPos + contentLengthKeyword.length()));
+//         bool conversionSuccess;
+//         int contentLength = stringToInt(contentLengthValue, conversionSuccess);
+//         if (conversionSuccess) {
+//             return contentLength;
+//         } else {
+//             std::cerr << "Content-Length conversion failed: invalid value" << std::endl;
+//         }
+//     }
+//     return -1; // Content-Lengthが見つからない場合
+// }
 
 bool Server::receiveRequest(int socket_fd, std::string &Request)
 {
     int valread;
     char buffer[BUFFER_SIZE] = {0};
-    clock_t start = Timer::startTimer();
-    int contentLength = -1; // ボディサイズ
-    int receivedLength = 0; // ボディの総受信データ数
-    bool bodyFlg = false;     // 読み込みデータにボディが存在するかどうか
-    bool headerNowFlg = true; // 読み込みデータがヘッダかどうか
-
-    // valreadがBUFFER_SIZEと等しいか、もしくは0以上の場合ループを続ける
-    while (true) {
-        valread = recv(socket_fd, buffer, BUFFER_SIZE, 0);
-
-        if (valread > 0)
-        {
-            // 受信したデータをリクエストに追加
-            Request.append(buffer, valread);
-
-            // ボディを持っているかつ読み込み内容がヘッダである場合、総受信データ数をカウント
-            if (!headerNowFlg && bodyFlg)
-                receivedLength += valread;
-
-            // valreadの更新
-            if (contentLength == -1)
-            {
-                // Content-Lengthの値をヘッダから取得する
-                contentLength = getContentLengthFromHeaders(Request);
-                if (contentLength != -1)
-                    bodyFlg = true;
-            }
-            // 読み込み内容がヘッダかどうか
-            if (headerNowFlg)
-            {
-                if (Request.find("\r\n\r\n") != std::string::npos)
-                    headerNowFlg = false;
-            }
-
-            // 必要な量を受信したらループを終了
-            if (!headerNowFlg && receivedLength >= contentLength)
-                break;
-
-            // タイムアウトチェック
-            if (isTimeout(start))
-                return true;
-
-            // バッファをクリア
-            memset(buffer, 0, BUFFER_SIZE);
-        }
-        else if (valread == 0)
-        {
-            if (isTimeout(start))
-                return true;
-            return false;
-        }
-        else
-        {
-            // if (errno == EWOULDBLOCK || errno == EAGAIN)
-                continue; // データがまだ利用可能でない。後で再試行するためにループを継続する。
-            close(socket_fd);
-            throw std::runtime_error("Recv failed");
-        }
-    }
-
-    // std::cout << "Request ===>>> " << Request << std::endl;
-    return false;
-}
-
-Servers Server::findServerBySocket(int socket_fd)
-{
-    std::multimap<int, Servers>::iterator it = requestMap.begin();
-    for (; it != requestMap.end(); it++)
+    valread = recv(socket_fd, buffer, BUFFER_SIZE, 0);
+    if (valread >= BUFFER_SIZE)
     {
-        if (it->first == socket_fd)
-        {
-            return it->second;
-        }
+        Request.append(buffer, valread);
+        return false;
     }
-    throw std::runtime_error("Server not found");
+    else if (valread == 0)//読み込みが完全に終了したのかをあboolで確認する。
+    {
+        return true;
+    }
+    else if (valread > 0)
+    {
+        Request.append(buffer, valread); //読み込みが完全に終了したのかをあboolで確認する。
+        return true;
+    }
+    else
+    {
+        close(socket_fd);
+        deletePollfds(socket_fd);
+        return false;
+    }
 }
 
 Request Server::findServerandlocaitons(int socket_fd,const std::string &buffer)
 {
     (void) socket_fd;
     Request req(buffer);
-    Servers server = findServerBySocket(socket_fd);
+    Servers server;
+    bool foundServer = false; 
+
     std::multimap<int, Servers>::iterator it = requestMap.begin();
     for (; it != requestMap.end(); it++)
-    {
+    {  
         if (it->second.getServerNames() == req.getHost())
         {
             server = it->second;
+            foundServer = true;
+            break;
         }
     }
-    if (req.getReturnParameter().first != 0)
+    if (!foundServer)
     {
+        req.setReturnParameter(404, "404.html");
         return req;
     }
     req.remakeRequest(server);
@@ -263,61 +214,61 @@ Request Server::findServerandlocaitons(int socket_fd,const std::string &buffer)
 void Server::sendResponse(int socket_fd, Response &res)
 {
     std::string response = res.getResponse();
-    if (response.empty())
-    {
-        throw std::runtime_error("Response is empty");
-    }
-    else if (response.size() > MAX_RESPONSE_SIZE)
-    {
-        throw std::runtime_error("Response too large");
-    }
-    int status = send(socket_fd, response.c_str(), response.size(), SO_NOSIGPIPE);
-    if (status == 0)
-    {
-        ;
-    }
-    else if (status < 0)
+    if (response.empty()) 
+        response = "HTTP/1.1 204 No Content\r\n\r\n";
+    else if (response.size() > MAX_RESPONSE_SIZE) 
+        response = "HTTP/1.1 413 Payload Too Large\r\nContent-Type: text/plain\r\n\r\nResponse too large.";
+    int status = send(socket_fd, response.c_str(), response.size(), MSG_NOSIGNAL); // Linuxの場合
+    if (status < 0) 
     {
         close(socket_fd);
-        throw std::runtime_error("Send failed");
+        deletePollfds(socket_fd);
     }
 }
 
-void Server::sendTimeoutResponse(int socket_fd)
-{
-    Response res;
-    res.setStatus("408 Request Timeout");
-    res.setHeaders("Content-Type: ", "text/html");
-    res.setBody("<html><body><h1>408 Request Timeout</h1></body></html>");
-    res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
-    res.setResponse();
-    sendResponse(socket_fd, res);
-}
 
-void Server::processRequestAndSendResponse(int socket_fd, std::string &request)
+// void Server::sendTimeoutResponse(int socket_fd)
+// {
+//     Response res;
+//     res.setStatus("408 Request Timeout");
+//     res.setHeaders("Content-Type: ", "text/html");
+//     res.setBody("<html><body><h1>408 Request Timeout</h1></body></html>");
+//     res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
+//     res.setResponse();
+//     sendResponse(socket_fd, res);
+// }
+
+void Server::processRequest(int socket_fd, std::string& request)
 {
     Request req = findServerandlocaitons(socket_fd, request);
     Response res;
-    Controller con;
-    con.processFile(req, res);
-    sendResponse(socket_fd, res);
+    this->responseConectionMap.insert(std::make_pair(socket_fd, res));
+    Controller::processFile(req, this->responseConectionMap[socket_fd]);
 }
 
-void Server::handleExistingConnection(struct pollfd &pfd)
+void Server::recvandProcessConnection(struct pollfd &pfd)
 {
     std::string request;
-    bool timeout = receiveRequest(pfd.fd, request);
-    if (timeout)
-        sendTimeoutResponse(pfd.fd);
-    else
-        processRequestAndSendResponse(pfd.fd, request);
-    close(pfd.fd);
-    // pollfdsから該当するエントリを削除
+    //読み込みが完全に終了したのかをあboolで確認する。
+    bool recv_complete = receiveRequest(pfd.fd, request);
+    if (recv_complete)
+    {
+        processRequest(pfd.fd, request);
+        pfd.events = POLLOUT;
+    }
+    else //読み込みが完全に終了していない場合は、次の読み込みを待つ
+        pfd.events = POLLIN;
+    return ;
+}
+
+void Server::deletePollfds(int socket_fd)
+{
     for (std::vector<struct pollfd>::iterator it = pollfds.begin(); it != pollfds.end();)
     {
-        if (it->fd == pfd.fd)
+        if (it->fd == socket_fd)
         {
             it = pollfds.erase(it);
+            return ;
             // エントリを削除した場合は、イテレータを進めない
         }
         else
@@ -325,6 +276,13 @@ void Server::handleExistingConnection(struct pollfd &pfd)
             ++it;
         }
     }
+}
+
+void Server::sendConnection(struct pollfd &pfd)
+{
+    sendResponse(pfd.fd, this->responseConectionMap[pfd.fd]);
+    close(pfd.fd);
+    deletePollfds(pfd.fd);    // pollfdsから該当するエントリを削除
 }
 
 void Server::runEventLoop()
@@ -339,7 +297,15 @@ void Server::runEventLoop()
                 if (i < start_pollfds_size && pollfds[i].revents & POLLIN)
                     acceptNewConnection(pollfds[i].fd, pollfds, address, addrlen);
                 else if (pollfds[i].revents & POLLIN)
-                    handleExistingConnection(pollfds[i]);
+                {
+                    //recv request　and process it;
+                   recvandProcessConnection(pollfds[i]);
+                }
+                else if (pollfds[i].revents & POLLOUT)
+                {
+                    //send response;
+                   sendConnection(pollfds[i]);
+                }
             }
         }
         else
