@@ -9,8 +9,6 @@
 #include <unistd.h>
 #include <set>
 
-#define YELLOW "\033[0;33m"
-#define NORMAL "\033[0m"
 
 class Locations;
 

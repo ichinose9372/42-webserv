@@ -2,7 +2,6 @@
 
 Servers::Servers()
 {
-    // std::cout << YELLOW <<"Servers constructor called" << NORMAL <<std::endl;
     serverNameset = false;
     portset = false;
     sever_name = "localhost";
@@ -248,7 +247,6 @@ void Servers::processMultiValueDirective(std::vector<std::string>::iterator &it,
         throw std::runtime_error("Parse error: Unexpected end of tokens before " + directive + " value");
     if (*it == "index")
     {
-        // std::cout << "######" << std::endl;
         it++;
         for (; it != end && it->find(";") == std::string::npos; ++it)
         {
@@ -261,14 +259,28 @@ void Servers::processMultiValueDirective(std::vector<std::string>::iterator &it,
     }
     else if (*it == "method")
     {
+        // std::vector<std::string> validMethods = {"GET", "POST", "DELETE"};
+        std::vector<std::string> validMethods;
+        validMethods.push_back("GET");
+        validMethods.push_back("POST");
+        validMethods.push_back("DELETE");
         while (it != end && it->find(";") == std::string::npos)
         {
+            if (std::find(validMethods.begin(), validMethods.end(), *it) == validMethods.end())
+            {
+                throw std::runtime_error("Parse error: Invalid HTTP method '" + *it + "'");
+            }
             location.setMethod(*it);
             it++;
         }
         if (it == end)
             throw std::runtime_error("Parse error: Unexpected end of tokens before method block");
         removeTrailingSemicolon(*it);
+        if (std::find(validMethods.begin(), validMethods.end(), *it) == validMethods.end())
+        {
+            // ここでエラー処理を行う
+            throw std::runtime_error("Parse error: Invalid HTTP method '" + *it + "'");
+        }
         location.setMethod(*it);
     }
     else if (*it == "return")

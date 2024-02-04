@@ -94,12 +94,12 @@ bool MainConfig::isPortUsed(const size_t& port)
 
 size_t MainConfig::validatePort(const std::string& port )
 {
-     std::stringstream ss(port);
+    std::stringstream ss(port);
     size_t port_num;
     ss >> port_num;
     // std::cout << port_num << std::endl;
-    if (port_num > 65535)
-        throw std::runtime_error("port number is too big");
+    if (1024 < port_num ||port_num > 65535)
+        throw std::runtime_error("port number is out of range");
     else if (ss.fail() || (ss.peek() != EOF))
         throw std::runtime_error("1 port number is not a number");
     return port_num;
