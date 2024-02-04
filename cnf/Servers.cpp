@@ -264,6 +264,7 @@ void Servers::processMultiValueDirective(std::vector<std::string>::iterator &it,
         validMethods.push_back("GET");
         validMethods.push_back("POST");
         validMethods.push_back("DELETE");
+        it++;
         while (it != end && it->find(";") == std::string::npos)
         {
             if (std::find(validMethods.begin(), validMethods.end(), *it) == validMethods.end())
