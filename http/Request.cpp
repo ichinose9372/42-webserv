@@ -7,6 +7,8 @@ Request::Request()
 Request::Request(const std::string &request)
 {
     parseRequest(request);
+    this->error_page[404] = "./docs/error_page/404.html";
+    this->error_page[500] = "./docs/error_page/500.html";
     // printRequest();
 }
 

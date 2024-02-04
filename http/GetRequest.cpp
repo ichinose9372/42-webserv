@@ -35,6 +35,7 @@ int GetRequest::openFile(const std::string &filePath)
 std::string GetRequest::getBody(const std::string &filePath)
 {
     std::ifstream file(filePath);
+    std::cout << "filePath: " << filePath << std::endl;
     if (!file)
     {
         // ファイルが開けない場合のエラーハンドリング

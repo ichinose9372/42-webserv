@@ -134,8 +134,6 @@ void Server::acceptNewConnection(int server_fd, std::vector<struct pollfd> &poll
         throw std::runtime_error("Failed to set new socket to non-blocking mode");
     }
     struct pollfd new_socket_struct = {new_socket, POLLIN, 0};
-    // std::cout << "requestMap.find(server_fd)->second: " << requestMap.find(server_fd)->second.getPort() << "server_name : " << requestMap.find(server_fd)->second.getPort() << std::endl;
-    // requestMap.insert(std::make_pair(new_socket, requestMap.find(server_fd)->second));
     pollfds.push_back(new_socket_struct);
 }
 
@@ -194,7 +192,6 @@ bool Server::receiveRequest(int socket_fd, std::string &Request)
     }
     else if (valread > 0)
     {
-        std::cout << "buffer: " << buffer << std::endl;
         Request.append(buffer, valread); //読み込みが完全に終了したのかをあboolで確認する。
         return true;
     }
@@ -208,18 +205,21 @@ bool Server::receiveRequest(int socket_fd, std::string &Request)
 
 Request Server::findServerandlocaitons(int socket_fd, const std::string &buffer)
 {
-    std::cout << "socket fd: " << socket_fd << std::endl;
+    (void)socket_fd;
     Request req(buffer);
     Servers server;
     bool foundServer = false; 
 
     std::multimap<int, Servers>::iterator it = requestMap.begin();
     for (; it != requestMap.end(); it++)
-    {  
-        std::cout << "it->second.getServerNames(): " << it->second.getServerNames() << "req.getHost(): " << req.getHost() << std::endl; 
-        //ポートの一致まで確認する。サーバーネームが一致しているだけでは、ポートが一致しているとは限らない。
-        if (it->second.getServerNames() == req.getHost())
+    {   
+        // std::cout <<it->second.getServerNames() << " : " << req.getHost() << " : " << it->second.getPort() << " : " << req.getPort() << std::endl;
+        std::stringstream ss(req.getPort());
+        size_t port_num;
+        ss >> port_num;
+        if ((it->second.getServerNames() == req.getHost()) && (it->second.getPort() == port_num))
         { 
+
             server = it->second;
             foundServer = true;
             break;
