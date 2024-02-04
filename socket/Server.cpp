@@ -223,18 +223,24 @@ bool Server::sendResponse(int socket_fd, Response &res)
     else if (response.size() > MAX_RESPONSE_SIZE) 
         response = "HTTP/1.1 413 Payload Too Large\r\nContent-Type: text/plain\r\n\r\nResponse too large.";
     ssize_t sendByte = send(socket_fd, response.c_str(), response.size(), MSG_NOSIGNAL); // Linuxの場合
-    if (sendByte != response.size()) //送信が完全に終了していない場合
-    {
-        std::string remainingResponse = response.substr(sendByte);
-        res.setResponse(remainingResponse);
-        return false;
-    }
     if (sendByte < 0) //senderrorの場合
     {
         close(socket_fd);
         deletePollfds(socket_fd);
+        return true;
     }
-    return true;
+    else
+    {
+        size_t sentSize = static_cast<size_t>(sendByte);
+        if (sentSize < response.size())
+        {
+            std::string remainingResponse = response.substr(sendByte);
+            res.setResponse(remainingResponse);
+            return false;
+        }
+        else
+            return true;
+    }
 }
 
 void Server::processRequest(int socket_fd, std::string& request)
