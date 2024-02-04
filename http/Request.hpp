@@ -30,6 +30,7 @@ public:
     // const std::map<std::string, std::string>& getQueryParameters();
     const std::string &getBody();
     const std::string &getHost();
+    const std::string &getPort();
     const std::pair<int, std::string> &getReturnParameter();
     void remakeRequest(Servers &server);
     size_t getMaxBodySize();
@@ -43,6 +44,7 @@ public:
     void setHttpVersion(const std::string &httpVersion);
     void setHeaders(std::string key, std::string value);
     void setHost(const std::string &host);
+    void setPort(const std::string &port);
     void setBody(const std::string &body);
     void setContentLength(size_t content_length);
     void setReturnParameter(int status, std::string filename);
@@ -61,6 +63,7 @@ private:
     std::map<std::string, std::string> headers;
     std::string body;
     std::string host;
+    std::string port;
     std::pair<int, std::string> returnParameter;
     std::string fileName;
     size_t max_body_size;
