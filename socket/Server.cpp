@@ -119,6 +119,20 @@ void Server::acceptNewConnection(int server_fd, std::vector<struct pollfd> &poll
         close(server_fd);
         throw std::runtime_error("accept");
     }
+
+    // 新しいソケットをノンブロッキングモードに設定
+    int flags = fcntl(new_socket, F_GETFL, 0);
+    if (flags == -1)
+    {
+        close(new_socket); // フラグの取得に失敗した場合は、新しいソケットを閉じます。
+        throw std::runtime_error("Failed to get flags for new socket");
+    }
+
+    if (fcntl(new_socket, F_SETFL, flags | O_NONBLOCK) == -1)
+    {
+        close(new_socket); // ノンブロッキングモードへの設定に失敗した場合は、新しいソケットを閉じます。
+        throw std::runtime_error("Failed to set new socket to non-blocking mode");
+    }
     struct pollfd new_socket_struct = {new_socket, POLLIN, 0};
     // std::cout << "requestMap.find(server_fd)->second: " << requestMap.find(server_fd)->second.getPort() << "server_name : " << requestMap.find(server_fd)->second.getPort() << std::endl;
     // requestMap.insert(std::make_pair(new_socket, requestMap.find(server_fd)->second));
@@ -131,6 +145,11 @@ bool Server::isTimeout(clock_t start)
     return time > TIMEOUT;
 }
 
+static int stringToInt(const std::string &str, bool &success)
+{
+    std::istringstream iss(str);
+    int number;
+    iss >> number;
 // static int stringToInt(const std::string &str, bool &success) {
 //     std::istringstream iss(str);
 //     int number;
@@ -187,7 +206,7 @@ bool Server::receiveRequest(int socket_fd, std::string &Request)
     }
 }
 
-Request Server::findServerandlocaitons(int socket_fd,const std::string &buffer)
+Request Server::findServerandlocaitons(int socket_fd, const std::string &buffer)
 {
     std::cout << "socket fd: " << socket_fd << std::endl;
     Request req(buffer);

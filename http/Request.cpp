@@ -258,6 +258,8 @@ const std::string &Request::getBody() { return body; }
 
 const std::string &Request::getHost() { return host; }
 
+const std::string &Request::getPort() { return port; }
+
 const std::pair<int, std::string> &Request::getReturnParameter() { return returnParameter; }
 
 const std::string &Request::getFilepath() { return filepath; }
@@ -282,6 +284,8 @@ void Request::setHttpVersion(const std::string &httpVersion) { this->httpVersion
 void Request::setHeaders(std::string key, std::string value) { headers[key] = value; }
 
 void Request::setHost(const std::string &host) { this->host = host; }
+
+void Request::setPort(const std::string &port) { this->port = port; }
 
 void Request::setBody(const std::string &body) { this->body = body; }
 

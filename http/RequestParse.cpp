@@ -97,14 +97,15 @@ void RequestParse::parseHeader(const std::string &line, Request &request)
 
         // 先頭の空白文字を削除
         size_t start = value.find_first_not_of(' ');
-        if (start != std::string::npos) {
+        if (start != std::string::npos)
             value = value.substr(start);
-        }
         request.setHeaders(key, value);
         if (key == "Host")
         {
             std::cout << "Host: " << value << std::endl;
             request.setHost(value);
+            if (headerTokens.size() >= 3)
+                request.setPort(headerTokens[2]);
         }
         if (key == "Content-Length")
         {
