@@ -119,6 +119,20 @@ void Server::acceptNewConnection(int server_fd, std::vector<struct pollfd> &poll
         close(server_fd);
         throw std::runtime_error("accept");
     }
+
+    // 新しいソケットをノンブロッキングモードに設定
+    int flags = fcntl(new_socket, F_GETFL, 0);
+    if (flags == -1)
+    {
+        close(new_socket); // フラグの取得に失敗した場合は、新しいソケットを閉じます。
+        throw std::runtime_error("Failed to get flags for new socket");
+    }
+
+    if (fcntl(new_socket, F_SETFL, flags | O_NONBLOCK) == -1)
+    {
+        close(new_socket); // ノンブロッキングモードへの設定に失敗した場合は、新しいソケットを閉じます。
+        throw std::runtime_error("Failed to set new socket to non-blocking mode");
+    }
     struct pollfd new_socket_struct = {new_socket, POLLIN, 0};
     requestMap.insert(std::make_pair(new_socket, requestMap.find(server_fd)->second));
     pollfds.push_back(new_socket_struct);
@@ -130,7 +144,8 @@ bool Server::isTimeout(clock_t start)
     return time > TIMEOUT;
 }
 
-static int stringToInt(const std::string &str, bool &success) {
+static int stringToInt(const std::string &str, bool &success)
+{
     std::istringstream iss(str);
     int number;
     iss >> number;
@@ -140,18 +155,23 @@ static int stringToInt(const std::string &str, bool &success) {
 }
 
 // ヘッダをパースし、Content-Lengthの値を返す。
-static int getContentLengthFromHeaders(const std::string &headers) {
+static int getContentLengthFromHeaders(const std::string &headers)
+{
     // ヘッダからContent-Lengthの値を見つけ、整数として返す疑似コード
     std::string contentLengthKeyword = "Content-Length: ";
     size_t startPos = headers.find(contentLengthKeyword);
-    if (startPos != std::string::npos) {
+    if (startPos != std::string::npos)
+    {
         size_t endPos = headers.find("\r\n", startPos);
         std::string contentLengthValue = headers.substr(startPos + contentLengthKeyword.length(), endPos - (startPos + contentLengthKeyword.length()));
         bool conversionSuccess;
         int contentLength = stringToInt(contentLengthValue, conversionSuccess);
-        if (conversionSuccess) {
+        if (conversionSuccess)
+        {
             return contentLength;
-        } else {
+        }
+        else
+        {
             std::cerr << "Content-Length conversion failed: invalid value" << std::endl;
         }
     }
@@ -163,13 +183,14 @@ bool Server::receiveRequest(int socket_fd, std::string &Request)
     int valread;
     char buffer[BUFFER_SIZE] = {0};
     clock_t start = Timer::startTimer();
-    int contentLength = -1; // ボディサイズ
-    int receivedLength = 0; // ボディの総受信データ数
+    int contentLength = -1;   // ボディサイズ
+    int receivedLength = 0;   // ボディの総受信データ数
     bool bodyFlg = false;     // 読み込みデータにボディが存在するかどうか
     bool headerNowFlg = true; // 読み込みデータがヘッダかどうか
 
     // valreadがBUFFER_SIZEと等しいか、もしくは0以上の場合ループを続ける
-    while (true) {
+    while (true)
+    {
         valread = recv(socket_fd, buffer, BUFFER_SIZE, 0);
 
         if (valread > 0)
@@ -216,7 +237,7 @@ bool Server::receiveRequest(int socket_fd, std::string &Request)
         else
         {
             // if (errno == EWOULDBLOCK || errno == EAGAIN)
-                continue; // データがまだ利用可能でない。後で再試行するためにループを継続する。
+            continue; // データがまだ利用可能でない。後で再試行するためにループを継続する。
             close(socket_fd);
             throw std::runtime_error("Recv failed");
         }
@@ -239,9 +260,9 @@ Servers Server::findServerBySocket(int socket_fd)
     throw std::runtime_error("Server not found");
 }
 
-Request Server::findServerandlocaitons(int socket_fd,const std::string &buffer)
+Request Server::findServerandlocaitons(int socket_fd, const std::string &buffer)
 {
-    (void) socket_fd;
+    (void)socket_fd;
     Request req(buffer);
     Servers server = findServerBySocket(socket_fd);
     std::multimap<int, Servers>::iterator it = requestMap.begin();
