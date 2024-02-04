@@ -142,7 +142,7 @@ TEST(WebServerTest, Response405MethodNotAllowed)
 TEST(WebServerTest, Response200Port8081)
 {
     // 8081ポートにアクセスして200 OKを確認
-    std::string httpCode = getHttpResponseCode(" http://default_server:8081/", "GET");
+    std::string httpCode = getHttpResponseCode("http://default_server:8081/", "GET");
     EXPECT_EQ(httpCode, "200");
 }
 
