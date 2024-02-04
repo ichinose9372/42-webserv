@@ -120,7 +120,8 @@ void Server::acceptNewConnection(int server_fd, std::vector<struct pollfd> &poll
         throw std::runtime_error("accept");
     }
     struct pollfd new_socket_struct = {new_socket, POLLIN, 0};
-    requestMap.insert(std::make_pair(new_socket, requestMap.find(server_fd)->second));
+    // std::cout << "requestMap.find(server_fd)->second: " << requestMap.find(server_fd)->second.getPort() << "server_name : " << requestMap.find(server_fd)->second.getPort() << std::endl;
+    // requestMap.insert(std::make_pair(new_socket, requestMap.find(server_fd)->second));
     pollfds.push_back(new_socket_struct);
 }
 
@@ -174,6 +175,7 @@ bool Server::receiveRequest(int socket_fd, std::string &Request)
     }
     else if (valread > 0)
     {
+        std::cout << "buffer: " << buffer << std::endl;
         Request.append(buffer, valread); //読み込みが完全に終了したのかをあboolで確認する。
         return true;
     }
@@ -187,7 +189,7 @@ bool Server::receiveRequest(int socket_fd, std::string &Request)
 
 Request Server::findServerandlocaitons(int socket_fd,const std::string &buffer)
 {
-    (void) socket_fd;
+    std::cout << "socket fd: " << socket_fd << std::endl;
     Request req(buffer);
     Servers server;
     bool foundServer = false; 
@@ -195,8 +197,10 @@ Request Server::findServerandlocaitons(int socket_fd,const std::string &buffer)
     std::multimap<int, Servers>::iterator it = requestMap.begin();
     for (; it != requestMap.end(); it++)
     {  
+        std::cout << "it->second.getServerNames(): " << it->second.getServerNames() << "req.getHost(): " << req.getHost() << std::endl; 
+        //ポートの一致まで確認する。サーバーネームが一致しているだけでは、ポートが一致しているとは限らない。
         if (it->second.getServerNames() == req.getHost())
-        {
+        { 
             server = it->second;
             foundServer = true;
             break;
@@ -211,32 +215,27 @@ Request Server::findServerandlocaitons(int socket_fd,const std::string &buffer)
     return req;
 }
 
-void Server::sendResponse(int socket_fd, Response &res)
+bool Server::sendResponse(int socket_fd, Response &res)
 {
     std::string response = res.getResponse();
     if (response.empty()) 
         response = "HTTP/1.1 204 No Content\r\n\r\n";
     else if (response.size() > MAX_RESPONSE_SIZE) 
         response = "HTTP/1.1 413 Payload Too Large\r\nContent-Type: text/plain\r\n\r\nResponse too large.";
-    int status = send(socket_fd, response.c_str(), response.size(), MSG_NOSIGNAL); // Linuxの場合
-    if (status < 0) 
+    ssize_t sendByte = send(socket_fd, response.c_str(), response.size(), MSG_NOSIGNAL); // Linuxの場合
+    if (sendByte != response.size()) //送信が完全に終了していない場合
+    {
+        std::string remainingResponse = response.substr(sendByte);
+        res.setResponse(remainingResponse);
+        return false;
+    }
+    if (sendByte < 0) //senderrorの場合
     {
         close(socket_fd);
         deletePollfds(socket_fd);
     }
+    return true;
 }
-
-
-// void Server::sendTimeoutResponse(int socket_fd)
-// {
-//     Response res;
-//     res.setStatus("408 Request Timeout");
-//     res.setHeaders("Content-Type: ", "text/html");
-//     res.setBody("<html><body><h1>408 Request Timeout</h1></body></html>");
-//     res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
-//     res.setResponse();
-//     sendResponse(socket_fd, res);
-// }
 
 void Server::processRequest(int socket_fd, std::string& request)
 {
@@ -263,24 +262,20 @@ void Server::recvandProcessConnection(struct pollfd &pfd)
 
 void Server::deletePollfds(int socket_fd)
 {
-    for (std::vector<struct pollfd>::iterator it = pollfds.begin(); it != pollfds.end();)
+    for (std::vector<struct pollfd>::iterator it = pollfds.begin(); it != pollfds.end(); ++it)
     {
         if (it->fd == socket_fd)
         {
             it = pollfds.erase(it);
-            return ;
-            // エントリを削除した場合は、イテレータを進めない
-        }
-        else
-        {
-            ++it;
+            return ; //削除したら、ループを抜ける
         }
     }
 }
 
 void Server::sendConnection(struct pollfd &pfd)
 {
-    sendResponse(pfd.fd, this->responseConectionMap[pfd.fd]);
+    if (!sendResponse(pfd.fd, this->responseConectionMap[pfd.fd]))
+        return ; //送信が完全に終了していない場合はreurtunして、次の送信を待つ
     close(pfd.fd);
     deletePollfds(pfd.fd);    // pollfdsから該当するエントリを削除
 }

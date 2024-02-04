@@ -57,9 +57,9 @@ class Server
         Request findServerandlocaitons(int socket_fd, const std::string& request);  
         Servers findServerBySocket(int socket_fd);
         bool isTimeout(clock_t start);
-        void sendTimeoutResponse(int socket_fd);
+        // void sendTimeoutResponse(int socket_fd);
         //response functions
-        void sendResponse(int socket_fd, Response& res);
+        bool sendResponse(int socket_fd, Response& res);
         //pollfds functions
         void deletePollfds(int socket_fd);
 
