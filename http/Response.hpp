@@ -22,6 +22,7 @@ public:
     const std::string getBody();
     void setBody(const std::string &body);
     void setResponse();
+    void setResponse(const std::string &response);
     void setStatus(const std::string &status);
     void setHeaders(const std::string &key, const std::string &value);
     std::string allgetHeader();

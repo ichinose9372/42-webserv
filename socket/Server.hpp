@@ -35,14 +35,16 @@ class Server
         std::vector<struct pollfd> pollfds;
         int addrlen;
         std::multimap<int , Servers> requestMap;
+        std::map<int, Request> requestConectionMap;
+        std::map<int, Response> responseConectionMap;
         Server();
-        //レシーブタイムアウトを設定する
     public:
         Server(const MainConfig& conf);
         ~Server();
-        void acceptNewConnection(int server_fd, std::vector<struct pollfd>& pollfds, struct sockaddr_in& address, int& addrlen);
-        void handleExistingConnection(struct pollfd& pfd);
         void runEventLoop();
+        void acceptNewConnection(int server_fd, std::vector<struct pollfd>& pollfds, struct sockaddr_in& address, int& addrlen);
+        void recvandProcessConnection(struct pollfd& pfd);
+        void sendConnection(struct pollfd& pfd);
         //initializefunctions
         void initializeServers(const std::vector<Servers>& servers);
         void validateServers(const std::vector<Servers>& servers);   
@@ -50,14 +52,16 @@ class Server
         void initializeServerSocket(const Servers& server, size_t port);
         void initializeSocketAddress(size_t port);
         //request functions
-        bool receiveRequest(int socket_fd, std::string &Request);
-        void processRequestAndSendResponse(int socket_fd, std::string& request);
+        bool receiveRequest(int socket_fd, std::string& Request);
+        void processRequest(int socket_fd, std::string& request);
         Request findServerandlocaitons(int socket_fd, const std::string& request);  
         Servers findServerBySocket(int socket_fd);
         bool isTimeout(clock_t start);
-        void sendTimeoutResponse(int socket_fd);
+        // void sendTimeoutResponse(int socket_fd);
         //response functions
-        void sendResponse(int socket_fd, Response& res);
+        bool sendResponse(int socket_fd, Response& res);
+        //pollfds functions
+        void deletePollfds(int socket_fd);
 
 };
 

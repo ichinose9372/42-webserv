@@ -102,6 +102,7 @@ void RequestParse::parseHeader(const std::string &line, Request &request)
         request.setHeaders(key, value);
         if (key == "Host")
         {
+            std::cout << "Host: " << value << std::endl;
             request.setHost(value);
             if (headerTokens.size() >= 3)
                 request.setPort(headerTokens[2]);

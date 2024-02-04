@@ -47,6 +47,11 @@ void Response::setResponse()
     // std::cout << response << std::endl;
 }
 
+void Response::setResponse(const std::string &response)
+{
+    this->response = response;
+}
+
 void Response::setStatus(const std::string &status)
 {
     this->status = status;
