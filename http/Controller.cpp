@@ -100,7 +100,6 @@ std::string Controller::sanitizeFilename(const std::string &filename)
 
 void Controller::setReturnCode(Request &req, Response &res)
 {
-    std::cout << "setReturnCode" << std::endl;
     int returnCode = req.getReturnParameter().first;
     std::string returnPage = req.getReturnParameter().second;
     std::string responseHtml = getResponseHtml(returnCode, req);

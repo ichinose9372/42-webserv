@@ -192,6 +192,7 @@ bool Server::receiveRequest(int socket_fd, std::string &Request)
     }
     else if (valread > 0)
     {
+        std::cout << "buffer: " << buffer << std::endl;
         Request.append(buffer, valread); //読み込みが完全に終了したのかをあboolで確認する。
         return true;
     }
