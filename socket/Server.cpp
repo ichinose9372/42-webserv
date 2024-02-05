@@ -144,56 +144,55 @@ bool Server::isTimeout(clock_t start)
     return time > TIMEOUT;
 }
 
-// static int stringToInt(const std::string &str, bool &success)
-// {
-//     std::istringstream iss(str);
-//     int number;
-//     iss >> number;
-// // static int stringToInt(const std::string &str, bool &success) {
-// //     std::istringstream iss(str);
-// //     int number;
-// //     iss >> number;
+static int stringToInt(const std::string &str, bool &success) 
+{
+    std::istringstream iss(str);
+    int number;
+    iss >> number;
 
-// //     success = iss.good() || iss.eof();
-// //     return success ? number : 0;
-// // }
+    success = iss.good() || iss.eof();
+    return success ? number : 0;
+}
 
 // // ヘッダをパースし、Content-Lengthの値を返す。
-// // static int getContentLengthFromHeaders(const std::string &headers) {
-// //     // ヘッダからContent-Lengthの値を見つけ、整数として返す疑似コード
-// //     std::string contentLengthKeyword = "Content-Length: ";
-// //     size_t startPos = headers.find(contentLengthKeyword);
-// //     if (startPos != std::string::npos) {
-// //         size_t endPos = headers.find("\r\n", startPos);
-// //         std::string contentLengthValue = headers.substr(startPos + contentLengthKeyword.length(), endPos - (startPos + contentLengthKeyword.length()));
-// //         bool conversionSuccess;
-// //         int contentLength = stringToInt(contentLengthValue, conversionSuccess);
-// //         if (conversionSuccess) {
-// //             return contentLength;
-// //         } else {
-// //             std::cerr << "Content-Length conversion failed: invalid value" << std::endl;
-// //         }
-// //     }
-// //     return -1; // Content-Lengthが見つからない場合
-// // }
+static int getContentLengthFromHeaders(const std::string &headers) {
+    // ヘッダからContent-Lengthの値を見つけ、整数として返す疑似コード
+    std::string contentLengthKeyword = "Content-Length: ";
+    size_t startPos = headers.find(contentLengthKeyword);
+    if (startPos != std::string::npos) {
+        size_t endPos = headers.find("\r\n", startPos);
+        std::string contentLengthValue = headers.substr(startPos + contentLengthKeyword.length(), endPos - (startPos + contentLengthKeyword.length()));
+        bool conversionSuccess;
+        int contentLength = stringToInt(contentLengthValue, conversionSuccess);
+        if (conversionSuccess) {
+            return contentLength;
+        } else {
+            std::cerr << "Content-Length conversion failed: invalid value" << std::endl;
+        }
+    }
+    return -1; // Content-Lengthが見つからない場合
+}
 
 bool Server::receiveRequest(int socket_fd)
 {
+    static int content_length;
     int valread;
     char buffer[BUFFER_SIZE] = {0};
     valread = recv(socket_fd, buffer, BUFFER_SIZE, 0);
     if (valread > 0)
     {
-        //読み込みが完了していない可能性があるので、次の読み込みを待つ
-        //0の時は、読み込みが完全に終了していると判定してtrueを返す
         requestStringMap[socket_fd].append(buffer, valread);
-        std::cout << "requestStringMap[socket_fd]: " << requestStringMap[socket_fd] << std::endl;
-        //リクエストの中身から、Content-Lengthを取得する
-        //その長さ分を読み込む
+        if (content_length != 0 && requestStringMap[socket_fd].size() >= static_cast<size_t>(content_length))    
+            return true;
         if (requestStringMap[socket_fd].find("Content-Length:") != std::string::npos)
+        {
+            content_length = getContentLengthFromHeaders(requestStringMap[socket_fd]);
             return false;
+        }
         else if (requestStringMap[socket_fd].find("transfer-encoding: chunked") != std::string::npos)
+        {
             return false;
+        }
         else 
         {
             return true;
@@ -221,13 +220,11 @@ Request Server::findServerandlocaitons(int socket_fd)
     std::multimap<int, Servers>::iterator it = requestMap.begin();
     for (; it != requestMap.end(); it++)
     {   
-        // std::cout <<it->second.getServerNames() << " : " << req.getHost() << " : " << it->second.getPort() << " : " << req.getPort() << std::endl;
         std::stringstream ss(req.getPort());
         size_t port_num;
         ss >> port_num;
         if ((it->second.getServerNames() == req.getHost()) && (it->second.getPort() == port_num))
         { 
-
             server = it->second;
             foundServer = true;
             break;
@@ -299,9 +296,11 @@ void Server::deletePollfds(int socket_fd)
         if (it->fd == socket_fd)
         {
             it = pollfds.erase(it);
-            return ; //削除したら、ループを抜ける
+            break;
         }
     }
+    requestStringMap.erase(socket_fd);
+    responseConectionMap.erase(socket_fd);
 }
 
 void Server::sendConnection(struct pollfd &pfd)

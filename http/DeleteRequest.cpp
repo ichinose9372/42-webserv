@@ -10,7 +10,6 @@ DeleteRequest::~DeleteRequest()
 
 void DeleteRequest::handleDeleteRequest(Request &req, Response &res)
 {
-
     std::string path = req.getUri();
     if (access(path.c_str(), W_OK) != -1)
     {
