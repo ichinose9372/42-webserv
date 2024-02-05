@@ -3,7 +3,7 @@ MainConfig::MainConfig() {}
 
 MainConfig::MainConfig(const std::string& filename) 
 {
-    file.open(filename);
+    file.open(filename.c_str());
     if (!file.is_open())
         throw std::runtime_error("[KO] file not found");
     parseLine();

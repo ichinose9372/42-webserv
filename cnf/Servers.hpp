@@ -8,6 +8,7 @@
 #include <sstream>
 #include <unistd.h>
 #include <set>
+#include <algorithm>
 
 
 class Locations;

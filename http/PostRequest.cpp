@@ -29,11 +29,11 @@ void PostRequest::handlePostRequest(Request &req, Response &res)
 {
     // cgi の実行なのかファイルのアップロードなのかを判定して処理を分岐する
     // ファイルアップロードの場合
-    std::string path = Controller::getFilepath(req); // !!!!!! この関数をどうにかする !!!!!!
+    std::string path = Controller::getFilepath(req); 
     if (path != "")
     {
         // std::cout << "path: " << path << std::endl;
-        std::ofstream outputFile(path);
+        std::ofstream outputFile(path.c_str());
         if (!outputFile.is_open())
         {
             res.setStatus("404 Not Found");
@@ -55,7 +55,7 @@ void PostRequest::handlePostRequest(Request &req, Response &res)
         res.setStatus("201 OK");
         res.setBody("<html><body><h1>201 OK</h1></body></html>");
         res.setHeaders("Content-Type: ", "text/html");
-        res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
+        res.setHeaders("Content-Length: ", Utils::my_to_string(res.getBody().size()));
         res.setResponse();
     }
     else

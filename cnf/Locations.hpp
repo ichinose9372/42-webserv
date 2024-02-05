@@ -7,6 +7,7 @@
 #include "ExclusivePath.hpp"
 #include <sstream>
 #include <vector>
+#include <cstdio>
 
 class ExclusivePath;
 
