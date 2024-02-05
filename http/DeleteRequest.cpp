@@ -21,7 +21,7 @@ void DeleteRequest::handleDeleteRequest(Request &req, Response &res)
             res.setStatus("204 OK");
             res.setBody("<html><body><h1>204 OK</h1></body></html>");
             res.setHeaders("Content-Type: ", "text/html");
-            res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
+            res.setHeaders("Content-Length: ", Utils::my_to_string(res.getBody().size()));
         }
         else // その他のエラー
         {
@@ -29,7 +29,7 @@ void DeleteRequest::handleDeleteRequest(Request &req, Response &res)
             res.setBody(GetRequest::getBody(req.getErrorpage(500)));
         }
         res.setHeaders("Content-Type: ", "text/html");
-        res.setHeaders("Content-Length: ", std::to_string(res.getBody().size()));
+        res.setHeaders("Content-Length: ", Utils::my_to_string(res.getBody().size()));
     }
     else
     {

@@ -77,7 +77,6 @@ std::string Controller::getFilepath(Request &req)
         } while (fileExists(copyPath));
         path = copyPath;
     }
-    // std::cout << "path: " << path << std::endl;
     return path;
 }
 
@@ -110,7 +109,7 @@ void Controller::setReturnCode(Request &req, Response &res)
         res.setHeaders("Allow:", " GET, POST");
     res.setHeaders("Content-Type: ", "text/html");
     res.setBody(responseHtml);
-    res.setHeaders("Content-Length: ", std::to_string(responseHtml.size()));
+    res.setHeaders("Content-Length: ", Utils::my_to_string(responseHtml.size()));
     res.setResponse();
 }
 

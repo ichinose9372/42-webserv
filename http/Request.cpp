@@ -32,8 +32,8 @@ std::vector<std::string> Request::split(const std::string &s, char delimiter)
 std::string getAbsolutepath(const std::string &filePath, std::string rootDir)
 {
     std::string absolutePath;
-    bool rootEndsWithSlash = !rootDir.empty() && rootDir.back() == '/';
-    bool filePathStartsWithSlash = !filePath.empty() && filePath.front() == '/';
+    bool rootEndsWithSlash = !rootDir.empty() && rootDir[rootDir.size() - 1] == '/';
+    bool filePathStartsWithSlash = !filePath.empty() && filePath[0] == '/';
 
     if (rootEndsWithSlash && filePathStartsWithSlash)
         absolutePath = rootDir + filePath.substr(1);
@@ -118,7 +118,7 @@ bool isMatch(const std::string &uri, Locations &location)
     if (uri.find(location.getPath()) == 0)
     {
         // サブディレクトリが正しく一致するかを確認
-        if (uri[location.getPath().length()] == '/' || location.getPath().back() == '/')
+        if (uri[location.getPath().length()] == '/' || location.getPath()[location.getPath().size() - 1] == '/')
         {
             return true;
         }

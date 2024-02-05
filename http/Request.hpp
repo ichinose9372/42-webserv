@@ -12,6 +12,7 @@
 #include "../cnf/Locations.hpp"
 #include "RequestParse.hpp"
 #include <sys/stat.h>
+#include "Utils.hpp"
 
 class Servers;
 class Locatinos;

@@ -34,7 +34,7 @@ int GetRequest::openFile(const std::string &filePath)
 
 std::string GetRequest::getBody(const std::string &filePath)
 {
-    std::ifstream file(filePath);
+    std::ifstream file(filePath.c_str());
     if (!file)
     {
         // ファイルが開けない場合のエラーハンドリング
@@ -86,5 +86,5 @@ void GetRequest::handleRegularFile(Request &req, Response &res)
     }
     res.setBody(content);
     res.setHeaders("Content-Type: ", "text/html");
-    res.setHeaders("Content-Length: ", std::to_string(content.size()));
+    res.setHeaders("Content-Length: ", Utils::my_to_string(content.size()));
 }

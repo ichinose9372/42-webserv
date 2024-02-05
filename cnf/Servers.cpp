@@ -20,12 +20,12 @@ void removeTrailingSemicolon(std::string &str)
     {
         throw std::runtime_error("Parse error: Expected semicolon, but string is empty");
     }
-    if (str.back() != ';')
+    if (str[str.size() - 1] != ';')
     {
         throw std::runtime_error("Parse error: Expected semicolon at the end of the string");
     }
-    str.pop_back();
-    if (!str.empty() && str.back() == ';')
+    str.erase(str.size() - 1);
+    if (!str.empty() && str[str.size() - 1] == ';')
     {
         throw std::runtime_error("Parse error: Unexpected semicolon");
     }
@@ -196,7 +196,7 @@ void Servers::setErrorPage(const std::string statuscode, const std::string error
     }
     std::string root_tmp = root;
     // rootとerror_page間のスラッシュの重複を避ける
-    if (!root_tmp.empty() && root_tmp.back() == '/')
+    if (!root_tmp.empty() && root_tmp[root_tmp.size() - 1] == '/')
     {
         root_tmp = root_tmp.substr(0, root_tmp.size() - 1);
     }

@@ -11,6 +11,7 @@ bool isDirectory(const std::string &filePath)
     return (false);
 }
 
+
 void ExecCgi::executeCgiScript(Request &req, Response &res)
 {
     std::string path;
@@ -175,7 +176,7 @@ void ExecCgi::executeCommonCgiScript(Request &req, Response &res, const std::str
         res.setStatus("200 OK");
         res.setHeaders("Content-Type: ", "text/html");
         res.setBody(output);
-        res.setHeaders("Content-Length: ", std::to_string(output.size()));
+        res.setHeaders("Content-Length: ", Utils::my_to_string(output.size()));
         return;
     }
 }
