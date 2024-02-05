@@ -16,6 +16,7 @@ jobs:
       - name: webservをビルド
         run: |
           make
+          ls -l
           ./webserv configurations/default.conf &
           sleep 1
 
