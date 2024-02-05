@@ -35,7 +35,7 @@ class Server
         std::vector<struct pollfd> pollfds;
         int addrlen;
         std::multimap<int , Servers> requestMap;
-        std::map<int, Request> requestConectionMap;
+        std::map<int, std::string> requestStringMap;
         std::map<int, Response> responseConectionMap;
         Server();
     public:
@@ -52,9 +52,9 @@ class Server
         void initializeServerSocket(const Servers& server, size_t port);
         void initializeSocketAddress(size_t port);
         //request functions
-        bool receiveRequest(int socket_fd, std::string& Request);
-        void processRequest(int socket_fd, std::string& request);
-        Request findServerandlocaitons(int socket_fd, const std::string& request);  
+        bool receiveRequest(int socket_fd);
+        void processRequest(int socket_fd);
+        Request findServerandlocaitons(int socket_fd);  
         Servers findServerBySocket(int socket_fd);
         bool isTimeout(clock_t start);
         // void sendTimeoutResponse(int socket_fd);

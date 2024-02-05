@@ -5,6 +5,47 @@
 #include <fstream>
 #include <stdio.h>
 
+std::string getHttpResponseCode_virtual(const std::string &url, const std::string &method) 
+{
+    // --resolve オプションを使用して、virtual_server の名前解決を 0.0.0.0 に固定します。
+    // 実際には、0.0.0.0 を適切な IP アドレスに置き換える必要があります。
+    std::string command = "curl --resolve virtual_server:8081:0.0.0.0 -X " + method + " -o /dev/null -s -w \"%{http_code}\" " + url;
+    FILE *fp = popen(command.c_str(), "r");
+    if (!fp) {
+        std::cerr << "Failed to run curl command" << std::endl;
+        return ""; // エラーハンドリングを適切に行います。
+    }
+
+    char buf[1024];
+    std::string httpCode;
+    while (fgets(buf, sizeof(buf), fp) != NULL) {
+        httpCode += buf;
+    }
+    pclose(fp);
+    return httpCode;
+}
+
+std::string getHttpResponseCode_default(const std::string &url, const std::string &method) 
+{
+    // --resolve オプションを使用して、virtual_server の名前解決を 0.0.0.0 に固定します。
+    // 実際には、0.0.0.0 を適切な IP アドレスに置き換える必要があります。
+    std::string command = "curl --resolve default_server:8081:0.0.0.0 -X " + method + " -o /dev/null -s -w \"%{http_code}\" " + url;
+    FILE *fp = popen(command.c_str(), "r");
+    if (!fp) {
+        std::cerr << "Failed to run curl command" << std::endl;
+        return ""; // エラーハンドリングを適切に行います。
+    }
+
+    char buf[1024];
+    std::string httpCode;
+    while (fgets(buf, sizeof(buf), fp) != NULL) {
+        httpCode += buf;
+    }
+    pclose(fp);
+    return httpCode;
+}
+
+
 std::string getHttpResponseCode(const std::string &url, const std::string method)
 {
     std::string command = "curl -X " + method + " -o /dev/null -s -w \"%{http_code}\" " + url;
@@ -139,19 +180,26 @@ TEST(WebServerTest, Response405MethodNotAllowed)
     EXPECT_EQ(httpCode, "405");
 }
 
-// TEST(WebServerTest, Response200Port8081)
-// {
-//     // 8081ポートにアクセスして200 OKを確認
-//     std::string httpCode = getHttpResponseCode("http://default_server:8081/", "GET");
-//     EXPECT_EQ(httpCode, "200");
-// }
+TEST(WebServerTest, Response200Port8081_virtual)
+{
+    // 8081ポートにアクセスして200 OKを確認
+    std::string httpCode = getHttpResponseCode_virtual("http://virtual_server:8081/", "GET");
+    EXPECT_EQ(httpCode, "200");
+}
 
-// TEST(WebServerTest, FileUpload200)
-// {
-//     //8080ポートにアクセスしてファイルをアップロードできるのかを確認
-//     std::string httpCode = getHttpResponseUpload("http://localhost:8080/upload/", "POST");
-//     EXPECT_EQ(httpCode, "200");
-// }
+TEST(WebServerTest, Response200Port8081_default)
+{
+    // 8081ポートにアクセスして200 OKを確認
+    std::string httpCode = getHttpResponseCode_default("http://default_server:8081/", "GET");
+    EXPECT_EQ(httpCode, "200");
+}
+
+TEST(WebServerTest, FileUpload201)
+{
+    //8080ポートにアクセスしてファイルをアップロードできるのかを確認
+    std::string httpCode = getHttpResponseUpload("http://localhost:8080/upload/", "POST");
+    EXPECT_EQ(httpCode, "201");
+}
 
 TEST(WebServerTest, FileUpload404)
 {

@@ -32,7 +32,6 @@ void PostRequest::handlePostRequest(Request &req, Response &res)
     std::string path = Controller::getFilepath(req); 
     if (path != "")
     {
-        // std::cout << "path: " << path << std::endl;
         std::ofstream outputFile(path.c_str());
         if (!outputFile.is_open())
         {
