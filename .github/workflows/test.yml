@@ -11,7 +11,7 @@ jobs:
       - name: コンパイラと必要なツールのインストール
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc make cmake g++ 
+          sudo apt-get install -y gcc make cmake g++ python3 python3.10-venv
 
       - name: webservをビルド
         run: |
