@@ -135,6 +135,7 @@ void Server::acceptNewConnection(int server_fd, std::vector<struct pollfd> &poll
     }
     struct pollfd new_socket_struct = {new_socket, POLLIN, 0};
     pollfds.push_back(new_socket_struct);
+    requestStringMap.insert(std::make_pair(new_socket, ""));
 }
 
 bool Server::isTimeout(clock_t start)
@@ -176,37 +177,44 @@ bool Server::isTimeout(clock_t start)
 // //     return -1; // Content-Lengthが見つからない場合
 // // }
 
-bool Server::receiveRequest(int socket_fd, std::string &Request)
+bool Server::receiveRequest(int socket_fd)
 {
     int valread;
     char buffer[BUFFER_SIZE] = {0};
     valread = recv(socket_fd, buffer, BUFFER_SIZE, 0);
-    if (valread >= BUFFER_SIZE)
+    if (valread > 0)
     {
-        Request.append(buffer, valread);
-        return false;
+        //読み込みが完了していない可能性があるので、次の読み込みを待つ
+        //0の時は、読み込みが完全に終了していると判定してtrueを返す
+        requestStringMap[socket_fd].append(buffer, valread);
+        std::cout << "requestStringMap[socket_fd]: " << requestStringMap[socket_fd] << std::endl;
+        //リクエストの中身から、Content-Lengthを取得する
+        //その長さ分を読み込む
+        if (requestStringMap[socket_fd].find("Content-Length:") != std::string::npos)
+            return false;
+        else if (requestStringMap[socket_fd].find("transfer-encoding: chunked") != std::string::npos)
+            return false;
+        else 
+        {
+            return true;
+        }
     }
-    else if (valread == 0)//読み込みが完全に終了したのかをあboolで確認する。
-    {
-        return true;
-    }
-    else if (valread > 0)
-    {
-        Request.append(buffer, valread); //読み込みが完全に終了したのかをあboolで確認する。
-        return true;
-    }
-    else
+    else if (valread < 0)
     {
         close(socket_fd);
         deletePollfds(socket_fd);
         return false;
     }
+    else//読み込みが完全に終了しているので、trueを返す
+    {
+        return true;
+    }
 }
 
-Request Server::findServerandlocaitons(int socket_fd, const std::string &buffer)
+Request Server::findServerandlocaitons(int socket_fd)
 {
     (void)socket_fd;
-    Request req(buffer);
+    Request req(requestStringMap[socket_fd]);
     Servers server;
     bool foundServer = false; 
 
@@ -262,9 +270,9 @@ bool Server::sendResponse(int socket_fd, Response &res)
     }
 }
 
-void Server::processRequest(int socket_fd, std::string& request)
+void Server::processRequest(int socket_fd)
 {
-    Request req = findServerandlocaitons(socket_fd, request);
+    Request req = findServerandlocaitons(socket_fd);
     Response res;
     this->responseConectionMap.insert(std::make_pair(socket_fd, res));
     Controller::processFile(req, this->responseConectionMap[socket_fd]);
@@ -272,12 +280,11 @@ void Server::processRequest(int socket_fd, std::string& request)
 
 void Server::recvandProcessConnection(struct pollfd &pfd)
 {
-    std::string request;
     //読み込みが完全に終了したのかをあboolで確認する。
-    bool recv_complete = receiveRequest(pfd.fd, request);
+    bool recv_complete = receiveRequest(pfd.fd);
     if (recv_complete)
     {
-        processRequest(pfd.fd, request);
+        processRequest(pfd.fd);
         pfd.events = POLLOUT;
     }
     else //読み込みが完全に終了していない場合は、次の読み込みを待つ
@@ -319,12 +326,12 @@ void Server::runEventLoop()
                 else if (pollfds[i].revents & POLLIN)
                 {
                     //recv request　and process it;
-                   recvandProcessConnection(pollfds[i]);
+                    recvandProcessConnection(pollfds[i]);
                 }
                 else if (pollfds[i].revents & POLLOUT)
                 {
                     //send response;
-                   sendConnection(pollfds[i]);
+                    sendConnection(pollfds[i]);
                 }
             }
         }

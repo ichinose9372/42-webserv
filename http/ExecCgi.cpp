@@ -36,7 +36,7 @@ bool ExecCgi::isScriptAccessible(const std::string &path)
     // stat関数を使用してファイルの情報を取得
     if (stat(path.c_str(), &buffer) != 0)
     {
-            return false;
+       return false;
     }
 
     // S_IXUSRは所有者の実行権限があるかをチェック
