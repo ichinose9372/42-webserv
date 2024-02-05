@@ -142,15 +142,15 @@ TEST(WebServerTest, Response405MethodNotAllowed)
 TEST(WebServerTest, Response200Port8081)
 {
     // 8081ポートにアクセスして200 OKを確認
-    std::string httpCode = getHttpResponseCode("http://default_server:8081/", "GET");
+    std::string httpCode = getHttpResponseCode("http://virtual_server:8081/", "GET");
     EXPECT_EQ(httpCode, "200");
 }
 
-TEST(WebServerTest, FileUpload200)
+TEST(WebServerTest, FileUpload201)
 {
     //8080ポートにアクセスしてファイルをアップロードできるのかを確認
     std::string httpCode = getHttpResponseUpload("http://localhost:8080/upload/", "POST");
-    EXPECT_EQ(httpCode, "200");
+    EXPECT_EQ(httpCode, "201");
 }
 
 TEST(WebServerTest, FileUpload404)
