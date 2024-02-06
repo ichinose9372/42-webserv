@@ -229,8 +229,13 @@ void Request::remakeRequest(Servers &server)
             return;
         }
     // locationがない場合
-    returnParameter.first = 404;
-    returnParameter.second = "404.html";
+    if (this->returnParameter.first == 0) // returnCodeが設定されていない場合
+    {
+        returnParameter.first = 404;
+        returnParameter.second = "404.html";
+    }
+    else
+        return;
 }
 
 void Request::printRequest()

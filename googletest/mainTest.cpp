@@ -27,8 +27,6 @@ std::string getHttpResponseCode_virtual(const std::string &url, const std::strin
 
 std::string getHttpResponseCode_default(const std::string &url, const std::string &method) 
 {
-    // --resolve オプションを使用して、virtual_server の名前解決を 0.0.0.0 に固定します。
-    // 実際には、0.0.0.0 を適切な IP アドレスに置き換える必要があります。
     std::string command = "curl --resolve default_server:8081:0.0.0.0 -X " + method + " -o /dev/null -s -w \"%{http_code}\" " + url;
     FILE *fp = popen(command.c_str(), "r");
     if (!fp) {
