@@ -174,44 +174,42 @@ static int getContentLengthFromHeaders(const std::string &headers) {
     return -1; // Content-Lengthが見つからない場合
 }
 
-bool Server::receiveRequest(int socket_fd)
+int Server::receiveRequest(int socket_fd)
 {
-    static int content_length;
+    static int content_length; 
     int valread;
     char buffer[BUFFER_SIZE] = {0};
     valread = recv(socket_fd, buffer, BUFFER_SIZE, 0);
     if (valread > 0)
     {
         requestStringMap[socket_fd].append(buffer, valread);
-        if (content_length != 0 && requestStringMap[socket_fd].size() >= static_cast<size_t>(content_length))    
-            return true;
+        if (content_length != 0 && valread >= content_length)
+            return 1;
         if (requestStringMap[socket_fd].find("Content-Length:") != std::string::npos)
         {
             content_length = getContentLengthFromHeaders(requestStringMap[socket_fd]);
-            return false;
+            return 0; 
         }
         else if (requestStringMap[socket_fd].find("transfer-encoding: chunked") != std::string::npos)
         {
-            return false;
+            return 0;
         }
         else if (requestStringMap[socket_fd].find("Host") == std::string::npos) //リクエストの中身で、Hostがない場合は、400を返
         {
-            return false;
+            return 0;
         }
         else
         {
-            return true;
+            return 1;
         }
     }
     else if (valread < 0)
     {
-        close(socket_fd);
-        deletePollfds(socket_fd);
-        return false;
+        return -1;
     }
     else//読み込みが完全に終了しているので、trueを返す
     {
-        return true;
+        return 1;
     }
 }
 
@@ -251,8 +249,8 @@ bool Server::sendResponse(int socket_fd, Response &res)
         response = "HTTP/1.1 204 No Content\r\n\r\n";
     else if (response.size() > MAX_RESPONSE_SIZE) 
         response = "HTTP/1.1 413 Payload Too Large\r\nContent-Type: text/plain\r\n\r\nResponse too large.";
-    ssize_t sendByte = send(socket_fd, response.c_str(), response.size(), MSG_NOSIGNAL); // Linuxの場合
-    if (sendByte < 0) //senderrorの場合
+    ssize_t sendByte = send(socket_fd, response.c_str(), response.size(), 0); // Linuxの場合
+    if (sendByte < 0) 
     {
         close(socket_fd);
         deletePollfds(socket_fd);
@@ -282,15 +280,21 @@ void Server::processRequest(int socket_fd)
 
 void Server::recvandProcessConnection(struct pollfd &pfd)
 {
-    //読み込みが完全に終了したのかをあboolで確認する。
-    bool recv_complete = receiveRequest(pfd.fd);
-    if (recv_complete)
+    int recv_result = receiveRequest(pfd.fd);
+    if (recv_result == 1)
     {
         processRequest(pfd.fd);
         pfd.events = POLLOUT;
     }
-    else //読み込みが完全に終了していない場合は、次の読み込みを待つ
+    else if (recv_result == 0)
+    {
         pfd.events = POLLIN;
+    }
+    else
+    {
+        close(pfd.fd);
+        deletePollfds(pfd.fd);
+    }
     return ;
 }
 

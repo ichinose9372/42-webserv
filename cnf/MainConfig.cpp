@@ -101,7 +101,7 @@ size_t MainConfig::validatePort(const std::string& port )
     if (1024 > port_num ||port_num > 65535)
         throw std::runtime_error("port number is out of range");
     else if (ss.fail() || (ss.peek() != EOF))
-        throw std::runtime_error("1 port number is not a number");
+        throw std::runtime_error("port number is not a number");
     return port_num;
 }
 
