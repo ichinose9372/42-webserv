@@ -279,7 +279,6 @@ void Servers::processMultiValueDirective(std::vector<std::string>::iterator &it,
         removeTrailingSemicolon(*it);
         if (std::find(validMethods.begin(), validMethods.end(), *it) == validMethods.end())
         {
-            // ここでエラー処理を行う
             throw std::runtime_error("Parse error: Invalid HTTP method '" + *it + "'");
         }
         location.setMethod(*it);

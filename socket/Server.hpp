@@ -52,7 +52,7 @@ class Server
         void initializeServerSocket(const Servers& server, size_t port);
         void initializeSocketAddress(size_t port);
         //request functions
-        bool receiveRequest(int socket_fd);
+        int receiveRequest(int socket_fd);
         void processRequest(int socket_fd);
         Request findServerandlocaitons(int socket_fd);  
         Servers findServerBySocket(int socket_fd);
