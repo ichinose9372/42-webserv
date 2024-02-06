@@ -119,6 +119,8 @@ std::string Controller::getResponseHtml(int statusCode, Request req)
     {
     case 301:
         return "<html><body><h1>301 Moved Permanently</h1></body></html>";
+    case 400:
+        return "<html><body><h1>400 Bad Request</h1></body></html>";
     case 403:
         return "<html><body><h1>403 Forbidden</h1></body></html>";
     case 404:

@@ -135,6 +135,7 @@ void Server::acceptNewConnection(int server_fd, std::vector<struct pollfd> &poll
     }
     struct pollfd new_socket_struct = {new_socket, POLLIN, 0};
     pollfds.push_back(new_socket_struct);
+    std::cout << "New connection , socket fd is " << new_socket << std::endl;
     requestStringMap.insert(std::make_pair(new_socket, ""));
 }
 
@@ -193,7 +194,11 @@ bool Server::receiveRequest(int socket_fd)
         {
             return false;
         }
-        else 
+        else if (requestStringMap[socket_fd].find("Host") == std::string::npos) //リクエストの中身で、Hostがない場合は、400を返
+        {
+            return false;
+        }
+        else
         {
             return true;
         }
@@ -230,7 +235,7 @@ Request Server::findServerandlocaitons(int socket_fd)
             break;
         }
     }
-    if (!foundServer)
+    if (!foundServer && req.getReturnParameter().first == 0)
     {
         req.setReturnParameter(404, "404.html");
         return req;

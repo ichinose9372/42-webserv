@@ -75,14 +75,8 @@ void RequestParse::parseRequestLine(const std::string &line, Request &request)
     }
     else
     {
-        std::cout << "REQUESTLINE ERROR" << std::endl;
-        // std::cout << "----- ERROR LINE ----\n "
-        //           << "size = " << requestLineTokens.size() << std::endl;
-        // std::vector<std::string>::iterator it = requestLineTokens.begin();
-        // for (; it != requestLineTokens.end(); it++)
-        // {
-        //     std::cout << *it << std::endl;
-        // }
+        //ここで400のエラーを返す
+        request.setReturnParameter(400, "");
     }
 }
 
