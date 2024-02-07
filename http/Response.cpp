@@ -16,6 +16,7 @@ static void initializeStatusCodes()
     STATUS_CODES[403] = "403 Forbidden";
     STATUS_CODES[404] = "404 Not Found";
     STATUS_CODES[405] = "405 Method Not Allowed";
+    STATUS_CODES[413] = "413 Payload Too Large";
     STATUS_CODES[500] = "500 Internal Server Error";
     // 他のステータスコードも必要に応じて追加
 }
