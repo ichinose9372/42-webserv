@@ -29,7 +29,7 @@ void PostRequest::handlePostRequest(Request &req, Response &res)
 {
     // cgi の実行なのかファイルのアップロードなのかを判定して処理を分岐する
     // ファイルアップロードの場合
-    std::string path = Controller::getFilepath(req); 
+    std::string path = Controller::getFilepath(req);
     if (path != "")
     {
         std::ofstream outputFile(path.c_str());
@@ -42,7 +42,7 @@ void PostRequest::handlePostRequest(Request &req, Response &res)
         }
         std::string body = req.getBody();
         body = extractFileContent(body);
-        if (req.getMaxBodySize() != 0 && body.size() > req.getMaxBodySize())
+        if (req.getClientMaxBodySize() != 0 && body.size() > req.getClientMaxBodySize())
         {
             res.setStatus("413 Request Entity Too Large");
             res.setBody("<html><body><h1>413 Request Entity Too Large</h1></body></html>");
