@@ -135,7 +135,7 @@ void Server::acceptNewConnection(int server_fd, std::vector<struct pollfd> &poll
     }
     struct pollfd new_socket_struct = {new_socket, POLLIN, 0};
     pollfds.push_back(new_socket_struct);
-    std::cout << "New connection , socket fd is " << new_socket << std::endl;
+    // std::cout << "New connection , socket fd is " << new_socket << std::endl;
     requestStringMap.insert(std::make_pair(new_socket, ""));
 }
 
@@ -188,28 +188,28 @@ int Server::receiveRequest(int socket_fd)
         if (requestStringMap[socket_fd].find("Content-Length:") != std::string::npos)
         {
             content_length = getContentLengthFromHeaders(requestStringMap[socket_fd]);
-            return 0; 
+            return RETRY_OPERATION; 
         }
         else if (requestStringMap[socket_fd].find("transfer-encoding: chunked") != std::string::npos)
         {
-            return 0;
+            return RETRY_OPERATION;
         }
         else if (requestStringMap[socket_fd].find("Host") == std::string::npos) //リクエストの中身で、Hostがない場合は、400を返
         {
-            return 0;
+            return RETRY_OPERATION;
         }
         else
         {
-            return 1;
+            return OPERATION_DONE ;
         }
     }
     else if (valread < 0)
     {
-        return -1;
+        return OPERATION_ERROR;
     }
     else//読み込みが完全に終了しているので、trueを返す
     {
-        return 1;
+        return OPERATION_DONE ;
     }
 }
 
@@ -245,8 +245,8 @@ Request Server::findServerandlocaitons(int socket_fd)
 bool Server::sendResponse(int socket_fd, Response &res)
 {
     std::string response = res.getResponse();
-    if (response.empty()) 
-        response = "HTTP/1.1 204 No Content\r\n\r\n";
+    if (response.empty())
+        return false;
     else if (response.size() > MAX_RESPONSE_SIZE) 
         response = "HTTP/1.1 413 Payload Too Large\r\nContent-Type: text/plain\r\n\r\nResponse too large.";
     ssize_t sendByte = send(socket_fd, response.c_str(), response.size(), 0); // Linuxの場合
@@ -281,12 +281,21 @@ void Server::processRequest(int socket_fd)
 void Server::recvandProcessConnection(struct pollfd &pfd)
 {
     int recv_result = receiveRequest(pfd.fd);
-    if (recv_result == 1)
+    if (recv_result == OPERATION_DONE)
     {
         processRequest(pfd.fd);
-        pfd.events = POLLOUT;
+        //もしfdのレスポンスクラスにぱパイプのfdがセットされてたら、そのfdをpollfdsに追加してPOLLINを監視する　=もしCGIだったら
+        if (this->responseConectionMap[pfd.fd].getCGIreadfd() != -1)
+        {
+            struct pollfd pipe_pollfd = {this->responseConectionMap[pfd.fd].getCGIreadfd(), POLLIN, 0};
+            this->pollfds.push_back(pipe_pollfd); 
+            this->cgiReadFdMap.insert(std::make_pair(this->responseConectionMap[pfd.fd].getCGIreadfd(), pfd.fd)); //6 5
+            pfd.events = 0;
+        }
+        else 
+            pfd.events = POLLOUT;
     }
-    else if (recv_result == 0)
+    else if (recv_result == RETRY_OPERATION)
     {
         pfd.events = POLLIN;
     }
@@ -320,6 +329,59 @@ void Server::sendConnection(struct pollfd &pfd)
     deletePollfds(pfd.fd);    // pollfdsから該当するエントリを削除
 }
 
+void Server::readCgiOutput(struct pollfd &pfd)
+{
+    char buf[BUFFER_SIZE];
+    std::string body;
+    int requestfd = this->cgiReadFdMap[pfd.fd];
+    int pipefd = pfd.fd;
+    int len = read(pipefd, buf, sizeof(buf) - 1);
+    if (len > 0)
+    {
+        buf[len] = '\0';
+        body = this->responseConectionMap[requestfd].getBody();
+        body.append(buf);
+        this->responseConectionMap[requestfd].setBody(body);
+        pfd.events = POLLIN;
+        return;
+    }
+    else if (len == 0) // EOF
+    {
+        this->responseConectionMap[requestfd].setStatus("200 OK");
+        this->responseConectionMap[requestfd].setHeaders("Content-Type: ", "text/html");
+        this->responseConectionMap[requestfd].setHeaders("Content-Length: ", Utils::my_to_string(this->responseConectionMap[requestfd].getBody().size()));
+        this->responseConectionMap[requestfd].setCGIreadfd(-1);
+        this->responseConectionMap[requestfd].setResponse();
+        //requestfdをPOLLOTに変更
+        std::vector<struct pollfd>::iterator it = pollfds.begin();
+        for (; it != pollfds.end(); it++)
+        {
+            if (it->fd == requestfd)
+            {
+                it->events = POLLOUT;
+                break;
+            }
+        }
+        close(pipefd);
+        deletePollfds(pipefd);
+        this->cgiReadFdMap.erase(pipefd);
+        return ;
+    }
+    else if (len < 0)
+    {
+        close(this->responseConectionMap[pfd.fd].getCGIreadfd());
+        deletePollfds(this->responseConectionMap[pfd.fd].getCGIreadfd());
+        this->cgiReadFdMap.erase(pfd.fd);
+        this->responseConectionMap[pfd.fd].setStatus("500 Internal Server Error");
+        this->responseConectionMap[pfd.fd].setHeaders("Content-Type: ", "text/html");
+        this->responseConectionMap[pfd.fd].setBody("<html><body><h1>500 Internal Server Error</h1><p>サーバーで内部エラーが発生しました。</p></body></html>");
+        this->responseConectionMap[pfd.fd].setHeaders("Content-Length: ", Utils::my_to_string(body.size()));
+        this->responseConectionMap[pfd.fd].setResponse();
+        pollfds[this->cgiReadFdMap[pipefd]].events = POLLOUT;
+    }
+    return ;
+}
+
 void Server::runEventLoop()
 {
     size_t start_pollfds_size = pollfds.size();
@@ -329,16 +391,24 @@ void Server::runEventLoop()
         {
             for (size_t i = 0; i < pollfds.size(); ++i)
             {
-                if (i < start_pollfds_size && pollfds[i].revents & POLLIN)
-                    acceptNewConnection(pollfds[i].fd, pollfds, address, addrlen);
-                else if (pollfds[i].revents & POLLIN)
+                if (pollfds[i].revents & POLLIN)
                 {
-                    //recv request　and process it;
-                    recvandProcessConnection(pollfds[i]);
+                    if (this->cgiReadFdMap.find(pollfds[i].fd) != this->cgiReadFdMap.end())
+                    {
+                        readCgiOutput(pollfds[i]);
+                    }
+                    else if (i < start_pollfds_size)
+                    {
+                        acceptNewConnection(pollfds[i].fd, pollfds, address, addrlen);
+                    }
+                    else
+                    {
+                        recvandProcessConnection(pollfds[i]);
+                    }
                 }
                 else if (pollfds[i].revents & POLLOUT)
                 {
-                    //send response;
+                    // レスポンス送信処理
                     sendConnection(pollfds[i]);
                 }
             }

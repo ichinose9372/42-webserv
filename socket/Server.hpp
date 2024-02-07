@@ -8,6 +8,7 @@
 #include <string.h>
 #include <poll.h>
 #include <vector>
+#include <algorithm>
 #include "../cnf/MainConfig.hpp"
 #include "../http/Response.hpp"
 #include "../http/Request.hpp"
@@ -19,6 +20,9 @@
 #define  BUFFER_SIZE 1024
 #define  MAX_RESPONSE_SIZE 1000000 // 改善する予定
 #define  TIMEOUT 5
+#define OPERATION_DONE 1
+#define RETRY_OPERATION 0
+#define OPERATION_ERROR -1
 
 #define ADDRLEN sizeof(address)
 
@@ -37,6 +41,7 @@ class Server
         std::multimap<int , Servers> requestMap;
         std::map<int, std::string> requestStringMap;
         std::map<int, Response> responseConectionMap;
+        std::map<int, int> cgiReadFdMap;
         Server();
     public:
         Server(const MainConfig& conf);
@@ -60,6 +65,7 @@ class Server
         // void sendTimeoutResponse(int socket_fd);
         //response functions
         bool sendResponse(int socket_fd, Response& res);
+        void readCgiOutput(struct pollfd &pfd);
         //pollfds functions
         void deletePollfds(int socket_fd);
 

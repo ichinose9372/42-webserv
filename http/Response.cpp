@@ -1,6 +1,6 @@
 #include "Response.hpp"
 
-Response::Response() {}
+Response::Response() {this->CGI_read_fd = -1;}
 
 Response::~Response() {}
 
@@ -94,4 +94,14 @@ const std::string Response::getResponse()
 const std::string Response::getStatus()
 {
     return status;
+}
+
+void Response::setCGIreadfd(int fd)
+{
+    CGI_read_fd = fd;
+}
+
+int Response::getCGIreadfd()
+{
+    return CGI_read_fd;
 }
