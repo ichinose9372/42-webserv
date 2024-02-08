@@ -1,6 +1,6 @@
 #include "Response.hpp"
 
-Response::Response() {}
+Response::Response() {this->CGI_read_fd = -1;}
 
 Response::~Response() {}
 
@@ -46,7 +46,7 @@ void Response::setResponse()
     response += allgetHeader();
     response += "\r\n";
     response += body;
-    // std::cout << response << std::endl;
+    // std::cout << "---- IN setresponse ---\n" <<response << "\n------------------- "<<std::endl;
 }
 
 void Response::setResponse(const std::string &response)
@@ -95,4 +95,14 @@ const std::string Response::getResponse()
 const std::string Response::getStatus()
 {
     return status;
+}
+
+void Response::setCGIreadfd(int fd)
+{
+    CGI_read_fd = fd;
+}
+
+int Response::getCGIreadfd()
+{
+    return CGI_read_fd;
 }

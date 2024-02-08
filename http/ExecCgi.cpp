@@ -100,15 +100,11 @@ void ExecCgi::executeCommonCgiScript(Request &req, Response &res, const std::str
     {
         close(pipefd[1]);
         int status;
-        std::string output;
-        char buf[1024];
-        ssize_t len;
-
         bool timeoutOccurred = false;
-        // パイプの読み取り側を非ブロッキングに設定
-        fcntl(pipefd[0], F_SETFL, O_NONBLOCK);
-
         pid_t ret;
+        // パイプの読み取り側を非ブロッキングに設定
+        fcntl(pipefd[0], F_SETFL, O_NONBLOCK);        
+        waitpid(pid, &status, WNOHANG);
         while (true)
         {
             ret = waitpid(pid, &status, WNOHANG);
@@ -138,45 +134,13 @@ void ExecCgi::executeCommonCgiScript(Request &req, Response &res, const std::str
             waitpid(pid, &status, 0);
             res.setStatus("504 Gateway Timeout");
             res.setBody("<html><body><h1>504 Gateway Timeout</h1><p>CGI script took too long to respond.</p></body></html>");
+            res.setHeaders("Content-Type: ", "text/html");
+            res.setHeaders("Content-Length: ", Utils::my_to_string(res.getBody().size()));
+            res.setResponse();
+            res.setCGIreadfd(-1);
             return;
         }
-
-        while (true)
-        {
-            len = read(pipefd[0], buf, sizeof(buf) - 1);
-            if (len > 0)
-            {
-                buf[len] = '\0';
-                output += buf;
-            }
-            // EOFに到達した場合
-            else if (len == 0)
-                break;
-            // エラーの場合（非ブロッキング読み取りの場合、データがない場合に-1を返す）
-            else if (len < 0)
-                continue;
-            // タイムアウトチェック
-            if (Timer::calculateTime(start_time) > timeout)
-            {
-                timeoutOccurred = true;
-                break;
-            }
-        }
-        close(pipefd[0]);
-        // タイムアウトが発生した場合、子プロセスを終了させる
-        if (timeoutOccurred)
-        {
-            kill(pid, SIGKILL);
-            waitpid(pid, &status, 0);
-            res.setStatus("504 Gateway Timeout");
-            res.setBody("<html><body><h1>504 Gateway Timeout</h1><p>CGI script took too long to respond.</p></body></html>");
-            return;
-        }
-
-        res.setStatus("200 OK");
-        res.setHeaders("Content-Type: ", "text/html");
-        res.setBody(output);
-        res.setHeaders("Content-Length: ", Utils::my_to_string(output.size()));
+        res.setCGIreadfd(pipefd[0]);
         return;
     }
 }

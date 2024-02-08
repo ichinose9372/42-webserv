@@ -58,7 +58,10 @@ std::string GetRequest::getBody(const std::string &filePath)
 void GetRequest::handleGetRequest(Request &req, Response &res)
 {
     if (isCgiScript(req.getUri()))
+    {
         handleCgiScript(req, res);
+        return ;
+    }
     else
         handleRegularFile(req, res);
     res.setResponse(); // HTTPレスポンスを設定
