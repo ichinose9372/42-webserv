@@ -421,7 +421,7 @@ void Server::runEventLoop()
                     //リクエストのfdをPOLLOUTに変更する
                     server_Setresponse(this->cgiReadFdMap[pollfds[i].fd], "200 OK", "text/html", this->responseConectionMap[this->cgiReadFdMap[pollfds[i].fd]].getBody());
                     this->responseConectionMap[this->cgiReadFdMap[pollfds[i].fd]].setCGIreadfd(-1);
-                    changePollfds(pollfds[i].fd, POLLOUT);
+                    changePollfds(this->cgiReadFdMap[pollfds[i].fd], POLLOUT);
                     close(pollfds[i].fd);   
                     deletePollfds(pollfds[i].fd);
                     this->cgiReadFdMap.erase(pollfds[i].fd);   
