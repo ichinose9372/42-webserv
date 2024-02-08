@@ -45,7 +45,7 @@ void Response::setResponse()
     response += allgetHeader();
     response += "\r\n";
     response += body;
-    // std::cout << response << std::endl;
+    // std::cout << "---- IN setresponse ---\n" <<response << "\n------------------- "<<std::endl;
 }
 
 void Response::setResponse(const std::string &response)

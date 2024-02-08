@@ -101,19 +101,31 @@ void ExecCgi::executeCommonCgiScript(Request &req, Response &res, const std::str
         close(pipefd[1]);
         int status;
         bool timeoutOccurred = false;
+        pid_t ret;
         // パイプの読み取り側を非ブロッキングに設定
         fcntl(pipefd[0], F_SETFL, O_NONBLOCK);        
         waitpid(pid, &status, WNOHANG);
-        if (Timer::calculateTime(start_time) > timeout)
-            timeoutOccurred = true;
-        if (WIFEXITED(status))
+        while (true)
         {
-            if (WEXITSTATUS(status) == 500)
+            ret = waitpid(pid, &status, WNOHANG);
+            if (Timer::calculateTime(start_time) > timeout)
             {
-                res.setStatus("500 Internal Server Error");
-                res.setBody(GetRequest::getBody(req.getErrorpage(500)));
-                return;
+                timeoutOccurred = true;
+                break;
             }
+            if (ret == 0)
+                continue;
+            if (WIFEXITED(status))
+            {
+                if (WEXITSTATUS(status) == 500)
+                {
+                    res.setStatus("500 Internal Server Error");
+                    res.setBody(GetRequest::getBody(req.getErrorpage(500)));
+                    return;
+                }
+                break;
+            }
+            break;
         }
         // タイムアウトが発生した場合、子プロセスを終了させる
         if (timeoutOccurred)
@@ -122,6 +134,10 @@ void ExecCgi::executeCommonCgiScript(Request &req, Response &res, const std::str
             waitpid(pid, &status, 0);
             res.setStatus("504 Gateway Timeout");
             res.setBody("<html><body><h1>504 Gateway Timeout</h1><p>CGI script took too long to respond.</p></body></html>");
+            res.setHeaders("Content-Type: ", "text/html");
+            res.setHeaders("Content-Length: ", Utils::my_to_string(res.getBody().size()));
+            res.setResponse();
+            res.setCGIreadfd(-1);
             return;
         }
         res.setCGIreadfd(pipefd[0]);

@@ -293,7 +293,9 @@ void Server::recvandProcessConnection(struct pollfd &pfd)
             pfd.events = 0;
         }
         else 
+        {
             pfd.events = POLLOUT;
+        }
     }
     else if (recv_result == RETRY_OPERATION)
     {
@@ -352,7 +354,7 @@ void Server::readCgiOutput(struct pollfd &pfd)
         this->responseConectionMap[requestfd].setHeaders("Content-Length: ", Utils::my_to_string(this->responseConectionMap[requestfd].getBody().size()));
         this->responseConectionMap[requestfd].setCGIreadfd(-1);
         this->responseConectionMap[requestfd].setResponse();
-        //requestfdをPOLLOTに変更
+        
         std::vector<struct pollfd>::iterator it = pollfds.begin();
         for (; it != pollfds.end(); it++)
         {
@@ -406,11 +408,32 @@ void Server::runEventLoop()
                         recvandProcessConnection(pollfds[i]);
                     }
                 }
+                else if (pollfds[i].revents & POLLHUP)
+                {
+                    this->responseConectionMap[this->cgiReadFdMap[pollfds[i].fd]].setStatus("200 OK");
+                    this->responseConectionMap[this->cgiReadFdMap[pollfds[i].fd]].setHeaders("Content-Type: ", "text/html");
+                    this->responseConectionMap[this->cgiReadFdMap[pollfds[i].fd]].setHeaders("Content-Length: ", Utils::my_to_string(this->responseConectionMap[this->cgiReadFdMap[pollfds[i].fd]].getBody().size()));
+                    this->responseConectionMap[this->cgiReadFdMap[pollfds[i].fd]].setCGIreadfd(-1);
+                    this->responseConectionMap[this->cgiReadFdMap[pollfds[i].fd]].setResponse();
+                    std::vector<struct pollfd>::iterator it = pollfds.begin();
+                    for (; it != pollfds.end(); it++)
+                    {
+                        if (it->fd == this->cgiReadFdMap[pollfds[i].fd])
+                        {
+                            it->events = POLLOUT;
+                            break;
+                        }
+                    }
+                    close(pollfds[i].fd);   
+                    deletePollfds(pollfds[i].fd);
+                    this->cgiReadFdMap.erase(pollfds[i].fd);   
+                }
                 else if (pollfds[i].revents & POLLOUT)
                 {
                     // レスポンス送信処理
                     sendConnection(pollfds[i]);
                 }
+
             }
         }
         else
