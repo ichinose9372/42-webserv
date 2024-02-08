@@ -48,6 +48,11 @@ void RequestParse::parseRequest(Request &request, const std::string &rawRequest)
         return;
     while (std::getline(requestStream, line) && line != "\r")
         parseHeader(line, request);
+    if (request.getHost().empty())
+    {
+        request.setReturnParameter(400, "");
+        return;
+    }
     parseBody(requestStream, request);
 }
 
