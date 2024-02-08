@@ -65,9 +65,11 @@ class Server
         // void sendTimeoutResponse(int socket_fd);
         //response functions
         bool sendResponse(int socket_fd, Response& res);
+        void server_Setresponse(int fd, const std::string& status, const std::string& contentType, const std::string& body);
         void readCgiOutput(struct pollfd &pfd);
         //pollfds functions
         void deletePollfds(int socket_fd);
+        void changePollfds(int changefd,  short events);
 
 };
 

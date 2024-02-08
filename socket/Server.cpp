@@ -135,7 +135,6 @@ void Server::acceptNewConnection(int server_fd, std::vector<struct pollfd> &poll
     }
     struct pollfd new_socket_struct = {new_socket, POLLIN, 0};
     pollfds.push_back(new_socket_struct);
-    // std::cout << "New connection , socket fd is " << new_socket << std::endl;
     requestStringMap.insert(std::make_pair(new_socket, ""));
 }
 
@@ -331,12 +330,35 @@ void Server::sendConnection(struct pollfd &pfd)
     deletePollfds(pfd.fd);    // pollfdsから該当するエントリを削除
 }
 
+void Server::changePollfds(int changefd, short events)
+{
+    std::vector<struct pollfd>::iterator it = pollfds.begin();
+    for (; it != pollfds.end(); it++)
+    {
+            if (it->fd == changefd)
+            {
+                it->events = events;
+                break;
+            }
+        }
+}
+
+void Server::server_Setresponse(int fd, const std::string& status, const std::string& contentType, const std::string& body)
+{
+    this->responseConectionMap[fd].setStatus(status);
+    this->responseConectionMap[fd].setHeaders("Content-Type: ", contentType);
+    this->responseConectionMap[fd].setHeaders("Content-Length: ", Utils::my_to_string(body.size()));
+    this->responseConectionMap[fd].setBody(body);
+    this->responseConectionMap[fd].setResponse();
+}
+
 void Server::readCgiOutput(struct pollfd &pfd)
 {
     char buf[BUFFER_SIZE];
     std::string body;
     int requestfd = this->cgiReadFdMap[pfd.fd];
     int pipefd = pfd.fd;
+    //read from pipe
     int len = read(pipefd, buf, sizeof(buf) - 1);
     if (len > 0)
     {
@@ -344,26 +366,14 @@ void Server::readCgiOutput(struct pollfd &pfd)
         body = this->responseConectionMap[requestfd].getBody();
         body.append(buf);
         this->responseConectionMap[requestfd].setBody(body);
-        pfd.events = POLLIN;
+        changePollfds(pipefd, POLLIN);
         return;
     }
     else if (len == 0) // EOF
     {
-        this->responseConectionMap[requestfd].setStatus("200 OK");
-        this->responseConectionMap[requestfd].setHeaders("Content-Type: ", "text/html");
-        this->responseConectionMap[requestfd].setHeaders("Content-Length: ", Utils::my_to_string(this->responseConectionMap[requestfd].getBody().size()));
+        server_Setresponse(requestfd, "200 OK", "text/html", this->responseConectionMap[requestfd].getBody());
         this->responseConectionMap[requestfd].setCGIreadfd(-1);
-        this->responseConectionMap[requestfd].setResponse();
-        
-        std::vector<struct pollfd>::iterator it = pollfds.begin();
-        for (; it != pollfds.end(); it++)
-        {
-            if (it->fd == requestfd)
-            {
-                it->events = POLLOUT;
-                break;
-            }
-        }
+        changePollfds(requestfd, POLLOUT);
         close(pipefd);
         deletePollfds(pipefd);
         this->cgiReadFdMap.erase(pipefd);
@@ -374,11 +384,7 @@ void Server::readCgiOutput(struct pollfd &pfd)
         close(this->responseConectionMap[pfd.fd].getCGIreadfd());
         deletePollfds(this->responseConectionMap[pfd.fd].getCGIreadfd());
         this->cgiReadFdMap.erase(pfd.fd);
-        this->responseConectionMap[pfd.fd].setStatus("500 Internal Server Error");
-        this->responseConectionMap[pfd.fd].setHeaders("Content-Type: ", "text/html");
-        this->responseConectionMap[pfd.fd].setBody("<html><body><h1>500 Internal Server Error</h1><p>サーバーで内部エラーが発生しました。</p></body></html>");
-        this->responseConectionMap[pfd.fd].setHeaders("Content-Length: ", Utils::my_to_string(body.size()));
-        this->responseConectionMap[pfd.fd].setResponse();
+        server_Setresponse(pfd.fd, "500 Internal Server Error", "text/html", "<html><body><h1>500 Internal Server Error</h1><p>サーバーで内部エラーが発生しました。</p></body></html>");
         pollfds[this->cgiReadFdMap[pipefd]].events = POLLOUT;
     }
     return ;
@@ -410,20 +416,12 @@ void Server::runEventLoop()
                 }
                 else if (pollfds[i].revents & POLLHUP)
                 {
-                    this->responseConectionMap[this->cgiReadFdMap[pollfds[i].fd]].setStatus("200 OK");
-                    this->responseConectionMap[this->cgiReadFdMap[pollfds[i].fd]].setHeaders("Content-Type: ", "text/html");
-                    this->responseConectionMap[this->cgiReadFdMap[pollfds[i].fd]].setHeaders("Content-Length: ", Utils::my_to_string(this->responseConectionMap[this->cgiReadFdMap[pollfds[i].fd]].getBody().size()));
+                    //pipeのfdが空で読み込まれない時に、POLLHUPが発生する
+                    //pipeのfdを閉じる処理と、pollfdsから削除する処理を行う
+                    //リクエストのfdをPOLLOUTに変更する
+                    server_Setresponse(this->cgiReadFdMap[pollfds[i].fd], "200 OK", "text/html", this->responseConectionMap[this->cgiReadFdMap[pollfds[i].fd]].getBody());
                     this->responseConectionMap[this->cgiReadFdMap[pollfds[i].fd]].setCGIreadfd(-1);
-                    this->responseConectionMap[this->cgiReadFdMap[pollfds[i].fd]].setResponse();
-                    std::vector<struct pollfd>::iterator it = pollfds.begin();
-                    for (; it != pollfds.end(); it++)
-                    {
-                        if (it->fd == this->cgiReadFdMap[pollfds[i].fd])
-                        {
-                            it->events = POLLOUT;
-                            break;
-                        }
-                    }
+                    changePollfds(pollfds[i].fd, POLLOUT);
                     close(pollfds[i].fd);   
                     deletePollfds(pollfds[i].fd);
                     this->cgiReadFdMap.erase(pollfds[i].fd);   
