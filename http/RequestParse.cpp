@@ -7,6 +7,22 @@ RequestParse::RequestParse()
 
 RequestParse::~RequestParse() {}
 
+// 前後の空白を削除する関数
+void trim(std::string &s)
+{
+    // 文字列の前方の空白を削除
+    size_t start = s.find_first_not_of(" \t\n\r\f\v");
+    if (start == std::string::npos)
+        s.clear(); // 文字列が空白のみの場合
+    else
+        s = s.substr(start);
+
+    // 文字列の後方の空白を削除
+    size_t end = s.find_last_not_of(" \t\n\r\f\v");
+    if (end != std::string::npos)
+        s = s.substr(0, end + 1);
+}
+
 std::vector<std::string> split(const std::string &s, char delimiter)
 {
     std::vector<std::string> tokens;
@@ -32,6 +48,11 @@ void RequestParse::parseRequest(Request &request, const std::string &rawRequest)
         return;
     while (std::getline(requestStream, line) && line != "\r")
         parseHeader(line, request);
+    if (request.getHost().empty())
+    {
+        request.setReturnParameter(400, "");
+        return;
+    }
     parseBody(requestStream, request);
 }
 
@@ -56,6 +77,28 @@ std::string getfilepathtoURI(const std::string &uri, Request &request)
     return return_uri;
 }
 
+bool isMethod(std::string method)
+{
+    if (method == "GET" || method == "POST" || method == "DELETE" || method == "HEAD")
+        return true;
+    return false;
+}
+
+bool isURL(std::string url)
+{
+    if (url[0] == '/')
+        return true;
+    return false;
+}
+
+bool isHttpVersion(std::string httpVersion)
+{
+    trim(httpVersion);
+    if (httpVersion == "HTTP/1.1")
+        return true;
+    return false;
+}
+
 void RequestParse::parseRequestLine(const std::string &line, Request &request)
 {
 
@@ -69,15 +112,16 @@ void RequestParse::parseRequestLine(const std::string &line, Request &request)
     std::vector<std::string> requestLineTokens = Request::split(line, ' ');
     if (requestLineTokens.size() >= 3)
     {
-        request.setMethod(requestLineTokens[0]);
-        request.setUri(getfilepathtoURI(requestLineTokens[1], request));
-        request.setHttpVersion(requestLineTokens[2]);
+        if (isMethod(requestLineTokens[0]) && isURL(requestLineTokens[1]) && isHttpVersion(requestLineTokens[2]))
+        {
+            request.setMethod(requestLineTokens[0]);
+            request.setUri(getfilepathtoURI(requestLineTokens[1], request));
+            request.setHttpVersion(requestLineTokens[2]);
+            return;
+        }
     }
-    else
-    {
-        //ここで400のエラーを返す
-        request.setReturnParameter(400, "");
-    }
+    // ここで400のエラーを返す
+    request.setReturnParameter(400, "");
 }
 
 // location separat filename and path
