@@ -175,18 +175,24 @@ static int getContentLengthFromHeaders(const std::string &headers) {
 
 int Server::receiveRequest(int socket_fd)
 {
-    static int content_length; 
+    // static int content_length; // この変数はクラスのメンバ変数にする
+    //this->recvContentLengthにfdがなかったら、初期化する
+    if (this->recvContentLength.find(socket_fd) == this->recvContentLength.end())
+        this->recvContentLength.insert(std::make_pair(socket_fd, 0));
     int valread;
     char buffer[BUFFER_SIZE] = {0};
     valread = recv(socket_fd, buffer, BUFFER_SIZE, 0);
     if (valread > 0)
     {
         requestStringMap[socket_fd].append(buffer, valread);
-        if (content_length != 0 && valread >= content_length)
-            return 1;
+        if (this->recvContentLength[socket_fd] != 0 && valread >= this->recvContentLength[socket_fd])
+        {
+            this->recvContentLength.erase(socket_fd);
+            return  OPERATION_DONE;
+        }
         if (requestStringMap[socket_fd].find("Content-Length:") != std::string::npos)
         {
-            content_length = getContentLengthFromHeaders(requestStringMap[socket_fd]);
+            this->recvContentLength[socket_fd] = getContentLengthFromHeaders(requestStringMap[socket_fd]);
             return RETRY_OPERATION; 
         }
         else if (requestStringMap[socket_fd].find("transfer-encoding: chunked") != std::string::npos)
