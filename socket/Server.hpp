@@ -20,11 +20,10 @@
 #define  BUFFER_SIZE 1024
 #define  MAX_RESPONSE_SIZE 1000000 // 改善する予定
 #define  TIMEOUT 5
-#define OPERATION_DONE 1
-#define RETRY_OPERATION 0
-#define OPERATION_ERROR -1
-
-#define ADDRLEN sizeof(address)
+#define  OPERATION_DONE 1
+#define  RETRY_OPERATION 0
+#define  OPERATION_ERROR -1
+#define  ADDRLEN sizeof(address)
 
 class MainConfig;
 class Servers;
@@ -42,6 +41,7 @@ class Server
         std::map<int, std::string> requestStringMap;
         std::map<int, Response> responseConectionMap;
         std::map<int, int> cgiReadFdMap;
+        std::map<int, int> recvContentLength;
         Server();
     public:
         Server(const MainConfig& conf);
