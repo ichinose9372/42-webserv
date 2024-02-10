@@ -51,7 +51,6 @@ std::string Controller::getFilepath(Request &req)
         return "";
     if (filenamePos == std::string::npos)
     {
-        //  remake body
         std::string remakeBody;
         remakeBody += "Content-Disposition: form-data; ";
         remakeBody += "name=\"upfile\"; ";
@@ -61,22 +60,14 @@ std::string Controller::getFilepath(Request &req)
         remakeBody += req.getBody();
         req.setBody(remakeBody);
         filenamePos = remakeBody.find(filenameKey);
-        // std::ofstream outputFile("post.txt");
-        // if (outputFile.is_open())
-        // {
-        //     outputFile << body;
-        //     outputFile.close();
-        // }
-        // else
-        //     std::cerr << "Unable to open the file for writing" << std::endl;
     }
     filenamePos += filenameKey.length() + 1; // Skip past "filename="
+
     body = req.getBody();
     std::size_t filenameEnd = body.find('\"', filenamePos);
-    // if (filenameEnd == std::string::npos)
-    //     filenameEnd = body.length(); // In case there's no trailing ';'
     std::string filename = body.substr(filenamePos , filenameEnd - filenamePos);
     filename = sanitizeFilename(filename);
+
     std::string path = req.getUri();
     if (path[path.length() - 1] != '/')
         path += '/';
