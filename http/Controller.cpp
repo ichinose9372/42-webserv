@@ -46,20 +46,28 @@ std::string Controller::getFilepath(Request &req)
 {
     std::string body = req.getBody();
     std::string filenameKey = "filename=";
-
     std::size_t filenamePos = body.find(filenameKey);
-
-    if (filenamePos == std::string::npos)
+    if (filenamePos == std::string::npos && body == "")
         return "";
-
+    if (filenamePos == std::string::npos)
+    {
+        std::string remakeBody;
+        remakeBody += "Content-Disposition: form-data; ";
+        remakeBody += "name=\"upfile\"; ";
+        remakeBody += "filename=\"post.txt\"";
+        remakeBody += "\nContent-Type: text/plain";
+        remakeBody += "\r\n\r\n";
+        remakeBody += req.getBody();
+        req.setBody(remakeBody);
+        filenamePos = remakeBody.find(filenameKey);
+    }
     filenamePos += filenameKey.length() + 1; // Skip past "filename="
+
+    body = req.getBody();
     std::size_t filenameEnd = body.find('\"', filenamePos);
-
-    if (filenameEnd == std::string::npos)
-        filenameEnd = body.length(); // In case there's no trailing ';'
-
     std::string filename = body.substr(filenamePos , filenameEnd - filenamePos);
     filename = sanitizeFilename(filename);
+
     std::string path = req.getUri();
     if (path[path.length() - 1] != '/')
         path += '/';
