@@ -175,8 +175,6 @@ static int getContentLengthFromHeaders(const std::string &headers) {
 
 int Server::receiveRequest(int socket_fd)
 {
-    // static int content_length; // この変数はクラスのメンバ変数にする
-    //this->recvContentLengthにfdがなかったら、初期化する
     if (this->recvContentLength.find(socket_fd) == this->recvContentLength.end())
         this->recvContentLength.insert(std::make_pair(socket_fd, 0));
     int valread;
@@ -185,9 +183,11 @@ int Server::receiveRequest(int socket_fd)
     if (valread > 0)
     {
         requestStringMap[socket_fd].append(buffer, valread);
-        if (this->recvContentLength[socket_fd] != 0 && valread >= this->recvContentLength[socket_fd])
+        this->totalSamread[socket_fd] += valread;
+        if (this->recvContentLength[socket_fd] != 0 && this->totalSamread[socket_fd] >= this->recvContentLength[socket_fd])
         {
             this->recvContentLength.erase(socket_fd);
+            this->totalSamread.erase(socket_fd);
             return  OPERATION_DONE;
         }
         if (requestStringMap[socket_fd].find("Content-Length:") != std::string::npos)
@@ -196,10 +196,6 @@ int Server::receiveRequest(int socket_fd)
             return RETRY_OPERATION; 
         }
         else if (requestStringMap[socket_fd].find("transfer-encoding: chunked") != std::string::npos)
-        {
-            return RETRY_OPERATION;
-        }
-        else if (requestStringMap[socket_fd].find("Host") == std::string::npos) //リクエストの中身で、Hostがない場合は、400を返
         {
             return RETRY_OPERATION;
         }

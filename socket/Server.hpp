@@ -42,6 +42,7 @@ class Server
         std::map<int, Response> responseConectionMap;
         std::map<int, int> cgiReadFdMap;
         std::map<int, int> recvContentLength;
+        std::map<int, int> totalSamread;
         Server();
     public:
         Server(const MainConfig& conf);
