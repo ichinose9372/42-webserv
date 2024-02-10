@@ -46,17 +46,35 @@ std::string Controller::getFilepath(Request &req)
 {
     std::string body = req.getBody();
     std::string filenameKey = "filename=";
-
     std::size_t filenamePos = body.find(filenameKey);
-
-    if (filenamePos == std::string::npos)
+    if (filenamePos == std::string::npos && body == "")
         return "";
-
+    if (filenamePos == std::string::npos)
+    {
+        //  remake body
+        std::string remakeBody;
+        remakeBody += "Content-Disposition: form-data; ";
+        remakeBody += "name=\"upfile\"; ";
+        remakeBody += "filename=\"post.txt\"";
+        remakeBody += "\nContent-Type: text/plain";
+        remakeBody += "\r\n\r\n";
+        remakeBody += req.getBody();
+        req.setBody(remakeBody);
+        filenamePos = remakeBody.find(filenameKey);
+        std::ofstream outputFile("post.txt");
+        if (outputFile.is_open())
+        {
+            outputFile << body;
+            outputFile.close();
+        }
+        else
+            std::cerr << "Unable to open the file for writing" << std::endl;
+    }
     filenamePos += filenameKey.length() + 1; // Skip past "filename="
     std::size_t filenameEnd = body.find('\"', filenamePos);
 
-    if (filenameEnd == std::string::npos)
-        filenameEnd = body.length(); // In case there's no trailing ';'
+    // if (filenameEnd == std::string::npos)
+    //     filenameEnd = body.length(); // In case there's no trailing ';'
 
     std::string filename = body.substr(filenamePos , filenameEnd - filenamePos);
     filename = sanitizeFilename(filename);
