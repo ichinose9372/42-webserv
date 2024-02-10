@@ -269,31 +269,31 @@ int Server::receiveRequest(int socket_fd)
         if (requestStringMap[socket_fd].find("Transfer-Encoding: chunked") != std::string::npos)
         {
             // チャンクデータの読み取りと処理
-            std::string &reqData = requestStringMap[socket_fd];
-            size_t pos = 0;
-            while (pos < reqData.size())
-            {
-                // チャンクサイズの読み取り
-                size_t endPos = reqData.find("\r\n", pos);
-                if (endPos == std::string::npos)
-                    break; // ヘッダの終わりが見つからない場合
+            // std::string &reqData = requestStringMap[socket_fd];
+            // size_t pos = 0;
+            // while (pos < reqData.size())
+            // {
+            //     // チャンクサイズの読み取り
+            //     size_t endPos = reqData.find("\r\n", pos);
+            //     if (endPos == std::string::npos)
+            //         break; // ヘッダの終わりが見つからない場合
 
-                std::string chunkSizeStr = reqData.substr(pos, endPos - pos);
-                unsigned int chunkSize = std::stoi(chunkSizeStr, nullptr, 16);
-                pos = endPos + 2; // "\r\n"をスキップ
+            //     std::string chunkSizeStr = reqData.substr(pos, endPos - pos);
+            //     unsigned int chunkSize = std::stoi(chunkSizeStr, nullptr, 16);
+            //     pos = endPos + 2; // "\r\n"をスキップ
 
-                if (chunkSize == 0)
-                {
-                    // 最後のチャンクを示す（トレイラーの処理が必要な場合はここで行う）
-                    break;
-                }
+            //     if (chunkSize == 0)
+            //     {
+            //         // 最後のチャンクを示す（トレイラーの処理が必要な場合はここで行う）
+            //         break;
+            //     }
 
-                // チャンクデータの取得（chunkSizeが次のチャンクのサイズ）
-                std::string chunkData = reqData.substr(pos, chunkSize);
-                // ここでchunkDataを適切に処理する（例えば、結合してリクエストボディを形成する）
+            //     // チャンクデータの取得（chunkSizeが次のチャンクのサイズ）
+            //     std::string chunkData = reqData.substr(pos, chunkSize);
+            //     // ここでchunkDataを適切に処理する（例えば、結合してリクエストボディを形成する）
 
-                pos += chunkSize + 2; // チャンクデータと次の"\r\n"をスキップ
-            }
+            //     pos += chunkSize + 2; // チャンクデータと次の"\r\n"をスキップ
+            // }
 
             // チャンク読み取りが完了したら、適切な処理を行う
             // 例: リクエストの処理、レスポンスの生成など
