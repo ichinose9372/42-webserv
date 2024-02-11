@@ -19,7 +19,6 @@ void ExecCgi::executeCgiScript(Request &req, Response &res)
         path = "./autoindex/autoindex.py";
     else
         path = req.getUri();
-    // std::cout << path << std::endl;
     if (!isScriptAccessible(path))
     {
         res.setStatus("404 Not Found");
@@ -38,13 +37,11 @@ bool ExecCgi::isScriptAccessible(const std::string &path)
     {
        return false;
     }
-
     // S_IXUSRは所有者の実行権限があるかをチェック
     if ((buffer.st_mode & S_IXUSR) == 0)
     {
         return false;
     }
-
     return true;
 }
 
