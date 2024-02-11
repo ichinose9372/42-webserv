@@ -1,11 +1,12 @@
 #include "Request.hpp"
 
-Request::Request():_autoindex(false)
+Request::Request() : _autoindex(false)
 {
 }
 
-Request::Request(const std::string &request)
+Request::Request(const std::string &request, int bodySize)
 {
+    this->content_length = bodySize;
     parseRequest(request);
     this->error_page[404] = "./docs/error_page/404.html";
     this->error_page[500] = "./docs/error_page/500.html";

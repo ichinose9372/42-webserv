@@ -42,11 +42,11 @@ private:
     std::map<int, Response> responseConectionMap;
     std::map<int, int> cgiReadFdMap;
     std::map<int, int> recvContentLength;
-    std::map<int, int> totalSamread;
     std::map<int, bool> isBodyFlg;
     std::map<int, bool> isNowHeaderFlg;
     std::map<int, bool> isChunkedFlg;
     std::map<int, std::string> chunkedBody;
+    std::map<int, int> totalSumRead;
     Server();
 
 public:
