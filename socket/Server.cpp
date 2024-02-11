@@ -535,6 +535,7 @@ void Server::runEventLoop()
     size_t start_pollfds_size = pollfds.size();
     while (true)
     {
+        usleep(1000);
         if (poll(pollfds.data(), pollfds.size(), -1) > 0)
         {
             for (size_t i = 0; i < pollfds.size(); ++i)
