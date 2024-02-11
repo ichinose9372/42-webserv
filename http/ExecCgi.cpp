@@ -108,7 +108,7 @@ void ExecCgi::executeCommonCgiScript(Request &req, Response &res, const std::str
         bool timeoutOccurred = false;
         pid_t ret;
         // パイプの読み取り側を非ブロッキングに設定
-        fcntl(pipefd[0], F_SETFL, O_NONBLOCK);        
+        fcntl(pipefd[0], F_SETFL,  O_NONBLOCK ,FD_CLOEXEC);
         waitpid(pid, &status, WNOHANG);
         while (true)
         {
