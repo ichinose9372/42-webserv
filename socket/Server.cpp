@@ -155,6 +155,24 @@ static int stringToInt(const std::string &str, bool &success)
     return success ? number : 0;
 }
 
+int getBodySizeFromRequest(const std::string &requestString)
+{
+    // ヘッダーとボディの境界を検索
+    size_t headerEndPos = requestString.find("\r\n\r\n");
+
+    if (headerEndPos != std::string::npos)
+    {
+        // ボディ部分の開始位置を見つけた場合
+        size_t bodyStartPos = headerEndPos + 4; // "\r\n\r\n"の長さを加算してボディの開始位置を取得
+
+        // ボディのサイズを計算（全体の長さからボディの開始位置を引く）
+        return static_cast<int>(requestString.length() - bodyStartPos);
+    }
+
+    // ヘッダーとボディの境界が見つからない場合、ボディは存在しないとみなし0を返す
+    return 0;
+}
+
 // // ヘッダをパースし、Content-Lengthの値を返す。
 static int getContentLengthFromHeaders(const std::string &headers)
 {
@@ -220,7 +238,6 @@ int Server::processChunkedRequest(int socket_fd, const std::string &readChunk)
             // チャンクデータが不完全または次の"\r\n"が見つからない場合
             return RETRY_OPERATION;
         }
-
         pos = chunkDataEnd + 2; // チャンクデータとその後の"\r\n"をスキップ
     }
 
@@ -228,19 +245,19 @@ int Server::processChunkedRequest(int socket_fd, const std::string &readChunk)
 }
 
 // ヘッダーを取り除き、チャンクエンコードされたボディのみを返す関数
-// std::string Server::extractChunkedBodyFromRequest(int socket_fd)
-// {
-//     std::string &requestData = requestStringMap[socket_fd];
-//     size_t headerEndPos = requestData.find("\r\n\r\n");
+std::string Server::extractChunkedBodyFromRequest(int socket_fd)
+{
+    std::string &requestData = requestStringMap[socket_fd];
+    size_t headerEndPos = requestData.find("\r\n\r\n");
 
-//     if (headerEndPos != std::string::npos)
-//     {
-//         // ヘッダー終端の後ろからボディを抽出
-//         return requestData.substr(headerEndPos + 4); // "\r\n\r\n"の後ろからがボディ
-//     }
+    if (headerEndPos != std::string::npos)
+    {
+        // ヘッダー終端の後ろからボディを抽出
+        return requestData.substr(headerEndPos + 4); // "\r\n\r\n"の後ろからがボディ
+    }
 
-//     return ""; // ヘッダーが完全に受信されていない場合、空の文字列を返す
-// }
+    return ""; // ヘッダーが完全に受信されていない場合、空の文字列を返す
+}
 
 void Server::initReceiveFlg(int socket_fd)
 {
@@ -267,7 +284,7 @@ int Server::receiveRequest(int socket_fd)
             if (chunkedStat == 1)
             {
                 // チャンクの終了
-                initReceiveFlg(socket_fd);
+                std::cout << "-- request -- " << std::endl;
                 std::cout << requestStringMap[socket_fd] << std::endl;
               
                 return OPERATION_DONE;
@@ -278,7 +295,7 @@ int Server::receiveRequest(int socket_fd)
             }
             else
             {
-                initReceiveFlg(socket_fd);
+                std::cout << "!!!!! Chunked Error !!!!!" << std::endl;
                 return OPERATION_ERROR;
             }
         }
@@ -286,6 +303,7 @@ int Server::receiveRequest(int socket_fd)
 
         // ヘッダー終端を探す（リクエストが完全にヘッダーを受信したかを確認するため）
         size_t headerEndPos = requestStringMap[socket_fd].find("\r\n\r\n");
+        // header読み込み処理
         if (!isNowHeaderFlg[socket_fd] && headerEndPos != std::string::npos)
         {
             isNowHeaderFlg[socket_fd] = true;
@@ -309,41 +327,41 @@ int Server::receiveRequest(int socket_fd)
             if (headers.find("Content-Length:") != std::string::npos)
             {
                 this->recvContentLength[socket_fd] = getContentLengthFromHeaders(requestStringMap[socket_fd]);
-                return RETRY_OPERATION;
+                if (valread >= this->recvContentLength[socket_fd])
+                    return OPERATION_DONE;
+                else
+                    return RETRY_OPERATION;
             }
             if (headers.find("Transfer-Encoding: chunked") != std::string::npos)
             {
                 isChunkedFlg[socket_fd] = true;
                 return RETRY_OPERATION;
             }
-        }
+        } // header読み込み処理、終了
 
-        this->totalSamread[socket_fd] += valread;
-        if (isNowHeaderFlg[socket_fd] && ((!isBodyFlg[socket_fd]) || (this->recvContentLength[socket_fd] != 0 && this->totalSamread[socket_fd] >= this->recvContentLength[socket_fd])))
+        this->totalSumRead[socket_fd] += valread;
+        if (isNowHeaderFlg[socket_fd] && ((!isBodyFlg[socket_fd]) || (this->recvContentLength[socket_fd] != 0 && this->totalSumRead[socket_fd] >= this->recvContentLength[socket_fd])))
         {
             this->recvContentLength.erase(socket_fd);
-            this->totalSamread.erase(socket_fd);
-            initReceiveFlg(socket_fd);
+            this->totalSumRead.erase(socket_fd);
             return OPERATION_DONE;
         }
         return RETRY_OPERATION;
     }
     else if (valread < 0)
     {
-        initReceiveFlg(socket_fd);
         return OPERATION_ERROR;
     }
     else // 読み込みが完全に終了しているので、trueを返す
     {
-        initReceiveFlg(socket_fd);
         return OPERATION_DONE;
     }
 }
 
 Request Server::findServerandlocaitons(int socket_fd)
 {
-    (void)socket_fd;
-    Request req(requestStringMap[socket_fd]);
+    int bodySize = getBodySizeFromRequest(requestStringMap[socket_fd]);
+    Request req(requestStringMap[socket_fd], bodySize);
     Servers server;
     bool foundServer = false;
 
@@ -371,10 +389,12 @@ Request Server::findServerandlocaitons(int socket_fd)
 
 bool Server::sendResponse(int socket_fd, Response &res)
 {
-    res.setResponse();
     std::string response = res.getResponse();
     if (response.empty())
+    {
+        res.setResponse();
         return false;
+    }
     else if (response.size() > MAX_RESPONSE_SIZE)
         response = "HTTP/1.1 413 Payload Too Large\r\nContent-Type: text/plain\r\n\r\nResponse too large.";
     ssize_t sendByte = send(socket_fd, response.c_str(), response.size(), 0); // Linuxの場合
@@ -413,6 +433,7 @@ void Server::recvandProcessConnection(struct pollfd &pfd)
     int recv_result = receiveRequest(pfd.fd);
     if (recv_result == OPERATION_DONE)
     {
+        initReceiveFlg(pfd.fd);
         processRequest(pfd.fd);
         // もしfdのレスポンスクラスにぱパイプのfdがセットされてたら、そのfdをpollfdsに追加してPOLLINを監視する　=もしCGIだったら
         if (this->responseConectionMap[pfd.fd].getCGIreadfd() != -1 || this->responseConectionMap[pfd.fd].getStatus() == "0")
@@ -433,6 +454,7 @@ void Server::recvandProcessConnection(struct pollfd &pfd)
     }
     else
     {
+        initReceiveFlg(pfd.fd);
         close(pfd.fd);
         deletePollfds(pfd.fd);
     }

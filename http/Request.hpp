@@ -21,7 +21,7 @@ class Request
 {
 public:
     ~Request();
-    Request(const std::string &request);
+    Request(const std::string &request, int bodySize);
     // getter
     const std::string &getMethod();
     const std::string &getUri();
