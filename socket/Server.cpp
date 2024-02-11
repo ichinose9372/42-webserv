@@ -58,7 +58,7 @@ void Server::initializeServerSocket(const Servers &server, size_t port)
         close(socket_fd);
         throw std::runtime_error("bind out");
     }
-    if (listen(socket_fd, 128) < 0) //第2引数で待ち受けキューの長さを指定
+    if (listen(socket_fd, 128) < 0) // 第2引数で待ち受けキューの長さを指定
     {
         close(socket_fd);
         throw std::runtime_error("listen");
@@ -73,7 +73,7 @@ void Server::initializeServerSocket(const Servers &server, size_t port)
     //     throw std::runtime_error("Failed to get flags for socket");
     // }
 
-    if (fcntl(socket_fd, F_SETFL,  O_NONBLOCK ,FD_CLOEXEC))
+    if (fcntl(socket_fd, F_SETFL, O_NONBLOCK, FD_CLOEXEC))
     {
         close(socket_fd);
         throw std::runtime_error("Failed to set socket to non-blocking mode");
@@ -129,7 +129,7 @@ void Server::acceptNewConnection(int server_fd, std::vector<struct pollfd> &poll
     //     throw std::runtime_error("Failed to get flags for new socket");
     // }
 
-    if (fcntl(new_socket, F_SETFL,  O_NONBLOCK ,FD_CLOEXEC))
+    if (fcntl(new_socket, F_SETFL, O_NONBLOCK, FD_CLOEXEC))
     {
         close(new_socket); // ノンブロッキングモードへの設定に失敗した場合は、新しいソケットを閉じます。
         throw std::runtime_error("Failed to set new socket to non-blocking mode");
@@ -197,51 +197,17 @@ static int getContentLengthFromHeaders(const std::string &headers)
     return -1; // Content-Lengthが見つからない場合
 }
 
-int Server::processChunkedRequest(int socket_fd, const std::string &readChunk)
+int Server::processChunkedRequest(int socket_fd)
 {
-    chunkedBody[socket_fd] += readChunk;
-    std::string &data = chunkedBody[socket_fd];
-    size_t pos = 0;
-
-    while (pos < data.size())
+    // 終了チャンク「0\r\n\r\n」が含まれているかを確認
+    if (requestStringMap[socket_fd].find("0\r\n\r\n") != std::string::npos)
     {
-        size_t endOfChunkSize = data.find("\r\n", pos);
-        if (endOfChunkSize == std::string::npos)
-        {
-            return RETRY_OPERATION; // チャンクサイズ行が不完全な場合は更に読み込み
-        }
-
-        std::string chunkSizeStr = data.substr(pos, endOfChunkSize - pos);
-        unsigned long chunkSize = strtoul(chunkSizeStr.c_str(), NULL, 16);
-        pos = endOfChunkSize + 2; // チャンクサイズ行の終端をスキップ
-
-        if (chunkSize == 0)
-        {
-            // 終了チャンクを検出
-            if (data.size() == pos || (data.size() >= pos + 2 && data.substr(pos, 2) == "\r\n"))
-            {
-                // 終了チャンクの直後にデータがない、または"\r\n"のみの場合は完了
-                requestStringMap[socket_fd].append(data.substr(0, pos)); // データ部分のみを追加
-                chunkedBody.erase(socket_fd);
-                return OPERATION_DONE;
-            }
-            else
-            {
-                // 終了チャンクの後に予期しないデータがある場合
-                return OPERATION_ERROR;
-            }
-        }
-
-        size_t chunkDataEnd = pos + chunkSize;
-        if (chunkDataEnd > data.size() || (data.size() >= chunkDataEnd + 2 && data.substr(chunkDataEnd, 2) != "\r\n"))
-        {
-            // チャンクデータが不完全または次の"\r\n"が見つからない場合
-            return RETRY_OPERATION;
-        }
-        pos = chunkDataEnd + 2; // チャンクデータとその後の"\r\n"をスキップ
+        return OPERATION_DONE; // 終了チャンクが見つかった場合
     }
-
-    return RETRY_OPERATION; // 終了チャンクがまだ見つからない場合
+    else
+    {
+        return RETRY_OPERATION; // それ以外の場合は更にデータを受信する必要がある
+    }
 }
 
 // ヘッダーを取り除き、チャンクエンコードされたボディのみを返す関数
@@ -264,7 +230,6 @@ void Server::initReceiveFlg(int socket_fd)
     isBodyFlg[socket_fd] = false;
     isNowHeaderFlg[socket_fd] = false;
     isChunkedFlg[socket_fd] = false;
-    chunkedBody[socket_fd] = "";
 }
 
 int Server::receiveRequest(int socket_fd)
@@ -276,17 +241,13 @@ int Server::receiveRequest(int socket_fd)
     valread = recv(socket_fd, buffer, BUFFER_SIZE, 0);
     if (valread > 0)
     {
+        requestStringMap[socket_fd].append(buffer, valread);
         if (isChunkedFlg[socket_fd])
         {
             // チャンクデータの処理を行う
-            std::string readChunk(buffer, valread);
-            int chunkedStat = processChunkedRequest(socket_fd, readChunk);
+            int chunkedStat = processChunkedRequest(socket_fd);
             if (chunkedStat == 1)
             {
-                // チャンクの終了
-                std::cout << "-- request -- " << std::endl;
-                std::cout << requestStringMap[socket_fd] << std::endl;
-              
                 return OPERATION_DONE;
             }
             else if (chunkedStat == 0)
@@ -295,11 +256,9 @@ int Server::receiveRequest(int socket_fd)
             }
             else
             {
-                std::cout << "!!!!! Chunked Error !!!!!" << std::endl;
                 return OPERATION_ERROR;
             }
         }
-        requestStringMap[socket_fd].append(buffer, valread);
 
         // ヘッダー終端を探す（リクエストが完全にヘッダーを受信したかを確認するため）
         size_t headerEndPos = requestStringMap[socket_fd].find("\r\n\r\n");
