@@ -273,12 +273,8 @@ int Server::receiveRequest(int socket_fd)
     int valread;
     char buffer[BUFFER_SIZE] = {0};
     valread = recv(socket_fd, buffer, BUFFER_SIZE, 0);
-    std::cout << "valread: " << valread << std::endl;
     if (valread > 0)
     {
-        std::cout << "--- recv --- " << std::endl;
-        std::cout << buffer << std::endl;
-        std::cout << "--- recv --- " << std::endl;
         if (isChunkedFlg[socket_fd])
         {
             std::cout << "chunked Start!!" << std::endl;
@@ -438,10 +434,6 @@ void Server::recvandProcessConnection(struct pollfd &pfd)
     if (recv_result == OPERATION_DONE)
     {
         initReceiveFlg(pfd.fd);
-        std::cout << "====================" << std::endl;
-        std::cout << "## Request Done ##" << std::endl;
-        std::cout << requestStringMap[pfd.fd] << std::endl;
-        std::cout << "====================" << std::endl;
         processRequest(pfd.fd);
         // もしfdのレスポンスクラスにぱパイプのfdがセットされてたら、そのfdをpollfdsに追加してPOLLINを監視する　=もしCGIだったら
         if (this->responseConectionMap[pfd.fd].getCGIreadfd() != -1 || this->responseConectionMap[pfd.fd].getStatus() == "0")
