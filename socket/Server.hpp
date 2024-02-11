@@ -45,7 +45,6 @@ private:
     std::map<int, bool> isBodyFlg;
     std::map<int, bool> isNowHeaderFlg;
     std::map<int, bool> isChunkedFlg;
-    std::map<int, std::string> chunkedBody;
     std::vector<int> listeningSockets;
     std::map<int, int> totalSumRead;
     Server();
@@ -65,7 +64,7 @@ public:
     void initializeSocketAddress(size_t port);
     // request functions
     int receiveRequest(int socket_fd);
-    int processChunkedRequest(int socket_fd, const std::string &readChunk);
+    int processChunkedRequest(int socket_fd);
     std::string extractChunkedBodyFromRequest(int socket_fd);
     void initReceiveFlg(int socket_fd);
     void processRequest(int socket_fd);

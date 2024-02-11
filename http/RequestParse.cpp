@@ -188,28 +188,46 @@ void RequestParse::parseBody(std::istringstream &requestStream, Request &request
     {
         std::string body;
         std::string line;
-        int lineNumber = 0;         // 行番号を追跡するための変数
-        unsigned int chunkSize = 1; // 0になるまでループを続けるため初期値を1に
+        unsigned int chunkSize = 1; // 初期値はループに入るためのダミー値
 
         while (chunkSize > 0)
         {
-            std::getline(requestStream, line);
-            lineNumber++; // 行番号をインクリメント
+            if (!std::getline(requestStream, line))
+                break;                                                           // サイズ行の読み込み
+            line.erase(std::remove(line.begin(), line.end(), '\r'), line.end()); // 不要な\rを削除
 
-            if (lineNumber % 2 == 1)
+            std::stringstream ss(line);
+            ss >> std::hex >> chunkSize; // サイズを16進数から10進数に変換
+
+            if (ss.fail() || !ss.eof())
             {
-                // 奇数行（サイズ行）: サイズを解析
-                std::stringstream hexStream(line);
-                hexStream >> std::hex >> chunkSize; // サイズを16進数から10進数に変換
-                if (chunkSize == 0)
-                    break; // チャンクの終了
+                // サイズ行の解析に失敗
+                request.setReturnParameter(400, "");
+                return;
             }
-            else
+
+            if (chunkSize == 0)
+                break; // 終了チャンク
+
+            std::vector<char> buffer(chunkSize);
+            requestStream.read(buffer.data(), chunkSize); // チャンクデータの読み込み
+
+            if (requestStream.gcount() != static_cast<std::streamsize>(chunkSize))
             {
-                // 偶数行（データ行）: データをボディに追加
-                body += line;
+                // チャンクデータの長さが不正
+                request.setReturnParameter(400, "");
+                return;
             }
+
+            body.append(buffer.begin(), buffer.end()); // チャンクデータをボディに追加
+
+            std::getline(requestStream, line); // チャンクの後の改行を読み飛ばす
+            if (!body.empty())
+                body += "\n"; // 最後のチャンク以外に改行を追加
         }
+
+        if (!body.empty())
+            body.pop_back(); // 最後の改行を削除
         request.setBody(body);
     }
     else
