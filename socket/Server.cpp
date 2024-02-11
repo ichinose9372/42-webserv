@@ -272,7 +272,9 @@ bool Server::sendResponse(int socket_fd, Response &res)
             return false;
         }
         else
+        {
             return true;
+        }
     }
 }
 
