@@ -249,10 +249,12 @@ Request Server::findServerandlocaitons(int socket_fd)
 
 bool Server::sendResponse(int socket_fd, Response &res)
 {
-    res.setResponse();
     std::string response = res.getResponse();
     if (response.empty())
+    {
+        res.setResponse();
         return false;
+    }
     else if (response.size() > MAX_RESPONSE_SIZE) 
         response = "HTTP/1.1 413 Payload Too Large\r\nContent-Type: text/plain\r\n\r\nResponse too large.";
     ssize_t sendByte = send(socket_fd, response.c_str(), response.size(), 0); // Linuxの場合
