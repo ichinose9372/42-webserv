@@ -20,8 +20,8 @@ void ExecCgi::executeCgiScript(Request &req, Response &res)
             path = "./autoindex/autoindex.py";
         else
         {
-            res.setStatus("500 Internal Server Error");
-            res.setBody(GetRequest::getBody(req.getErrorpage(500)));
+            res.setStatus("404 Not Found");
+            res.setBody(GetRequest::getBody(req.getErrorpage(404)));
             return ;
         }
     }

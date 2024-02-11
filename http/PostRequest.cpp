@@ -61,6 +61,5 @@ void PostRequest::handlePostRequest(Request &req, Response &res)
     {
         ExecCgi::executeCgiScript(req, res);
     }
-
     res.setResponse();
 }
