@@ -154,6 +154,24 @@ static int stringToInt(const std::string &str, bool &success)
     return success ? number : 0;
 }
 
+int getBodySizeFromRequest(const std::string &requestString)
+{
+    // ヘッダーとボディの境界を検索
+    size_t headerEndPos = requestString.find("\r\n\r\n");
+
+    if (headerEndPos != std::string::npos)
+    {
+        // ボディ部分の開始位置を見つけた場合
+        size_t bodyStartPos = headerEndPos + 4; // "\r\n\r\n"の長さを加算してボディの開始位置を取得
+
+        // ボディのサイズを計算（全体の長さからボディの開始位置を引く）
+        return static_cast<int>(requestString.length() - bodyStartPos);
+    }
+
+    // ヘッダーとボディの境界が見つからない場合、ボディは存在しないとみなし0を返す
+    return 0;
+}
+
 // // ヘッダをパースし、Content-Lengthの値を返す。
 static int getContentLengthFromHeaders(const std::string &headers)
 {
@@ -219,7 +237,6 @@ int Server::processChunkedRequest(int socket_fd, const std::string &readChunk)
             // チャンクデータが不完全または次の"\r\n"が見つからない場合
             return RETRY_OPERATION;
         }
-
         pos = chunkDataEnd + 2; // チャンクデータとその後の"\r\n"をスキップ
     }
 
@@ -271,7 +288,6 @@ int Server::receiveRequest(int socket_fd)
             if (chunkedStat == 1)
             {
                 // チャンクの終了
-                initReceiveFlg(socket_fd);
                 std::cout << "-- request -- " << std::endl;
                 std::cout << requestStringMap[socket_fd] << std::endl;
                 std::cout << "-- request -- " << std::endl;
@@ -284,7 +300,6 @@ int Server::receiveRequest(int socket_fd)
             else
             {
                 std::cout << "!!!!! Chunked Error !!!!!" << std::endl;
-                initReceiveFlg(socket_fd);
                 return OPERATION_ERROR;
             }
         }
@@ -333,27 +348,24 @@ int Server::receiveRequest(int socket_fd)
         {
             this->recvContentLength.erase(socket_fd);
             this->totalSumRead.erase(socket_fd);
-            initReceiveFlg(socket_fd);
             return OPERATION_DONE;
         }
         return RETRY_OPERATION;
     }
     else if (valread < 0)
     {
-        initReceiveFlg(socket_fd);
         return OPERATION_ERROR;
     }
     else // 読み込みが完全に終了しているので、trueを返す
     {
-        initReceiveFlg(socket_fd);
         return OPERATION_DONE;
     }
 }
 
 Request Server::findServerandlocaitons(int socket_fd)
 {
-    (void)socket_fd;
-    Request req(requestStringMap[socket_fd]);
+    int bodySize = getBodySizeFromRequest(requestStringMap[socket_fd]);
+    Request req(requestStringMap[socket_fd], bodySize);
     Servers server;
     bool foundServer = false;
 
@@ -423,7 +435,11 @@ void Server::recvandProcessConnection(struct pollfd &pfd)
     int recv_result = receiveRequest(pfd.fd);
     if (recv_result == OPERATION_DONE)
     {
+        initReceiveFlg(pfd.fd);
+        std::cout << "====================" << std::endl;
         std::cout << "## Request Done ##" << std::endl;
+        std::cout << requestStringMap[pfd.fd] << std::endl;
+        std::cout << "====================" << std::endl;
         processRequest(pfd.fd);
         // もしfdのレスポンスクラスにぱパイプのfdがセットされてたら、そのfdをpollfdsに追加してPOLLINを監視する　=もしCGIだったら
         if (this->responseConectionMap[pfd.fd].getCGIreadfd() != -1 || this->responseConectionMap[pfd.fd].getStatus() == "0")
@@ -444,6 +460,7 @@ void Server::recvandProcessConnection(struct pollfd &pfd)
     }
     else
     {
+        initReceiveFlg(pfd.fd);
         close(pfd.fd);
         deletePollfds(pfd.fd);
     }

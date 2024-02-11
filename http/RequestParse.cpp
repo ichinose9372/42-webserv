@@ -23,6 +23,18 @@ void trim(std::string &s)
         s = s.substr(0, end + 1);
 }
 
+std::string trim(const std::string &str)
+{
+    const std::string::size_type strBegin = str.find_first_not_of(" \t\n\r\f\v");
+    if (strBegin == std::string::npos)
+        return ""; // 文字列が空白文字のみの場合
+
+    const std::string::size_type strEnd = str.find_last_not_of(" \t\n\r\f\v");
+    const std::string::size_type strRange = strEnd - strBegin + 1;
+
+    return str.substr(strBegin, strRange);
+}
+
 std::vector<std::string> split(const std::string &s, char delimiter)
 {
     std::vector<std::string> tokens;
@@ -117,7 +129,6 @@ void RequestParse::parseRequestLine(const std::string &line, Request &request)
             request.setMethod(requestLineTokens[0]);
             request.setUri(getfilepathtoURI(requestLineTokens[1], request));
             request.setHttpVersion(requestLineTokens[2]);
-            request.setContentLength(0);
             return;
         }
     }
@@ -160,11 +171,55 @@ void RequestParse::parseHeader(const std::string &line, Request &request)
 
 void RequestParse::parseBody(std::istringstream &requestStream, Request &request)
 {
-    if (contentLength > 0)
+    int bodySize = request.getContentLength();
+    bool isChunked = false;
+
+    for (std::map<std::string, std::string>::const_iterator it = request.getHeaders().begin(); it != request.getHeaders().end(); ++it)
+    {
+        std::string key = trim(it->first);
+        std::string value = trim(it->second);
+        if (key == "Transfer-Encoding" && value == "chunked")
+        {
+            isChunked = true;
+            break;
+        }
+    }
+    if (isChunked)
     {
         std::string body;
-        body.resize(this->contentLength);
-        requestStream.read(&body[0], this->contentLength);
+        std::string line;
+        int lineNumber = 0;         // 行番号を追跡するための変数
+        unsigned int chunkSize = 1; // 0になるまでループを続けるため初期値を1に
+
+        while (chunkSize > 0)
+        {
+            std::getline(requestStream, line);
+            lineNumber++; // 行番号をインクリメント
+
+            if (lineNumber % 2 == 1)
+            {
+                // 奇数行（サイズ行）: サイズを解析
+                std::stringstream hexStream(line);
+                hexStream >> std::hex >> chunkSize; // サイズを16進数から10進数に変換
+                if (chunkSize == 0)
+                    break; // チャンクの終了
+            }
+            else
+            {
+                // 偶数行（データ行）: データをボディに追加
+                body += line;
+            }
+        }
         request.setBody(body);
+    }
+    else
+    {
+        if (bodySize > 0)
+        {
+            std::string body;
+            body.resize(bodySize);
+            requestStream.read(&body[0], bodySize);
+            request.setBody(body);
+        }
     }
 }
