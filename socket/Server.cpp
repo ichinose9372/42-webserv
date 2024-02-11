@@ -58,7 +58,7 @@ void Server::initializeServerSocket(const Servers &server, size_t port)
         close(socket_fd);
         throw std::runtime_error("bind out");
     }
-    if (listen(socket_fd, 3) < 0)
+    if (listen(socket_fd, 128) < 0) //第2引数で待ち受けキューの長さを指定
     {
         close(socket_fd);
         throw std::runtime_error("listen");
@@ -535,7 +535,6 @@ void Server::runEventLoop()
     size_t start_pollfds_size = pollfds.size();
     while (true)
     {
-        usleep(1000);
         if (poll(pollfds.data(), pollfds.size(), -1) > 0)
         {
             for (size_t i = 0; i < pollfds.size(); ++i)
