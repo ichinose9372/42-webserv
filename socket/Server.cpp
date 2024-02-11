@@ -63,6 +63,7 @@ void Server::initializeServerSocket(const Servers &server, size_t port)
         close(socket_fd);
         throw std::runtime_error("listen");
     }
+    this->listeningSockets.push_back(socket_fd);
 
     // ソケットをノンブロッキングモードに設定
     int flags = fcntl(socket_fd, F_GETFL, 0);
@@ -277,7 +278,6 @@ int Server::receiveRequest(int socket_fd)
     {
         if (isChunkedFlg[socket_fd])
         {
-            std::cout << "chunked Start!!" << std::endl;
             // チャンクデータの処理を行う
             std::string readChunk(buffer, valread);
             int chunkedStat = processChunkedRequest(socket_fd, readChunk);
@@ -286,7 +286,7 @@ int Server::receiveRequest(int socket_fd)
                 // チャンクの終了
                 std::cout << "-- request -- " << std::endl;
                 std::cout << requestStringMap[socket_fd] << std::endl;
-                std::cout << "-- request -- " << std::endl;
+              
                 return OPERATION_DONE;
             }
             else if (chunkedStat == 0)
@@ -545,7 +545,6 @@ void Server::readCgiOutput(struct pollfd &pfd)
 
 void Server::runEventLoop()
 {
-    size_t start_pollfds_size = pollfds.size();
     while (true)
     {
         if (poll(pollfds.data(), pollfds.size(), -1) > 0)
@@ -558,7 +557,7 @@ void Server::runEventLoop()
                     {
                         readCgiOutput(pollfds[i]);
                     }
-                    else if (i < start_pollfds_size)
+                    else if (std::find(listeningSockets.begin(), listeningSockets.end(), pollfds[i].fd) != listeningSockets.end())
                     {
                         acceptNewConnection(pollfds[i].fd, pollfds, address, addrlen);
                     }
