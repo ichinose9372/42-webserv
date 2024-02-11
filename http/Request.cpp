@@ -1,6 +1,6 @@
 #include "Request.hpp"
 
-Request::Request()
+Request::Request():_autoindex(false)
 {
 }
 
@@ -156,9 +156,9 @@ void Request::remakeRequest(Servers &server)
                 returnParameter = it->getReturnCode();
                 return;
             }
-
             if (it->getAutoindex()) // autoindexが設定されている場合
             {
+                _autoindex = true;
                 std::string oldRoot = server.getRoot();
                 std::string eracePath = "/";
                 oldRoot.erase(oldRoot.size() - eracePath.size());
@@ -168,7 +168,6 @@ void Request::remakeRequest(Servers &server)
                     uri = server.getRoot();
                 else
                     uri = getAbsolutepath(it->getIndex().front(), server.getRoot());
-                // std::cout << uri << std::endl;
                 return;
             }
             if (checkRequestmethod(*it)) // locationのmethodとリクエストmethodが一致しない場合
@@ -205,6 +204,7 @@ void Request::remakeRequest(Servers &server)
             }
             if (it2->getAutoindex()) // autoindexが設定されている場合
             {
+                _autoindex = true;
                 uri = getAbsolutepath("autoindex/app.py", server.getRoot());
                 return;
             }
@@ -279,6 +279,8 @@ const std::string &Request::getErrorpage(int statuscode)
 {
     return error_page[statuscode];
 }
+
+bool Request::getAutoindex(void) { return _autoindex; }
 
 size_t Request::getContentLength() { return content_length; };
 
