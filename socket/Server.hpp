@@ -47,6 +47,7 @@ private:
     std::map<int, bool> isNowHeaderFlg;
     std::map<int, bool> isChunkedFlg;
     std::map<int, std::string> chunkedBody;
+    std::vector<int> listeningSockets;
     Server();
 
 public:

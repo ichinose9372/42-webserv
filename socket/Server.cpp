@@ -63,6 +63,7 @@ void Server::initializeServerSocket(const Servers &server, size_t port)
         close(socket_fd);
         throw std::runtime_error("listen");
     }
+    this->listeningSockets.push_back(socket_fd);
 
     // ソケットをノンブロッキングモードに設定
     int flags = fcntl(socket_fd, F_GETFL, 0);
@@ -256,15 +257,10 @@ int Server::receiveRequest(int socket_fd)
     int valread;
     char buffer[BUFFER_SIZE] = {0};
     valread = recv(socket_fd, buffer, BUFFER_SIZE, 0);
-    std::cout << "valread: " << valread << std::endl;
     if (valread > 0)
     {
-        std::cout << "--- recv --- " << std::endl;
-        std::cout << buffer << std::endl;
-        std::cout << "--- recv --- " << std::endl;
         if (isChunkedFlg[socket_fd])
         {
-            std::cout << "chunked Start!!" << std::endl;
             // チャンクデータの処理を行う
             std::string readChunk(buffer, valread);
             int chunkedStat = processChunkedRequest(socket_fd, readChunk);
@@ -272,9 +268,8 @@ int Server::receiveRequest(int socket_fd)
             {
                 // チャンクの終了
                 initReceiveFlg(socket_fd);
-                std::cout << "-- request -- " << std::endl;
                 std::cout << requestStringMap[socket_fd] << std::endl;
-                std::cout << "-- request -- " << std::endl;
+              
                 return OPERATION_DONE;
             }
             else if (chunkedStat == 0)
@@ -283,7 +278,6 @@ int Server::receiveRequest(int socket_fd)
             }
             else
             {
-                std::cout << "!!!!! Chunked Error !!!!!" << std::endl;
                 initReceiveFlg(socket_fd);
                 return OPERATION_ERROR;
             }
@@ -419,7 +413,6 @@ void Server::recvandProcessConnection(struct pollfd &pfd)
     int recv_result = receiveRequest(pfd.fd);
     if (recv_result == OPERATION_DONE)
     {
-        std::cout << "## Request Done ##" << std::endl;
         processRequest(pfd.fd);
         // もしfdのレスポンスクラスにぱパイプのfdがセットされてたら、そのfdをpollfdsに追加してPOLLINを監視する　=もしCGIだったら
         if (this->responseConectionMap[pfd.fd].getCGIreadfd() != -1 || this->responseConectionMap[pfd.fd].getStatus() == "0")
@@ -530,7 +523,6 @@ void Server::readCgiOutput(struct pollfd &pfd)
 
 void Server::runEventLoop()
 {
-    size_t start_pollfds_size = pollfds.size();
     while (true)
     {
         if (poll(pollfds.data(), pollfds.size(), -1) > 0)
@@ -543,7 +535,7 @@ void Server::runEventLoop()
                     {
                         readCgiOutput(pollfds[i]);
                     }
-                    else if (i < start_pollfds_size)
+                    else if (std::find(listeningSockets.begin(), listeningSockets.end(), pollfds[i].fd) != listeningSockets.end())
                     {
                         acceptNewConnection(pollfds[i].fd, pollfds, address, addrlen);
                     }
