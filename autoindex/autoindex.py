@@ -18,11 +18,15 @@ app = Flask(__name__)
 
 # @app.route('/')
 def get_docs_contents():
-	list_files, list_pathes = get_entries(docs_path)
-	combined_data = list(zip(list_files, list_pathes))
-	with app.app_context():
-		return render_template("autoindex.html", combined_data=combined_data)
-				
+	try:
+		list_files, list_pathes = get_entries(docs_path)
+		combined_data = list(zip(list_files, list_pathes))
+		with app.app_context():
+			return render_template("autoindex.html", combined_data=combined_data)
+	except FileNotFoundError:
+		with app.app_context():
+			return render_template("404.html")
+
 def get_entries(docs_path):
 	list_files = []
 	list_pathes = []
