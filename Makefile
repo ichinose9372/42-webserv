@@ -30,6 +30,7 @@ fclean: clean
 	$(RM) $(NAME)
 	$(RM) venv
 	$(RM) ./docs/upload/post.txt
+	$(RM) ./docs/upload/test.txt
 	$(RM) test.txt
 
 re: fclean all
