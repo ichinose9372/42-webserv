@@ -227,19 +227,19 @@ int Server::processChunkedRequest(int socket_fd, const std::string &readChunk)
 }
 
 // ヘッダーを取り除き、チャンクエンコードされたボディのみを返す関数
-// std::string Server::extractChunkedBodyFromRequest(int socket_fd)
-// {
-//     std::string &requestData = requestStringMap[socket_fd];
-//     size_t headerEndPos = requestData.find("\r\n\r\n");
+std::string Server::extractChunkedBodyFromRequest(int socket_fd)
+{
+    std::string &requestData = requestStringMap[socket_fd];
+    size_t headerEndPos = requestData.find("\r\n\r\n");
 
-//     if (headerEndPos != std::string::npos)
-//     {
-//         // ヘッダー終端の後ろからボディを抽出
-//         return requestData.substr(headerEndPos + 4); // "\r\n\r\n"の後ろからがボディ
-//     }
+    if (headerEndPos != std::string::npos)
+    {
+        // ヘッダー終端の後ろからボディを抽出
+        return requestData.substr(headerEndPos + 4); // "\r\n\r\n"の後ろからがボディ
+    }
 
-//     return ""; // ヘッダーが完全に受信されていない場合、空の文字列を返す
-// }
+    return ""; // ヘッダーが完全に受信されていない場合、空の文字列を返す
+}
 
 void Server::initReceiveFlg(int socket_fd)
 {
@@ -292,6 +292,7 @@ int Server::receiveRequest(int socket_fd)
 
         // ヘッダー終端を探す（リクエストが完全にヘッダーを受信したかを確認するため）
         size_t headerEndPos = requestStringMap[socket_fd].find("\r\n\r\n");
+        // header読み込み処理
         if (!isNowHeaderFlg[socket_fd] && headerEndPos != std::string::npos)
         {
             isNowHeaderFlg[socket_fd] = true;
@@ -315,20 +316,23 @@ int Server::receiveRequest(int socket_fd)
             if (headers.find("Content-Length:") != std::string::npos)
             {
                 this->recvContentLength[socket_fd] = getContentLengthFromHeaders(requestStringMap[socket_fd]);
-                return RETRY_OPERATION;
+                if (valread >= this->recvContentLength[socket_fd])
+                    return OPERATION_DONE;
+                else
+                    return RETRY_OPERATION;
             }
             if (headers.find("Transfer-Encoding: chunked") != std::string::npos)
             {
                 isChunkedFlg[socket_fd] = true;
                 return RETRY_OPERATION;
             }
-        }
+        } // header読み込み処理、終了
 
-        this->totalSamread[socket_fd] += valread;
-        if (isNowHeaderFlg[socket_fd] && ((!isBodyFlg[socket_fd]) || (this->recvContentLength[socket_fd] != 0 && this->totalSamread[socket_fd] >= this->recvContentLength[socket_fd])))
+        this->totalSumRead[socket_fd] += valread;
+        if (isNowHeaderFlg[socket_fd] && ((!isBodyFlg[socket_fd]) || (this->recvContentLength[socket_fd] != 0 && this->totalSumRead[socket_fd] >= this->recvContentLength[socket_fd])))
         {
             this->recvContentLength.erase(socket_fd);
-            this->totalSamread.erase(socket_fd);
+            this->totalSumRead.erase(socket_fd);
             initReceiveFlg(socket_fd);
             return OPERATION_DONE;
         }
