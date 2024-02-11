@@ -193,7 +193,7 @@ int Server::processChunkedRequest(int socket_fd, const std::string &readChunk)
         }
 
         std::string chunkSizeStr = data.substr(pos, endOfChunkSize - pos);
-        unsigned long chunkSize = strtoul(chunkSizeStr.c_str(), nullptr, 16);
+        unsigned long chunkSize = strtoul(chunkSizeStr.c_str(), NULL, 16);
         pos = endOfChunkSize + 2; // チャンクサイズ行の終端をスキップ
 
         if (chunkSize == 0)
