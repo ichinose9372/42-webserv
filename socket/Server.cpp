@@ -144,7 +144,7 @@ bool Server::isTimeout(clock_t start)
     return time > TIMEOUT;
 }
 
-static int stringToInt(const std::string &str, bool &success) 
+static int stringToInt(const std::string &str, bool &success)
 {
     std::istringstream iss(str);
     int number;
@@ -155,66 +155,194 @@ static int stringToInt(const std::string &str, bool &success)
 }
 
 // // ヘッダをパースし、Content-Lengthの値を返す。
-static int getContentLengthFromHeaders(const std::string &headers) {
+static int getContentLengthFromHeaders(const std::string &headers)
+{
     // ヘッダからContent-Lengthの値を見つけ、整数として返す疑似コード
     std::string contentLengthKeyword = "Content-Length: ";
     size_t startPos = headers.find(contentLengthKeyword);
-    if (startPos != std::string::npos) {
+    if (startPos != std::string::npos)
+    {
         size_t endPos = headers.find("\r\n", startPos);
         std::string contentLengthValue = headers.substr(startPos + contentLengthKeyword.length(), endPos - (startPos + contentLengthKeyword.length()));
         bool conversionSuccess;
         int contentLength = stringToInt(contentLengthValue, conversionSuccess);
-        if (conversionSuccess) {
+        if (conversionSuccess)
+        {
             return contentLength;
-        } else {
+        }
+        else
+        {
             std::cerr << "Content-Length conversion failed: invalid value" << std::endl;
         }
     }
     return -1; // Content-Lengthが見つからない場合
 }
 
+int Server::processChunkedRequest(int socket_fd, const std::string &readChunk)
+{
+    chunkedBody[socket_fd] += readChunk;
+    std::string &data = chunkedBody[socket_fd];
+    size_t pos = 0;
+
+    while (pos < data.size())
+    {
+        size_t endOfChunkSize = data.find("\r\n", pos);
+        if (endOfChunkSize == std::string::npos)
+        {
+            return RETRY_OPERATION; // チャンクサイズ行が不完全な場合は更に読み込み
+        }
+
+        std::string chunkSizeStr = data.substr(pos, endOfChunkSize - pos);
+        unsigned long chunkSize = strtoul(chunkSizeStr.c_str(), NULL, 16);
+        pos = endOfChunkSize + 2; // チャンクサイズ行の終端をスキップ
+
+        if (chunkSize == 0)
+        {
+            // 終了チャンクを検出
+            if (data.size() == pos || (data.size() >= pos + 2 && data.substr(pos, 2) == "\r\n"))
+            {
+                // 終了チャンクの直後にデータがない、または"\r\n"のみの場合は完了
+                requestStringMap[socket_fd].append(data.substr(0, pos)); // データ部分のみを追加
+                chunkedBody.erase(socket_fd);
+                return OPERATION_DONE;
+            }
+            else
+            {
+                // 終了チャンクの後に予期しないデータがある場合
+                return OPERATION_ERROR;
+            }
+        }
+
+        size_t chunkDataEnd = pos + chunkSize;
+        if (chunkDataEnd > data.size() || (data.size() >= chunkDataEnd + 2 && data.substr(chunkDataEnd, 2) != "\r\n"))
+        {
+            // チャンクデータが不完全または次の"\r\n"が見つからない場合
+            return RETRY_OPERATION;
+        }
+
+        pos = chunkDataEnd + 2; // チャンクデータとその後の"\r\n"をスキップ
+    }
+
+    return RETRY_OPERATION; // 終了チャンクがまだ見つからない場合
+}
+
+// ヘッダーを取り除き、チャンクエンコードされたボディのみを返す関数
+// std::string Server::extractChunkedBodyFromRequest(int socket_fd)
+// {
+//     std::string &requestData = requestStringMap[socket_fd];
+//     size_t headerEndPos = requestData.find("\r\n\r\n");
+
+//     if (headerEndPos != std::string::npos)
+//     {
+//         // ヘッダー終端の後ろからボディを抽出
+//         return requestData.substr(headerEndPos + 4); // "\r\n\r\n"の後ろからがボディ
+//     }
+
+//     return ""; // ヘッダーが完全に受信されていない場合、空の文字列を返す
+// }
+
+void Server::initReceiveFlg(int socket_fd)
+{
+    isBodyFlg[socket_fd] = false;
+    isNowHeaderFlg[socket_fd] = false;
+    isChunkedFlg[socket_fd] = false;
+    chunkedBody[socket_fd] = "";
+}
+
 int Server::receiveRequest(int socket_fd)
 {
-    // static int content_length; // この変数はクラスのメンバ変数にする
-    //this->recvContentLengthにfdがなかったら、初期化する
     if (this->recvContentLength.find(socket_fd) == this->recvContentLength.end())
         this->recvContentLength.insert(std::make_pair(socket_fd, 0));
     int valread;
     char buffer[BUFFER_SIZE] = {0};
     valread = recv(socket_fd, buffer, BUFFER_SIZE, 0);
+    std::cout << "valread: " << valread << std::endl;
     if (valread > 0)
     {
+        std::cout << "--- recv --- " << std::endl;
+        std::cout << buffer << std::endl;
+        std::cout << "--- recv --- " << std::endl;
+        if (isChunkedFlg[socket_fd])
+        {
+            std::cout << "chunked Start!!" << std::endl;
+            // チャンクデータの処理を行う
+            std::string readChunk(buffer, valread);
+            int chunkedStat = processChunkedRequest(socket_fd, readChunk);
+            if (chunkedStat == 1)
+            {
+                // チャンクの終了
+                initReceiveFlg(socket_fd);
+                std::cout << "-- request -- " << std::endl;
+                std::cout << requestStringMap[socket_fd] << std::endl;
+                std::cout << "-- request -- " << std::endl;
+                return OPERATION_DONE;
+            }
+            else if (chunkedStat == 0)
+            {
+                return RETRY_OPERATION;
+            }
+            else
+            {
+                std::cout << "!!!!! Chunked Error !!!!!" << std::endl;
+                initReceiveFlg(socket_fd);
+                return OPERATION_ERROR;
+            }
+        }
         requestStringMap[socket_fd].append(buffer, valread);
-        if (this->recvContentLength[socket_fd] != 0 && valread >= this->recvContentLength[socket_fd])
+
+        // ヘッダー終端を探す（リクエストが完全にヘッダーを受信したかを確認するため）
+        size_t headerEndPos = requestStringMap[socket_fd].find("\r\n\r\n");
+        if (!isNowHeaderFlg[socket_fd] && headerEndPos != std::string::npos)
+        {
+            isNowHeaderFlg[socket_fd] = true;
+            // ヘッダーが完全に受信された後に、リクエストメソッドを確認
+            std::string headers = requestStringMap[socket_fd].substr(0, headerEndPos);
+            std::string requestLine = headers.substr(0, headers.find("\r\n"));
+            std::string method = requestLine.substr(0, requestLine.find(" "));
+
+            // GETメソッドの場合はContent-LengthまたはTransfer-Encodingのチェックをスキップ
+            if (method != "GET" && method != "HEAD" && method != "DELETE")
+            {
+                if (headers.find("Content-Length:") == std::string::npos && headers.find("Transfer-Encoding: chunked") == std::string::npos)
+                    isBodyFlg[socket_fd] = false;
+                else
+                    isBodyFlg[socket_fd] = true;
+            }
+            else
+            {
+                isBodyFlg[socket_fd] = false;
+            }
+            if (headers.find("Content-Length:") != std::string::npos)
+            {
+                this->recvContentLength[socket_fd] = getContentLengthFromHeaders(requestStringMap[socket_fd]);
+                return RETRY_OPERATION;
+            }
+            if (headers.find("Transfer-Encoding: chunked") != std::string::npos)
+            {
+                isChunkedFlg[socket_fd] = true;
+                return RETRY_OPERATION;
+            }
+        }
+
+        this->totalSamread[socket_fd] += valread;
+        if (isNowHeaderFlg[socket_fd] && ((!isBodyFlg[socket_fd]) || (this->recvContentLength[socket_fd] != 0 && this->totalSamread[socket_fd] >= this->recvContentLength[socket_fd])))
         {
             this->recvContentLength.erase(socket_fd);
-            return  OPERATION_DONE;
+            this->totalSamread.erase(socket_fd);
+            initReceiveFlg(socket_fd);
+            return OPERATION_DONE;
         }
-        if (requestStringMap[socket_fd].find("Content-Length:") != std::string::npos)
-        {
-            this->recvContentLength[socket_fd] = getContentLengthFromHeaders(requestStringMap[socket_fd]);
-            return RETRY_OPERATION; 
-        }
-        else if (requestStringMap[socket_fd].find("transfer-encoding: chunked") != std::string::npos)
-        {
-            return RETRY_OPERATION;
-        }
-        else if (requestStringMap[socket_fd].find("Host") == std::string::npos) //リクエストの中身で、Hostがない場合は、400を返
-        {
-            return RETRY_OPERATION;
-        }
-        else
-        {
-            return OPERATION_DONE ;
-        }
+        return RETRY_OPERATION;
     }
     else if (valread < 0)
     {
+        initReceiveFlg(socket_fd);
         return OPERATION_ERROR;
     }
-    else//読み込みが完全に終了しているので、trueを返す
+    else // 読み込みが完全に終了しているので、trueを返す
     {
-        return OPERATION_DONE ;
+        initReceiveFlg(socket_fd);
+        return OPERATION_DONE;
     }
 }
 
@@ -223,16 +351,16 @@ Request Server::findServerandlocaitons(int socket_fd)
     (void)socket_fd;
     Request req(requestStringMap[socket_fd]);
     Servers server;
-    bool foundServer = false; 
+    bool foundServer = false;
 
     std::multimap<int, Servers>::iterator it = requestMap.begin();
     for (; it != requestMap.end(); it++)
-    {   
+    {
         std::stringstream ss(req.getPort());
         size_t port_num;
         ss >> port_num;
         if ((it->second.getServerNames() == req.getHost()) && (it->second.getPort() == port_num))
-        { 
+        {
             server = it->second;
             foundServer = true;
             break;
@@ -255,10 +383,10 @@ bool Server::sendResponse(int socket_fd, Response &res)
         res.setResponse();
         return false;
     }
-    else if (response.size() > MAX_RESPONSE_SIZE) 
+    else if (response.size() > MAX_RESPONSE_SIZE)
         response = "HTTP/1.1 413 Payload Too Large\r\nContent-Type: text/plain\r\n\r\nResponse too large.";
     ssize_t sendByte = send(socket_fd, response.c_str(), response.size(), 0); // Linuxの場合
-    if (sendByte < 0) 
+    if (sendByte < 0)
     {
         close(socket_fd);
         deletePollfds(socket_fd);
@@ -293,16 +421,17 @@ void Server::recvandProcessConnection(struct pollfd &pfd)
     int recv_result = receiveRequest(pfd.fd);
     if (recv_result == OPERATION_DONE)
     {
+        std::cout << "## Request Done ##" << std::endl;
         processRequest(pfd.fd);
-        //もしfdのレスポンスクラスにぱパイプのfdがセットされてたら、そのfdをpollfdsに追加してPOLLINを監視する　=もしCGIだったら
+        // もしfdのレスポンスクラスにぱパイプのfdがセットされてたら、そのfdをpollfdsに追加してPOLLINを監視する　=もしCGIだったら
         if (this->responseConectionMap[pfd.fd].getCGIreadfd() != -1 || this->responseConectionMap[pfd.fd].getStatus() == "0")
         {
             struct pollfd pipe_pollfd = {this->responseConectionMap[pfd.fd].getCGIreadfd(), POLLIN, 0};
-            this->pollfds.push_back(pipe_pollfd); 
-            this->cgiReadFdMap.insert(std::make_pair(this->responseConectionMap[pfd.fd].getCGIreadfd(), pfd.fd)); //6 5
+            this->pollfds.push_back(pipe_pollfd);
+            this->cgiReadFdMap.insert(std::make_pair(this->responseConectionMap[pfd.fd].getCGIreadfd(), pfd.fd)); // 6 5
             pfd.events = 0;
         }
-        else 
+        else
         {
             pfd.events = POLLOUT;
         }
@@ -316,7 +445,7 @@ void Server::recvandProcessConnection(struct pollfd &pfd)
         close(pfd.fd);
         deletePollfds(pfd.fd);
     }
-    return ;
+    return;
 }
 
 void Server::deletePollfds(int socket_fd)
@@ -336,9 +465,9 @@ void Server::deletePollfds(int socket_fd)
 void Server::sendConnection(struct pollfd &pfd)
 {
     if (!sendResponse(pfd.fd, this->responseConectionMap[pfd.fd]))
-        return ; //送信が完全に終了していない場合はreurtunして、次の送信を待つ
+        return; // 送信が完全に終了していない場合はreurtunして、次の送信を待つ
     close(pfd.fd);
-    deletePollfds(pfd.fd);    // pollfdsから該当するエントリを削除
+    deletePollfds(pfd.fd); // pollfdsから該当するエントリを削除
 }
 
 void Server::changePollfds(int changefd, short events)
@@ -346,15 +475,15 @@ void Server::changePollfds(int changefd, short events)
     std::vector<struct pollfd>::iterator it = pollfds.begin();
     for (; it != pollfds.end(); it++)
     {
-            if (it->fd == changefd)
-            {
-                it->events = events;
-                break;
-            }
+        if (it->fd == changefd)
+        {
+            it->events = events;
+            break;
         }
+    }
 }
 
-void Server::server_Setresponse(int fd, const std::string& status, const std::string& contentType, const std::string& body)
+void Server::server_Setresponse(int fd, const std::string &status, const std::string &contentType, const std::string &body)
 {
     this->responseConectionMap[fd].setStatus(status);
     this->responseConectionMap[fd].setHeaders("Content-Type: ", contentType);
@@ -369,7 +498,7 @@ void Server::readCgiOutput(struct pollfd &pfd)
     std::string body;
     int requestfd = this->cgiReadFdMap[pfd.fd];
     int pipefd = pfd.fd;
-    //read from pipe
+    // read from pipe
     int len = read(pipefd, buf, sizeof(buf) - 1);
     if (len > 0)
     {
@@ -388,7 +517,7 @@ void Server::readCgiOutput(struct pollfd &pfd)
         close(pipefd);
         deletePollfds(pipefd);
         this->cgiReadFdMap.erase(pipefd);
-        return ;
+        return;
     }
     else if (len < 0)
     {
@@ -398,7 +527,7 @@ void Server::readCgiOutput(struct pollfd &pfd)
         server_Setresponse(pfd.fd, "500 Internal Server Error", "text/html", "<html><body><h1>500 Internal Server Error</h1><p>サーバーで内部エラーが発生しました。</p></body></html>");
         pollfds[this->cgiReadFdMap[pipefd]].events = POLLOUT;
     }
-    return ;
+    return;
 }
 
 void Server::runEventLoop()
@@ -427,22 +556,21 @@ void Server::runEventLoop()
                 }
                 else if (pollfds[i].revents & POLLHUP)
                 {
-                    //pipeのfdが空で読み込まれない時に、POLLHUPが発生する
-                    //pipeのfdを閉じる処理と、pollfdsから削除する処理を行う
-                    //リクエストのfdをPOLLOUTに変更する
+                    // pipeのfdが空で読み込まれない時に、POLLHUPが発生する
+                    // pipeのfdを閉じる処理と、pollfdsから削除する処理を行う
+                    // リクエストのfdをPOLLOUTに変更する
                     server_Setresponse(this->cgiReadFdMap[pollfds[i].fd], "200 OK", "text/html", this->responseConectionMap[this->cgiReadFdMap[pollfds[i].fd]].getBody());
                     this->responseConectionMap[this->cgiReadFdMap[pollfds[i].fd]].setCGIreadfd(-1);
                     changePollfds(this->cgiReadFdMap[pollfds[i].fd], POLLOUT);
-                    close(pollfds[i].fd);   
+                    close(pollfds[i].fd);
                     deletePollfds(pollfds[i].fd);
-                    this->cgiReadFdMap.erase(pollfds[i].fd);   
+                    this->cgiReadFdMap.erase(pollfds[i].fd);
                 }
                 else if (pollfds[i].revents & POLLOUT)
                 {
                     // レスポンス送信処理
                     sendConnection(pollfds[i]);
                 }
-
             }
         }
         else

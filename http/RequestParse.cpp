@@ -117,6 +117,7 @@ void RequestParse::parseRequestLine(const std::string &line, Request &request)
             request.setMethod(requestLineTokens[0]);
             request.setUri(getfilepathtoURI(requestLineTokens[1], request));
             request.setHttpVersion(requestLineTokens[2]);
+            request.setContentLength(0);
             return;
         }
     }
