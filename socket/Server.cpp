@@ -66,14 +66,14 @@ void Server::initializeServerSocket(const Servers &server, size_t port)
     this->listeningSockets.push_back(socket_fd);
 
     // ソケットをノンブロッキングモードに設定
-    int flags = fcntl(socket_fd, F_GETFL, 0);
-    if (flags == -1)
-    {
-        close(socket_fd);
-        throw std::runtime_error("Failed to get flags for socket");
-    }
+    // int flags = fcntl(socket_fd, F_GETFL, 0);
+    // if (flags == -1)
+    // {
+    //     close(socket_fd);
+    //     throw std::runtime_error("Failed to get flags for socket");
+    // }
 
-    if (fcntl(socket_fd, F_SETFL, flags | O_NONBLOCK) == -1)
+    if (fcntl(socket_fd, F_SETFL,  O_NONBLOCK ,FD_CLOEXEC))
     {
         close(socket_fd);
         throw std::runtime_error("Failed to set socket to non-blocking mode");
@@ -122,14 +122,14 @@ void Server::acceptNewConnection(int server_fd, std::vector<struct pollfd> &poll
     }
 
     // 新しいソケットをノンブロッキングモードに設定
-    int flags = fcntl(new_socket, F_GETFL, 0);
-    if (flags == -1)
-    {
-        close(new_socket); // フラグの取得に失敗した場合は、新しいソケットを閉じます。
-        throw std::runtime_error("Failed to get flags for new socket");
-    }
+    // int flags = fcntl(new_socket, F_GETFL, 0);
+    // if (flags == -1)
+    // {
+    //     close(new_socket); // フラグの取得に失敗した場合は、新しいソケットを閉じます。
+    //     throw std::runtime_error("Failed to get flags for new socket");
+    // }
 
-    if (fcntl(new_socket, F_SETFL, flags | O_NONBLOCK) == -1)
+    if (fcntl(new_socket, F_SETFL,  O_NONBLOCK ,FD_CLOEXEC))
     {
         close(new_socket); // ノンブロッキングモードへの設定に失敗した場合は、新しいソケットを閉じます。
         throw std::runtime_error("Failed to set new socket to non-blocking mode");
