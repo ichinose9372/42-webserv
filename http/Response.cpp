@@ -1,6 +1,6 @@
 #include "Response.hpp"
 
-Response::Response() {this->CGI_read_fd = -1;}
+Response::Response() {this->CGI_read_fd = -1, this->status = "0";}
 
 Response::~Response() {}
 

@@ -11,15 +11,22 @@ bool isDirectory(const std::string &filePath)
     return (false);
 }
 
-
 void ExecCgi::executeCgiScript(Request &req, Response &res)
 {
     std::string path;
     if (isDirectory(req.getUri()))
-        path = "./autoindex/autoindex.py";
+    {
+        if (req.getAutoindex())
+            path = "./autoindex/autoindex.py";
+        else
+        {
+            res.setStatus("404 Not Found");
+            res.setBody(GetRequest::getBody(req.getErrorpage(404)));
+            return ;
+        }
+    }
     else
         path = req.getUri();
-    // std::cout << path << std::endl;
     if (!isScriptAccessible(path))
     {
         res.setStatus("404 Not Found");
@@ -38,13 +45,11 @@ bool ExecCgi::isScriptAccessible(const std::string &path)
     {
        return false;
     }
-
     // S_IXUSRは所有者の実行権限があるかをチェック
     if ((buffer.st_mode & S_IXUSR) == 0)
     {
         return false;
     }
-
     return true;
 }
 

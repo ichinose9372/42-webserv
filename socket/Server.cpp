@@ -377,6 +377,7 @@ Request Server::findServerandlocaitons(int socket_fd)
 
 bool Server::sendResponse(int socket_fd, Response &res)
 {
+    res.setResponse();
     std::string response = res.getResponse();
     if (response.empty())
         return false;
@@ -399,7 +400,9 @@ bool Server::sendResponse(int socket_fd, Response &res)
             return false;
         }
         else
+        {
             return true;
+        }
     }
 }
 
@@ -419,7 +422,7 @@ void Server::recvandProcessConnection(struct pollfd &pfd)
         std::cout << "## Request Done ##" << std::endl;
         processRequest(pfd.fd);
         // もしfdのレスポンスクラスにぱパイプのfdがセットされてたら、そのfdをpollfdsに追加してPOLLINを監視する　=もしCGIだったら
-        if (this->responseConectionMap[pfd.fd].getCGIreadfd() != -1)
+        if (this->responseConectionMap[pfd.fd].getCGIreadfd() != -1 || this->responseConectionMap[pfd.fd].getStatus() == "0")
         {
             struct pollfd pipe_pollfd = {this->responseConectionMap[pfd.fd].getCGIreadfd(), POLLIN, 0};
             this->pollfds.push_back(pipe_pollfd);
