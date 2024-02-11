@@ -227,7 +227,7 @@ void RequestParse::parseBody(std::istringstream &requestStream, Request &request
         }
 
         if (!body.empty())
-            body.pop_back(); // 最後の改行を削除
+            body.erase(body.length() - 1); // 最後の改行を削除
         request.setBody(body);
     }
     else
