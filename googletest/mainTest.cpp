@@ -251,9 +251,15 @@ TEST(WebServerTest, Response200ShellPOST)
     EXPECT_EQ(httpCode, "200");
 }
 
-TEST(WebServerTest, Response504InfiniteGET)
+TEST(WebServerTest, Response504ShellInfiniteGET)
 {
-    std::string httpCode = getHttpResponseCode("http://localhost:8080/infinite/", "GET");
+    std::string httpCode = getHttpResponseCode("http://localhost:8080/shell-infinite/", "GET");
+    EXPECT_EQ(httpCode, "504");
+}
+
+TEST(WebServerTest, Response504PythonInfiniteGET)
+{
+    std::string httpCode = getHttpResponseCode("http://localhost:8080/python-infinite/", "GET");
     EXPECT_EQ(httpCode, "504");
 }
 
