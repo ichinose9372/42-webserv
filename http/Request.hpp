@@ -38,6 +38,7 @@ public:
     size_t getClientMaxBodySize();
     size_t getContentLength();
     const std::string &getErrorpage(int statucode);
+    bool getAutoindex();
     // setter
     void setMethod(const std::string &method);
     void setUri(const std::string &uri);
@@ -73,6 +74,7 @@ private:
     std::map<int, std::string> error_page;
     void parseRequest(const std::string &request);
     void printRequest();
+    bool _autoindex;
 };
 
 #endif

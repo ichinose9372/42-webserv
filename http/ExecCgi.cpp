@@ -11,12 +11,20 @@ bool isDirectory(const std::string &filePath)
     return (false);
 }
 
-
 void ExecCgi::executeCgiScript(Request &req, Response &res)
 {
     std::string path;
     if (isDirectory(req.getUri()))
-        path = "./autoindex/autoindex.py";
+    {
+        if (req.getAutoindex())
+            path = "./autoindex/autoindex.py";
+        else
+        {
+            res.setStatus("500 Internal Server Error");
+            res.setBody(GetRequest::getBody(req.getErrorpage(500)));
+            return ;
+        }
+    }
     else
         path = req.getUri();
     if (!isScriptAccessible(path))
