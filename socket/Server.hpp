@@ -45,6 +45,8 @@ private:
     std::map<int, int> totalSamread;
     std::map<int, bool> isBodyFlg;
     std::map<int, bool> isNowHeaderFlg;
+    std::map<int, bool> isChunkedFlg;
+    std::map<int, std::string> chunkedBody;
     Server();
 
 public:
@@ -62,6 +64,8 @@ public:
     void initializeSocketAddress(size_t port);
     // request functions
     int receiveRequest(int socket_fd);
+    int processChunkedRequest(int socket_fd, const std::string &readChunk);
+    std::string extractChunkedBodyFromRequest(int socket_fd);
     void initReceiveFlg(int socket_fd);
     void processRequest(int socket_fd);
     void processReceivedHeaders(int socket_fd, const std::string &headers);
