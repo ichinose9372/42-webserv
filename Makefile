@@ -29,8 +29,8 @@ clean:
 fclean: clean
 	$(RM) $(NAME)
 	$(RM) venv
-	$(RM) ./docs/upload/post.txt
-	$(RM) ./docs/upload/test.txt
+	$(RM) ./docs/upload/post*
+	$(RM) ./docs/upload/test*
 	$(RM) test.txt
 
 re: fclean all
