@@ -155,21 +155,21 @@ static int stringToInt(const std::string &str, bool &success)
     return success ? number : 0;
 }
 
-int getBodySizeFromRequest(const std::string &requestString)
-{
-    // ヘッダーとボディの境界を検索
-    size_t headerEndPos = requestString.find("\r\n\r\n");
+// recvで取得したデータからボディのサイズを取得する関数
+static int getBodySize(const std::string& requestData) {
+    // ヘッダーとボディの区切りを示すパターン
+    const std::string delimiter = "\r\n\r\n";
+    // 区切りの位置を検索
+    size_t delimiterPos = requestData.find(delimiter);
 
-    if (headerEndPos != std::string::npos)
-    {
-        // ボディ部分の開始位置を見つけた場合
-        size_t bodyStartPos = headerEndPos + 4; // "\r\n\r\n"の長さを加算してボディの開始位置を取得
-
-        // ボディのサイズを計算（全体の長さからボディの開始位置を引く）
-        return static_cast<int>(requestString.length() - bodyStartPos);
+    if (delimiterPos != std::string::npos) {
+        // 区切りが見つかった場合、その位置+区切り文字列の長さをヘッダーの終わりとする
+        size_t headerEndPos = delimiterPos + delimiter.length();
+        // ボディのサイズは、リクエストデータの全長からヘッダーの終わりの位置を引いたもの
+        return static_cast<int>(requestData.length() - headerEndPos);
     }
 
-    // ヘッダーとボディの境界が見つからない場合、ボディは存在しないとみなし0を返す
+    // ヘッダーとボディの区切りが見つからない場合、ボディは存在しないとみなし、サイズは0とする
     return 0;
 }
 
@@ -210,26 +210,12 @@ int Server::processChunkedRequest(int socket_fd)
     }
 }
 
-// ヘッダーを取り除き、チャンクエンコードされたボディのみを返す関数
-std::string Server::extractChunkedBodyFromRequest(int socket_fd)
-{
-    std::string &requestData = requestStringMap[socket_fd];
-    size_t headerEndPos = requestData.find("\r\n\r\n");
-
-    if (headerEndPos != std::string::npos)
-    {
-        // ヘッダー終端の後ろからボディを抽出
-        return requestData.substr(headerEndPos + 4); // "\r\n\r\n"の後ろからがボディ
-    }
-
-    return ""; // ヘッダーが完全に受信されていない場合、空の文字列を返す
-}
-
 void Server::initReceiveFlg(int socket_fd)
 {
     isBodyFlg[socket_fd] = false;
     isNowHeaderFlg[socket_fd] = false;
     isChunkedFlg[socket_fd] = false;
+    this->recvContentLength.erase(socket_fd);
 }
 
 int Server::receiveRequest(int socket_fd)
@@ -242,6 +228,7 @@ int Server::receiveRequest(int socket_fd)
     if (valread > 0)
     {
         requestStringMap[socket_fd].append(buffer, valread);
+        int currentBodySize = getBodySize(requestStringMap[socket_fd]);
         if (isChunkedFlg[socket_fd])
         {
             // チャンクデータの処理を行う
@@ -286,7 +273,7 @@ int Server::receiveRequest(int socket_fd)
             if (headers.find("Content-Length:") != std::string::npos)
             {
                 this->recvContentLength[socket_fd] = getContentLengthFromHeaders(requestStringMap[socket_fd]);
-                if (valread >= this->recvContentLength[socket_fd])
+                if (currentBodySize >= this->recvContentLength[socket_fd])
                     return OPERATION_DONE;
                 else
                     return RETRY_OPERATION;
@@ -298,11 +285,8 @@ int Server::receiveRequest(int socket_fd)
             }
         } // header読み込み処理、終了
 
-        this->totalSumRead[socket_fd] += valread;
-        if (isNowHeaderFlg[socket_fd] && ((!isBodyFlg[socket_fd]) || (this->recvContentLength[socket_fd] != 0 && this->totalSumRead[socket_fd] >= this->recvContentLength[socket_fd])))
+        if (isNowHeaderFlg[socket_fd] && ((!isBodyFlg[socket_fd]) || (this->recvContentLength[socket_fd] != 0 && currentBodySize >= this->recvContentLength[socket_fd])))
         {
-            this->recvContentLength.erase(socket_fd);
-            this->totalSumRead.erase(socket_fd);
             return OPERATION_DONE;
         }
         return RETRY_OPERATION;
@@ -319,7 +303,7 @@ int Server::receiveRequest(int socket_fd)
 
 Request Server::findServerandlocaitons(int socket_fd)
 {
-    int bodySize = getBodySizeFromRequest(requestStringMap[socket_fd]);
+    int bodySize = getBodySize(requestStringMap[socket_fd]);
     Request req(requestStringMap[socket_fd], bodySize);
     Servers server;
     bool foundServer = false;

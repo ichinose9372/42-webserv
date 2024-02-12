@@ -46,7 +46,6 @@ private:
     std::map<int, bool> isNowHeaderFlg;
     std::map<int, bool> isChunkedFlg;
     std::vector<int> listeningSockets;
-    std::map<int, int> totalSumRead;
     Server();
 
 public:
