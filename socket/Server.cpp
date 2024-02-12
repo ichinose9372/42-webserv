@@ -120,7 +120,6 @@ void Server::acceptNewConnection(int server_fd, std::vector<struct pollfd> &poll
         close(server_fd);
         throw std::runtime_error("accept");
     }
-
     // 新しいソケットをノンブロッキングモードに設定
     // int flags = fcntl(new_socket, F_GETFL, 0);
     // if (flags == -1)
@@ -492,6 +491,7 @@ void Server::runEventLoop()
     {
         if (poll(pollfds.data(), pollfds.size(), -1) > 0)
         {
+            Timer::busyWaitMilliseconds(1);
             for (size_t i = 0; i < pollfds.size(); ++i)
             {
                 if (pollfds[i].revents & POLLIN)
