@@ -155,24 +155,6 @@ static int stringToInt(const std::string &str, bool &success)
     return success ? number : 0;
 }
 
-int getBodySizeFromRequest(const std::string &requestString)
-{
-    // ヘッダーとボディの境界を検索
-    size_t headerEndPos = requestString.find("\r\n\r\n");
-
-    if (headerEndPos != std::string::npos)
-    {
-        // ボディ部分の開始位置を見つけた場合
-        size_t bodyStartPos = headerEndPos + 4; // "\r\n\r\n"の長さを加算してボディの開始位置を取得
-
-        // ボディのサイズを計算（全体の長さからボディの開始位置を引く）
-        return static_cast<int>(requestString.length() - bodyStartPos);
-    }
-
-    // ヘッダーとボディの境界が見つからない場合、ボディは存在しないとみなし0を返す
-    return 0;
-}
-
 // recvで取得したデータからボディのサイズを取得する関数
 static int getBodySize(const std::string& requestData) {
     // ヘッダーとボディの区切りを示すパターン
@@ -226,21 +208,6 @@ int Server::processChunkedRequest(int socket_fd)
     {
         return RETRY_OPERATION; // それ以外の場合は更にデータを受信する必要がある
     }
-}
-
-// ヘッダーを取り除き、チャンクエンコードされたボディのみを返す関数
-std::string Server::extractChunkedBodyFromRequest(int socket_fd)
-{
-    std::string &requestData = requestStringMap[socket_fd];
-    size_t headerEndPos = requestData.find("\r\n\r\n");
-
-    if (headerEndPos != std::string::npos)
-    {
-        // ヘッダー終端の後ろからボディを抽出
-        return requestData.substr(headerEndPos + 4); // "\r\n\r\n"の後ろからがボディ
-    }
-
-    return ""; // ヘッダーが完全に受信されていない場合、空の文字列を返す
 }
 
 void Server::initReceiveFlg(int socket_fd)
@@ -336,7 +303,7 @@ int Server::receiveRequest(int socket_fd)
 
 Request Server::findServerandlocaitons(int socket_fd)
 {
-    int bodySize = getBodySizeFromRequest(requestStringMap[socket_fd]);
+    int bodySize = getBodySize(requestStringMap[socket_fd]);
     Request req(requestStringMap[socket_fd], bodySize);
     Servers server;
     bool foundServer = false;
