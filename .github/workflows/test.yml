@@ -1,4 +1,4 @@
-name: webserb-push-test
+name: webserv-push-test
 on: 
   push:
   pull_request:
